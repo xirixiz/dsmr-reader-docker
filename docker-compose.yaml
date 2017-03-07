@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   dsmrdb:
     image: postgres
@@ -31,5 +32,10 @@ services:
     restart: always
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
+    environment:
+      - DSRM_USER=admin
+      - DSRM_EMAIL=root@localhost
+      - DSRM_PASSWORD=admin
+
 volumes:
    dsmrdb:

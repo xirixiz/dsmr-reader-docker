@@ -4,7 +4,7 @@
 pip3 install --upgrade pip
 
 # ADD ROOT TO DIALOUT GROUP
-usermod -a -G dialout root 
+usermod -a -G dialout root
 
 # GIT CLONE
 git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader
@@ -26,11 +26,22 @@ cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-rea
 sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
 /root/dsmr-reader/manage.py migrate
 /root/dsmr-reader/manage.py collectstatic --noinput
-echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'root@localhost', 'admin')" | /root/dsmr-reader/manage.py shell
+
+if [[ -z ${DSRM_USER} ]] || [[ -z $DSRM_EMAIL ]] || [[ -z ${DSRM_PASSWORD} ]]; then
+  echo "DSRM web credentials not set. Exiting."
+  exit 1
+else
+  if echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists()" | /root/dsmr-reader/manage.py shell; then
+    echo "DSRM web credentials already set!"
+  else  
+    echo "Setting DSRM web credentials..."
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('(${DSRM_USERNAME})', '(${DSRM_EMAIL})', '(${DSRM_PASSWORD})')" | /root/dsmr-reader/manage.py shell
+  fi
+fi
 
 # NGINX Config
 cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
-  
+
 # START SERVICES
 /usr/sbin/nginx
 /usr/bin/supervisord -n

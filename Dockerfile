@@ -7,6 +7,7 @@ SHELL ["/bin/bash", "-c"]
 RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
     echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
     apt-get -q update && \
+    apt-get -qy dist-upgrade && \
     apt-get install -qy \
       python3 \
       python3-dev \
@@ -21,9 +22,14 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
       nginx \
       curl \
       sudo \
-      wget
+      wget \
+    && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/*
 
-ADD scripts/startup.sh /
+COPY scripts/startup.sh /
 RUN chmod 755 /startup.sh
 
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
