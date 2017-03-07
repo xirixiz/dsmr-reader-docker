@@ -19,7 +19,7 @@ services:
 
   dsmr:
 #    build: .
-    image: xirixiz/dsmr-reader 
+    image: xirixiz/dsmr-reader-docker
     container_name: dsmr
     ports:
       - 8888:80
