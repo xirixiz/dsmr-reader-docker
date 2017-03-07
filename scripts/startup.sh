@@ -26,6 +26,7 @@ cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-rea
 sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
 /root/dsmr-reader/manage.py migrate
 /root/dsmr-reader/manage.py collectstatic --noinput
+echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'root@localhost', 'admin')" | /root/dsmr-reader/manage.py shell
 
 # NGINX Config
 cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
