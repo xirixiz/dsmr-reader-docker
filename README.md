@@ -1,4 +1,11 @@
 # dsmr-reader-docker
 dsrm-reader (https://github.com/dennissiemensma/dsmr-reader) in Docker
 
-./migrate superuser .... forgotten. Will be added tonight.
+
+HTTP: http://\<hostname>:8888
+
+HTTPS: https://\<hostname>:8889
+
+
+Vergeet niet de juiste meter te selecteren. DSMR versie 4 staat namelijk als default:
+http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
