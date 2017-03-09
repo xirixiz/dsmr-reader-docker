@@ -1,11 +1,15 @@
 # dsmr-reader-docker
-dsrm-reader (https://github.com/dennissiemensma/dsmr-reader) in Docker
 
-HTTP: http://\<hostname>:8888
+A docker-compose file in order to start the following application in Docker
+dsrm-reader (https://github.com/dennissiemensma/dsmr-reader)
 
-HTTPS: https://\<hostname>:8889
+Also it starts a postgres container for the application to store it's data.
 
-Vergeet niet de juiste meter te selecteren. DSMR versie 4 is default:
+After starting the containers with docker-compose, the dashboard is reachable at
+--HTTP: http://\<hostname>:8888
+--HTTPS: https://\<hostname>:8889
+
+After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):
 http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
 
 ###
