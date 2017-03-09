@@ -4,8 +4,6 @@ services:
   dsmrdb:
     image: postgres
     container_name: dsmrdb
-    ports:
-      - 5432:5432
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -18,8 +16,8 @@ services:
       - POSTGRES_DB=dsmrreader
 
   dsmr:
-#    build: .
-    image: xirixiz/dsmr-reader-docker
+    build: .
+#    image: xirixiz/dsmr-reader-docker
     container_name: dsmr
     ports:
       - 8888:80

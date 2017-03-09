@@ -13,7 +13,8 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
       python3-dev \
       python3-pip \
       python3-virtualenv \
-      postgresql \
+      postgresql-client \
+      libpq-dev \
       virtualenvwrapper \
       supervisor \
       cu \
