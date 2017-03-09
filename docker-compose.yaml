@@ -16,8 +16,8 @@ services:
       - POSTGRES_DB=dsmrreader
 
   dsmr:
-    build: .
-#    image: xirixiz/dsmr-reader-docker
+#    build: .
+    image: xirixiz/dsmr-reader-docker
     container_name: dsmr
     ports:
       - 8888:80
