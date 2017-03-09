@@ -16,7 +16,7 @@ source /root/.virtualenvs/dsmrreader/bin/activate
 
 # DJANGO REQUIREMENTS
 pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt
-pip3 install psycopg2
+pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
 
 # NGINX REQUIREMENTS
 mkdir -p /var/www/dsmrreader/static
