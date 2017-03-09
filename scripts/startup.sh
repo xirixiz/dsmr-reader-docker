@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# UPDATE PIP
-pip3 install --upgrade pip
-
-# ADD ROOT TO DIALOUT GROUP
-usermod -a -G dialout root
-
 # GIT CLONE
 git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader
 

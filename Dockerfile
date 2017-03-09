@@ -25,13 +25,17 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
       sudo \
       wget \
     && \
+    pip3 install --upgrade pip && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
 COPY scripts/startup.sh /
+
 RUN chmod 755 /startup.sh
+
+RUN usermod -a -G dialout root
 
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
