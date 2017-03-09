@@ -6,13 +6,12 @@ dsrm-reader (https://github.com/dennissiemensma/dsmr-reader)
 Also it starts a postgres container for the application to store it's data.
 
 After starting the containers with docker-compose, the dashboard is reachable at
-HTTP: http://\<hostname>:8888
-HTTPS: https://\<hostname>:8889
+...HTTP: http://\<hostname>:8888
+...HTTPS: https://\<hostname>:8889
 
 After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):
-http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
+...http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
 
-###
 
 dsrmdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
