@@ -26,7 +26,7 @@ if [[ -z ${DSMR_USER} ]] || [[ -z $DSMR_EMAIL ]] || [[ -z ${DSMR_PASSWORD} ]]; t
   exit 1
 else
 #  if echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists()" | /root/dsmr-reader/manage.py shell; then
-#    echo "DSRM web credentials already set!"
+#    echo "DSMR web credentials already set!"
 #  else
     echo "Setting DSMR web credentials..."
     (cat - | /root/dsmr-reader/manage.py shell) << !

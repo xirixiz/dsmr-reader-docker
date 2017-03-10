@@ -31,9 +31,9 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     environment:
-      - DSRM_USER=admin
-      - DSRM_EMAIL=root@localhost
-      - DSRM_PASSWORD=admin
+      - DSMR_USER=admin
+      - DSMR_EMAIL=root@localhost
+      - DSMR_PASSWORD=admin
 
 volumes:
    dsmrdb:
