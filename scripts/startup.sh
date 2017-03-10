@@ -21,16 +21,22 @@ sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
 /root/dsmr-reader/manage.py migrate
 /root/dsmr-reader/manage.py collectstatic --noinput
 
-if [[ -z ${DSRM_USER} ]] || [[ -z $DSRM_EMAIL ]] || [[ -z ${DSRM_PASSWORD} ]]; then
-  echo "DSRM web credentials not set. Exiting."
+if [[ -z ${DSMR_USER} ]] || [[ -z $DSMR_EMAIL ]] || [[ -z ${DSMR_PASSWORD} ]]; then
+  echo "DSMR web credentials not set. Exiting."
   exit 1
 else
-  if echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists()" | /root/dsmr-reader/manage.py shell; then
-    echo "DSRM web credentials already set!"
-  else  
-    echo "Setting DSRM web credentials..."
-    echo "from django.contrib.auth.models import User; User.objects.create_superuser('(${DSRM_USER})', '(${DSRM_EMAIL})', '(${DSRM_PASSWORD})')" | /root/dsmr-reader/manage.py shell
-  fi
+#  if echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists()" | /root/dsmr-reader/manage.py shell; then
+#    echo "DSRM web credentials already set!"
+#  else
+    echo "Setting DSMR web credentials..."
+    (cat - | /root/dsmr-reader/manage.py shell) << !
+from django.contrib.auth.models import User;
+User.objects.create_superuser('$DSMR_USER',
+                              '$DSMR_EMAIL',
+                              '$DSMR_PASSWORD')
+!
+
+#  fi
 fi
 
 # NGINX Config
