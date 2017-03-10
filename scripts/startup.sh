@@ -29,7 +29,7 @@ else
     echo "DSRM web credentials already set!"
   else  
     echo "Setting DSRM web credentials..."
-    echo "from django.contrib.auth.models import User; User.objects.create_superuser('(${DSRM_USERNAME})', '(${DSRM_EMAIL})', '(${DSRM_PASSWORD})')" | /root/dsmr-reader/manage.py shell
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('(${DSRM_USER})', '(${DSRM_EMAIL})', '(${DSRM_PASSWORD})')" | /root/dsmr-reader/manage.py shell
   fi
 fi
 
