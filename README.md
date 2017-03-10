@@ -7,7 +7,6 @@ Also it starts a postgres container for the application to store it's data.
 
 After starting the containers with docker-compose, the dashboard is reachable at  
 HTTP: http://\<hostname>:8888  
-HTTPS: https://\<hostname>:8889
 
 After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):  
 http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
@@ -20,3 +19,10 @@ docker exec -t dsmrdb pg_dumpall -c -U postgres > /tmp/dump_date +%d-%m-%Y"_"%H_
 
 Or restore:  
 cat /tmp/<your_dump>.sql | docker exec -i dsrmdb psql -U postgres
+
+## DEVELOPMENT
+
+Now there's also a development branch. It uses the development branch from https://github.com/dennissiemensma/dsmr-reader.
+A compose_project_name has been specified and the docker-compose file has been modified to use different ports and volumes.  
+
+HTTP: http://\<hostname>:8885
