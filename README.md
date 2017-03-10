@@ -22,7 +22,7 @@ cat /tmp/<your_dump>.sql | docker exec -i dsmrdb psql -U postgres
 
 ## DEVELOPMENT
 
-Now there's also a development branch. It uses the development branch from https://github.com/dennissiemensma/dsmr-reader.  
+Now there's also a development branch. It uses the development branch from https://github.com/dennissiemensma/dsmr-reader/tree/development.  
 A compose_project_name has been specified and the docker-compose file has been modified to use different ports and volumes.  
 
 HTTP: http://\<hostname>:8885
