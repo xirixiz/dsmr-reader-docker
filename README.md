@@ -5,6 +5,9 @@ dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
 
 Also it starts a postgres container for the application to store it's data.
 
+You should first add the user you run Docker with on your host file system to the dialout group:
+sudo usermod -aG dialout $(whoami)
+
 After starting the containers with docker-compose, the dashboard is reachable at  
 HTTP: http://\<hostname>:8888  
 
