@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   dsmrdb:
@@ -28,7 +28,6 @@ services:
     links:
       - dsmrdb
     restart: always
-    privileged: true
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     environment:
