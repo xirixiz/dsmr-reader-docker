@@ -25,7 +25,7 @@ Or restore:
 cat /tmp/<your_dump>.sql | docker exec -i dsmrdb psql -U postgres
 
 ---
-The above configuration has been testen on Ubuntu 17.04 and Manjaro 17.0.2
+The current configuration has been tested on Ubuntu 17.04 and Manjaro 17.0.2
 
 For Synology users:
 - Drivers are necessary: http://jadahl.dscloud.me/drivers.html
