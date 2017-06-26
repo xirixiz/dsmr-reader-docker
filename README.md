@@ -14,6 +14,7 @@ HTTP: http://\<hostname>:8888
 After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):  
 http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
 
+---
 
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
@@ -22,6 +23,13 @@ docker exec -t dsmrdb pg_dumpall -c -U postgres > /tmp/dump_date +%d-%m-%Y"_"%H_
 
 Or restore:  
 cat /tmp/<your_dump>.sql | docker exec -i dsmrdb psql -U postgres
+
+---
+The above configuration has been testen on Ubuntu 17.04 and Manjaro 17.0.2
+
+For Synology users:
+- Drivers are necessary: http://jadahl.dscloud.me/drivers.html
+- The docker-compose file must be set to version 2 instead of 3.
 
 ## DEVELOPMENT
 
