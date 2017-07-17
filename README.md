@@ -19,7 +19,7 @@ http://\<hostname>:8888/admin/dsmr_datalogger/dataloggersettings/
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
 Also you could easily create a backup:  
-docker exec -t dsmrdb pg_dumpall -c -U postgres > /tmp/dump_date +%d-%m-%Y"_"%H_%M_%S.sql
+docker exec -t dsmrdb pg_dumpall -c -U postgres > /tmp/dump_`date +%d-%m-%Y""%H%M%S`.sql
 
 Or restore:  
 cat /tmp/<your_dump>.sql | docker exec -i dsmrdb psql -U postgres
