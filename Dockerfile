@@ -49,6 +49,7 @@ RUN mkdir /root/.virtualenvs \
     && source /root/.virtualenvs/dsmrreader/bin/activate
 
 RUN pip3 install six \
+    && pip3 install dsmrreader.settings \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
 
