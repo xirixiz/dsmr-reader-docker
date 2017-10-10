@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 MAINTAINER Bram van Dartel <root@rootrulez.com>
 
-ENV TAG="v1.9.0"
+ENV TAG="v1.8.2"
 ENV DEBIAN_FRONTEND="noninteractive"
 SHELL ["/bin/bash", "-c"]
 
