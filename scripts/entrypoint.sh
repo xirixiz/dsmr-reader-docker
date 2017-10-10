@@ -1,9 +1,9 @@
 #!/bin/bash
 
 source /root/.virtualenvs/dsmrreader/bin/activate
-cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py \
-sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py \
-/root/dsmr-reader/manage.py migrate \
+cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py
+sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
+/root/dsmr-reader/manage.py migrate
 /root/dsmr-reader/manage.py collectstatic --noinput
 
 if [[ -z ${DSMR_USER} ]] || [[ -z $DSMR_EMAIL ]] || [[ -z ${DSMR_PASSWORD} ]]; then
