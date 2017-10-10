@@ -41,6 +41,7 @@ RUN usermod -a -G dialout root
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader \
+    && cd /root/dsmr-reader \
     && git checkout tags/${TAG}
 
 RUN mkdir /root/.virtualenvs \
@@ -52,11 +53,6 @@ RUN pip3 install six \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
 
 RUN mkdir -p /var/www/dsmrreader/static
-
-RUN cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py \
-    && sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py \
-    && /root/dsmr-reader/manage.py migrate \
-    && /root/dsmr-reader/manage.py collectstatic --noinput
 
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
