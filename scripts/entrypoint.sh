@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd /root/dsmr-reader
 cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py \
 sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py \
 /root/dsmr-reader/manage.py migrate \
