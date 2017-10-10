@@ -1,6 +1,10 @@
 #!/bin/bash
 
+mkdir /root/.virtualenvs
+virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
+/root/.virtualenvs/dsmrreader/bin/activate
 source /root/.virtualenvs/dsmrreader/bin/activate
+
 cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py
 sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
 /root/dsmr-reader/manage.py migrate

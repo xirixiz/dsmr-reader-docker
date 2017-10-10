@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 MAINTAINER Bram van Dartel <root@rootrulez.com>
 
-ENV TAG="v1.8.2"
+ENV TAG="v1.9.0"
 ENV DEBIAN_FRONTEND="noninteractive"
 SHELL ["/bin/bash", "-c"]
 
@@ -44,10 +44,6 @@ RUN git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-read
     && pushd /root/dsmr-reader \
     && git checkout tags/${TAG} \
     && popd
-
-RUN mkdir /root/.virtualenvs \
-    && virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3 \
-    && source /root/.virtualenvs/dsmrreader/bin/activate
 
 RUN pip3 install six \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt \
