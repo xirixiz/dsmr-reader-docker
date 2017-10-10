@@ -41,15 +41,15 @@ RUN usermod -a -G dialout root
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader \
-    && cd /root/dsmr-reader \
-    && git checkout tags/${TAG}
+    && pushd /root/dsmr-reader \
+    && git checkout tags/${TAG} \
+    && popd
 
 RUN mkdir /root/.virtualenvs \
     && virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3 \
     && source /root/.virtualenvs/dsmrreader/bin/activate
 
 RUN pip3 install six \
-    && pip3 install dsmrreader.settings \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt \
     && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
 
