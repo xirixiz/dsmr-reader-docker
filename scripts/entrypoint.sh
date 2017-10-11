@@ -1,10 +1,19 @@
 #!/bin/bash
 
+# VIRTUALENV
 mkdir /root/.virtualenvs
-sudo virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
-/root/.virtualenvs/dsmrreader/bin/activate
+virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
 source /root/.virtualenvs/dsmrreader/bin/activate
 
+# DJANGO REQUIREMENTS
+pip3 install six
+pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt
+pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
+
+# NGINX REQUIREMENTS
+mkdir -p /var/www/dsmrreader/static
+
+# RUN django tasks
 cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py
 sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
 /root/dsmr-reader/manage.py migrate
@@ -27,6 +36,9 @@ User.objects.create_superuser('$DSMR_USER',
 
 #  fi
 fi
+
+# NGINX Config
+cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
 
 # START SERVICES
 /usr/sbin/nginx
