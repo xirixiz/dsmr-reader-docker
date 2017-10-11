@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir /root/.virtualenvs
-virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
+sudo virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
 /root/.virtualenvs/dsmrreader/bin/activate
 source /root/.virtualenvs/dsmrreader/bin/activate
 
