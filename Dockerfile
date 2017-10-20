@@ -32,14 +32,6 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
-COPY scripts/entrypoint.sh /
-
-RUN chmod 755 /entrypoint.sh
-
-RUN usermod -a -G dialout root
-
-COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 RUN git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader \
     && pushd /root/dsmr-reader \
     && git checkout tags/${TAG} \
@@ -55,6 +47,14 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm /etc/nginx/sites-enabled/default \
     && cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
+
+COPY scripts/entrypoint.sh /
+
+RUN chmod 755 /entrypoint.sh
+
+RUN usermod -a -G dialout root
+
+COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 80 443
 
