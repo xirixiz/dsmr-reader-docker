@@ -6,6 +6,9 @@ COMMAND="$@"
 # 100% permissions fail safe
 chown -R dsmr: /home/dsmr /var/www/dsmrreader/
 
+# Check if we're able to connect to the database instance
+# already. The port isn't required for postgresql.py but
+# it is added for the sake of completion.
 DB_PORT=${DB_PORT:-5432}
 
 cmd=$(find /usr/lib/postgresql/ -name pg_isready)
