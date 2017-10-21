@@ -3,6 +3,9 @@
 set -eo pipefail
 COMMAND="$@"
 
+# 100% permissions fail safe
+chown -R dsmr: /home/dsmr /var/www/dsmrreader/
+
 DB_PORT=${DB_PORT:-5432}
 
 cmd=$(find /usr/lib/postgresql/ -name pg_isready)
