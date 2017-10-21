@@ -4,9 +4,6 @@ services:
   dsmrdb:
     image: postgres
     container_name: dsmrdb
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     volumes:
       - dsmrdb:/var/lib/postgresql/data
     restart: always
@@ -21,9 +18,6 @@ services:
     build: .
     image: xirixiz/dsmr-reader-docker
     container_name: dsmr
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     links:
       - dsmrdb
     restart: always
