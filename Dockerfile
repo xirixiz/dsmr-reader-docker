@@ -17,7 +17,7 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/*
 
-COPY scripts/* /
+COPY Docker/* /
 RUN useradd -ms /bin/bash dsmr \
     && mkdir -p /home/dsmr /var/www/dsmrreader/static \
     && usermod -a -G dialout root \
