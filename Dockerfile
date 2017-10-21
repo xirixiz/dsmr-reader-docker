@@ -3,59 +3,34 @@ LABEL maintainer="Bram van Dartel <root@rootrulez.com>"
 
 ARG TAG="v1.10.0"
 ENV DEBIAN_FRONTEND="noninteractive"
-SHELL ["/bin/bash", "-c"]
 
-RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
-    echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
-    apt-get -q update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      python3 \
-      python3-dev \
-      python3-pip \
-      python3-virtualenv \
-      postgresql-client \
-      libpq-dev \
-      virtualenvwrapper \
-      supervisor \
-      cu \
-      git \
-      jq \
-      nginx \
-      curl \
-      sudo \
-      wget \
-    && \
-    pip3 install --upgrade pip && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/*
-
-RUN git clone https://github.com/dennissiemensma/dsmr-reader.git /root/dsmr-reader \
-    && pushd /root/dsmr-reader \
-    && git checkout tags/${TAG} \
-    && popd
-
-RUN pip3 install six \
-    && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt \
-    && pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
-
-RUN mkdir -p /var/www/dsmrreader/static
-
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && rm /etc/nginx/sites-enabled/default \
-    && cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
+RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
+    && echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache \
+    && apt-get -q update && apt-get -qy dist-upgrade \
+    && apt-get install -qy \
+        python3 python3-dev python3-pip python3-virtualenv \
+        postgresql-client libpq-dev virtualenvwrapper supervisor \
+        cu git jq curl sudo wget \
+    && pip3 install --upgrade pip \
+    && apt-get -y autoremove \
+    && apt-get -y clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*
 
 COPY scripts/entrypoint.sh /
-
-RUN chmod 755 /entrypoint.sh
-
-RUN usermod -a -G dialout root
-
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN useradd -ms /bin/bash dsmr \
+    && mkdir -p /home/dsmr /var/www/dsmrreader/static \
+    && usermod -a -G dialout root \
+    && usermod -a -G dialout dsmr \
+    && git clone https://github.com/dennissiemensma/dsmr-reader.git /home/dsmr/app/ \
+    && (cd /home/dsmr/app/ && git checkout -q "$TAG") \
+    && pip3 install six \
+    && pip3 install -r /home/dsmr/app/dsmrreader/provisioning/requirements/base.txt \
+    && pip3 install -r /home/dsmr/app/dsmrreader/provisioning/requirements/postgresql.txt \
+    && chmod +x /entrypoint.sh \
+    && chown dsmr: -R /home/dsmr /var/www/dsmrreader/static
 
 EXPOSE 80 443
-
+WORKDIR /home/dsmr/app/
 ENTRYPOINT ["/entrypoint.sh"]

@@ -1,45 +1,23 @@
 #!/bin/bash
 
-# VIRTUALENV
-mkdir /root/.virtualenvs
-virtualenv /root/.virtualenvs/dsmrreader --no-site-packages --python python3
-source /root/.virtualenvs/dsmrreader/bin/activate
+set -eo pipefail
+COMMAND="$@"
 
-# DJANGO REQUIREMENTS
-pip3 install six
-pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/base.txt
-pip3 install -r /root/dsmr-reader/dsmrreader/provisioning/requirements/postgresql.txt
+# Copy configuration
+su dsmr -c "cp /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py /home/dsmr/app/dsmrreader/settings.py"
+su dsmr -c "sed -i 's/localhost/dsmrdb/g' /home/dsmr/app/dsmrreader/settings.py"
 
-# NGINX REQUIREMENTS
-mkdir -p /var/www/dsmrreader/static
+# Run migrations
+su dsmr -c "python3 manage.py migrate --noinput"
+su dsmr -c "python3 manage.py collectstatic --noinput"
 
-# RUN django tasks
-cp /root/dsmr-reader/dsmrreader/provisioning/django/postgresql.py /root/dsmr-reader/dsmrreader/settings.py
-sed -i 's/localhost/dsmrdb/g' /root/dsmr-reader/dsmrreader/settings.py
-/root/dsmr-reader/manage.py migrate
-/root/dsmr-reader/manage.py collectstatic --noinput
-
-if [[ -z ${DSMR_USER} ]] || [[ -z $DSMR_EMAIL ]] || [[ -z ${DSMR_PASSWORD} ]]; then
-  echo "DSMR web credentials not set. Exiting."
-  exit 1
-else
-#  if echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists()" | /root/dsmr-reader/manage.py shell; then
-#    echo "DSMR web credentials already set!"
-#  else
-    echo "Setting DSMR web credentials..."
-    (cat - | /root/dsmr-reader/manage.py shell) << !
-from django.contrib.auth.models import User;
-User.objects.create_superuser('$DSMR_USER',
-                              '$DSMR_EMAIL',
-                              '$DSMR_PASSWORD')
-!
-
-#  fi
+# Override command if needed - this allows you to run
+# python3 manage.py for example. Keep in mind that the
+# WORKDIR is set to /home/dsmr/app.
+if [ -n "$COMMAND" ]; then
+	echo "ENTRYPOINT: Executing override command"
+	exec $COMMAND
 fi
 
-# NGINX Config
-cp /root/dsmr-reader/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
-
-# START SERVICES
-/usr/sbin/nginx
+# Run supervisor
 /usr/bin/supervisord -n
