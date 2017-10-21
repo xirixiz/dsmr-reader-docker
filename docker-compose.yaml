@@ -37,8 +37,8 @@ services:
     container_name: dsmr-proxy
     restart: always
     ports:
-      - "8086:80"
-      - "4431:443"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./vhost.d:/etc/nginx/vhost.d:ro
       - ./dsmr-static:/static:ro
