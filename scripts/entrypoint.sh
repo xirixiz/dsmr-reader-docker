@@ -19,5 +19,20 @@ if [ -n "$COMMAND" ]; then
 	exec $COMMAND
 fi
 
+if [ -z "${DSMR_USER}" ] || [ -z "$DSMR_EMAIL" ] || [ -z "${DSMR_PASSWORD}" ]; then
+	echo "DSMR web credentials not set. Exiting."
+	exit 1
+fi
+
+# Create an admin user
+su dsmr -c "python3 manage.py shell --plain << PYTHON
+from django.contrib.auth.models import User
+if not User.objects.filter(username='${DSMR_USER}'):
+	User.objects.create_superuser('${DSMR_USER}', '${DSMR_EMAIL}', '${DSMR_PASSWORD}')
+	print('${DSMR_USER} created')
+else:
+	print('${DSMR_USER} already exists')
+PYTHON"
+
 # Run supervisor
 /usr/bin/supervisord -n
