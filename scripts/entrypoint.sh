@@ -3,9 +3,23 @@
 set -eo pipefail
 COMMAND="$@"
 
-# Copy configuration
-su dsmr -c "cp /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py /home/dsmr/app/dsmrreader/settings.py"
-su dsmr -c "sed -i 's/localhost/dsmrdb/g' /home/dsmr/app/dsmrreader/settings.py"
+DB_PORT=${DB_PORT:-5432}
+
+cmd=$(find /usr/lib/postgresql/ -name pg_isready)
+cmd="$cmd -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t 1"
+
+timeout=60
+while ! $cmd >/dev/null 2>&1; do
+    timeout=$(expr $timeout - 1)
+    if [[ $timeout -eq 0 ]]; then
+        echo
+        echo "Could not connect to database server. Aborting..."
+        return 1
+    fi
+    echo -n "."
+    sleep 1
+done
+echo
 
 # Run migrations
 su dsmr -c "python3 manage.py migrate --noinput"

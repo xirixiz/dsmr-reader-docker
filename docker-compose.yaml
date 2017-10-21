@@ -5,7 +5,7 @@ services:
     image: postgres
     container_name: dsmrdb
     volumes:
-      - dsmrdb:/var/lib/postgresql/data
+      - ./dsmrdb:/var/lib/postgresql/data
     restart: always
     environment:
       - POSTGRES_USER=dsmrreader
@@ -22,6 +22,7 @@ services:
       - dsmrdb
     restart: always
     environment:
+      - DB_HOST=dsmrdb
       - DSMR_USER=admin
       - DSMR_EMAIL=root@localhost
       - DSMR_PASSWORD=admin
