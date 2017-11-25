@@ -30,7 +30,7 @@ RUN useradd -ms /bin/bash dsmr \
     && chmod +x /entrypoint.sh \
     && chown dsmr: -R /home/dsmr /var/www/dsmrreader/static \
     && mv /supervisord.conf /etc/supervisor/conf.d/supervisord.conf \
-    && mv /postgresql.py /home/dsmr/app/dsmrreader/settings.py
+    && mv /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py /home/dsmr/app/dsmrreader/settings.py
 
 EXPOSE 80 443
 WORKDIR /home/dsmr/app/
