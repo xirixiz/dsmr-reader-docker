@@ -1,0 +1,4 @@
+location /static/ {    
+    autoindex on;    
+    alias /static/; 
+}
