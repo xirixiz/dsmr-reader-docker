@@ -4,36 +4,52 @@ services:
   dsmrdb:
     image: postgres
     container_name: dsmrdb
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     volumes:
-      - dsmrdb:/var/lib/postgresql/data
+      - ./dsmrdb:/var/lib/postgresql/data
     restart: always
     environment:
       - POSTGRES_USER=dsmrreader
       - POSTGRES_PASSWORD=dsmrreader
       - POSTGRES_DB=dsmrreader
+    networks:
+      - backend
 
   dsmr:
-#    build: .
+    build: .
     image: xirixiz/dsmr-reader-docker
     container_name: dsmr
-    ports:
-      - 8888:80
-      - 8889:443
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     links:
       - dsmrdb
     restart: always
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
     environment:
+      - DB_HOST=dsmrdb
       - DSMR_USER=admin
       - DSMR_EMAIL=root@localhost
       - DSMR_PASSWORD=admin
+      - VIRTUAL_HOST=localhost
+    volumes:
+      - ./dsmr-static:/var/www/dsmrreader/static/
+    networks:
+      - backend
+
+  dsmr-proxy:
+    image: jwilder/nginx-proxy
+    container_name: dsmr-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./vhost.d:/etc/nginx/vhost.d:ro
+      - ./dsmr-static:/static:ro
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - backend
 
 volumes:
    dsmrdb:
+
+networks:
+  backend:
+    driver: bridge
