@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  dsmrdb:
+    image: postgres
+    container_name: dsmrdb
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - dsmrdb:/var/lib/postgresql/data
+    restart: always
+    environment:
+      - POSTGRES_USER=dsmrreader
+      - POSTGRES_PASSWORD=dsmrreader
+      - POSTGRES_DB=dsmrreader
+
+  dsmr:
+    build: .
+    image: xirixiz/dsmr-reader-docker
+    container_name: dsmr
+    ports:
+      - 8888:80
+      - 8889:443
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    links:
+      - dsmrdb
+    restart: always
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    environment:
+      - DSMR_USER=admin
+      - DSMR_EMAIL=root@localhost
+      - DSMR_PASSWORD=admin
+
+volumes:
+   dsmrdb:
