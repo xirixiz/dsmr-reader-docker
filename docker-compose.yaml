@@ -27,23 +27,11 @@ services:
       - DSMR_EMAIL=root@localhost
       - DSMR_PASSWORD=admin
       - VIRTUAL_HOST=localhost
-    volumes:
-      - ./dsmr-static:/var/www/dsmrreader/static/
-    networks:
-      - backend
-
-  dsmr-proxy:
-    image: jwilder/nginx-proxy
-    container_name: dsmr-proxy
-    restart: always
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./vhost.d:/etc/nginx/vhost.d:ro
-      - ./dsmr-static:/static:ro
-      - /usr/share/nginx/html
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - 8888:80
+      - 8889:443
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
     networks:
       - backend
 
