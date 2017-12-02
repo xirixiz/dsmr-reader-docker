@@ -10,7 +10,7 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     && apt-get install -qy \
         python3 python3-dev python3-pip python3-virtualenv \
         postgresql-client libpq-dev virtualenvwrapper supervisor \
-        cu git jq curl sudo wget \
+        cu git jq curl sudo wget nginx \
     && pip3 install --upgrade pip \
     && apt-get -y autoremove \
     && apt-get -y clean \
@@ -31,6 +31,12 @@ RUN useradd -ms /bin/bash dsmr \
     && chown dsmr: -R /home/dsmr /var/www/dsmrreader/static \
     && mv /supervisord.conf /etc/supervisor/conf.d/supervisord.conf \
     && mv /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py /home/dsmr/app/dsmrreader/settings.py
+
+# Add Nginx in its own layer
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log \
+    && rm /etc/nginx/sites-enabled/default \
+    && mv /home/dsmr/app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
 
 EXPOSE 80 443
 WORKDIR /home/dsmr/app/
