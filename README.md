@@ -38,3 +38,9 @@ For Synology users:
 - Drivers are necessary: http://jadahl.dscloud.me/drivers.html
 - The docker-compose file must be set to version 2 instead of 3.
 
+## DEVELOPMENT
+
+Now there's also a development branch. It uses the development branch from https://github.com/dennissiemensma/dsmr-reader/tree/development.  
+A compose_project_name has been specified and the docker-compose file has been modified to use different ports and volumes.  
+
+HTTP: http://\<hostname>:8885
