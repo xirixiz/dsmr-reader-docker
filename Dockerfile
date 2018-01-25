@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 LABEL maintainer="Bram van Dartel <root@rootrulez.com>"
 
-ARG TAG="v1.11.0"
+ARG TAG="v1.12.0"
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
@@ -22,21 +22,26 @@ RUN useradd -ms /bin/bash dsmr \
     && mkdir -p /home/dsmr /var/www/dsmrreader/static \
     && usermod -a -G dialout root \
     && usermod -a -G dialout dsmr \
-    && git clone https://github.com/dennissiemensma/dsmr-reader.git /home/dsmr/app/ \
+    && git clone https://github.com/dennissiemensma/dsmr-reader.git \
+       /home/dsmr/app/ \
     && (cd /home/dsmr/app/ && git checkout -q "$TAG") \
     && pip3 install six \
-    && pip3 install -r /home/dsmr/app/dsmrreader/provisioning/requirements/base.txt \
-    && pip3 install -r /home/dsmr/app/dsmrreader/provisioning/requirements/postgresql.txt \
+    && pip3 install -r \
+       /home/dsmr/app/dsmrreader/provisioning/requirements/base.txt \
+    && pip3 install -r \
+       /home/dsmr/app/dsmrreader/provisioning/requirements/postgresql.txt \
     && chmod +x /entrypoint.sh \
     && chown dsmr: -R /home/dsmr /var/www/dsmrreader/static \
     && mv /supervisord.conf /etc/supervisor/conf.d/supervisord.conf \
-    && mv /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py /home/dsmr/app/dsmrreader/settings.py
+    && mv /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py \
+       /home/dsmr/app/dsmrreader/settings.py
 
 # Add Nginx in its own layer
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm /etc/nginx/sites-enabled/default \
-    && mv /home/dsmr/app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-enabled/
+    && mv /home/dsmr/app/dsmrreader/provisioning/nginx/dsmr-webinterface \
+       /etc/nginx/sites-enabled/
 
 EXPOSE 80 443
 WORKDIR /home/dsmr/app/
