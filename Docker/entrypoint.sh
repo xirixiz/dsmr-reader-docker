@@ -46,7 +46,7 @@ if [ -z "${DSMR_USER}" ] || [ -z "$DSMR_EMAIL" ] || \
 fi
 
 # Create an admin user
-su dsmr -c "python3 manage.py shell --plain << PYTHON
+su dsmr -c "python3 manage.py shell -i python << PYTHON
 from django.contrib.auth.models import User
 if not User.objects.filter(username='${DSMR_USER}'):
 	User.objects.create_superuser(
