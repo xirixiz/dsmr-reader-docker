@@ -5,7 +5,7 @@ COMMAND="$@"
 
 # 100% permissions fail safe
 chown -R dsmr: /home/dsmr /var/www/dsmrreader/
-sudo chmod 666 /dev/ttyUSB0
+sudo chmod 666 /dev/ttyUSB*
 
 # Check if we're able to connect to the database instance
 # already. The port isn't required for postgresql.py but
