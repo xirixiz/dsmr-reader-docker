@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 LABEL maintainer="Bram van Dartel <root@rootrulez.com>"
 
-ARG TAG="v1.15.0"
+ARG TAG="v1.16.0"
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
