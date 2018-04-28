@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM debian:jessie
 LABEL maintainer="Bram van Dartel <root@rootrulez.com>"
 
 ARG TAG="v1.16.0"
