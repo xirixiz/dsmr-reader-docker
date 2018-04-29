@@ -6,6 +6,7 @@ services:
     container_name: dsmrdb
     volumes:
       - ./dsmrdb:/var/lib/postgresql/data
+      - ./dsmrdb_backups:/home/dsmr/app/backups
     restart: always
     environment:
       - POSTGRES_USER=dsmrreader
@@ -37,6 +38,7 @@ services:
 
 volumes:
    dsmrdb:
+   dsmrdb_backups:
 
 networks:
   backend:
