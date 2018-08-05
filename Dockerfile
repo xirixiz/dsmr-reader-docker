@@ -17,7 +17,7 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/*
 
-COPY Docker/* /
+COPY app/* /
 RUN useradd -ms /bin/bash dsmr \
     && mkdir -p /home/dsmr /var/www/dsmrreader/static \
     && usermod -a -G dialout root \
@@ -30,7 +30,7 @@ RUN useradd -ms /bin/bash dsmr \
        /home/dsmr/app/dsmrreader/provisioning/requirements/base.txt \
     && pip3 install -r \
        /home/dsmr/app/dsmrreader/provisioning/requirements/postgresql.txt \
-    && chmod +x /entrypoint.sh \
+    && chmod +x /run.sh \
     && chown dsmr: -R /home/dsmr /var/www/dsmrreader/static \
     && mv /supervisord.conf /etc/supervisor/conf.d/supervisord.conf \
     && mv /home/dsmr/app/dsmrreader/provisioning/django/postgresql.py \
@@ -45,4 +45,4 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 
 EXPOSE 80 443
 WORKDIR /home/dsmr/app/
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/run.sh"]

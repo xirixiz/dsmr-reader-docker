@@ -1,12 +1,12 @@
-version: '2'
+version: '3.6'
 
 services:
   dsmrdb:
     image: postgres
     container_name: dsmrdb
     volumes:
-      - ./dsmrdb:/var/lib/postgresql/data
-      - ./dsmrdb_backups:/home/dsmr/app/backups
+      - dsmrdb:/var/lib/postgresql/data
+      - dsmrdb_backups:/home/dsmr/app/backups
     restart: always
     environment:
       - POSTGRES_USER=dsmrreader
