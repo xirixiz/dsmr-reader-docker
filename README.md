@@ -32,7 +32,24 @@ Or drop the database and restore a backup:
 - docker-compose start dsmr
 
 ---
-The current configuration has been tested on Ubuntu 17.04 and Manjaro 17.0.2
+
+Ofcourse it's also possible to use Docker's own volume backup and restore megansim.
+
+Backup:
+```
+docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
+    tar -cjf /backup/dsmrdb.tar.bz2 -C /volume ./
+```
+
+Restore:
+```
+docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
+    sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
+ ```
+
+---
+
+The current configuration has been tested on Ubuntu > 17.x and Manjaro > 17.x
 
 For Synology users:
 - Drivers are necessary: http://jadahl.dscloud.me/drivers.html
