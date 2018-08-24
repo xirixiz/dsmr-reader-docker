@@ -3,9 +3,7 @@
 set -eo pipefail
 COMMAND="$@"
 
-# 100% permissions fail safe
-chown -R dsmr: /home/dsmr /var/www/dsmrreader/
-if [ -e '/dev/ttyUSB0' ] ; then sudo chmod 666 /dev/ttyUSB* ; fi
+if [ -e '/dev/ttyUSB0' ] ; then chmod 666 /dev/ttyUSB* ; fi
 
 rm -f /var/tmp/*.pid
 
@@ -14,7 +12,7 @@ rm -f /var/tmp/*.pid
 # it is added for the sake of completion.
 DB_PORT=${DB_PORT:-5432}
 
-cmd=$(find /usr/lib/postgresql/ -name pg_isready)
+cmd=$(command -v pg_isready)
 cmd="$cmd -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t 1"
 
 timeout=60
@@ -30,8 +28,8 @@ done
 echo
 
 # Run migrations
-su dsmr -c "python3 manage.py migrate --noinput"
-su dsmr -c "python3 manage.py collectstatic --noinput"
+python3 manage.py migrate --noinput
+python3 manage.py collectstatic --noinput
 
 # Override command if needed - this allows you to run
 # python3 manage.py for example. Keep in mind that the
@@ -47,14 +45,14 @@ if [ -z "${DSMR_USER}" ] || [ -z "$DSMR_EMAIL" ] || [ -z "${DSMR_PASSWORD}" ]; t
 fi
 
 # Create an admin user
-su dsmr -c "python3 manage.py shell -i python << PYTHON
+python3 manage.py shell -i python << PYTHON
 from django.contrib.auth.models import User
 if not User.objects.filter(username='${DSMR_USER}'):
   User.objects.create_superuser('${DSMR_USER}', '${DSMR_EMAIL}', '${DSMR_PASSWORD}')
   print('${DSMR_USER} created')
 else:
   print('${DSMR_USER} already exists')
-PYTHON"
+PYTHON
 
 # Run supervisor
 /usr/bin/supervisord -n
