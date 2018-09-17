@@ -52,6 +52,6 @@ docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
 The current configuration has been tested on Ubuntu > 17.x and Manjaro > 17.x
 
 For Synology users:
-- Drivers are necessary: http://jadahl.dscloud.me/drivers.html
+- Drivers are necessary: http://www.jadahl.com/drivers/DSM_6.2/
 - The docker-compose file must be set to version 2 instead of 3.
 
