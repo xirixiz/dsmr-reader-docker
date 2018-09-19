@@ -10,6 +10,7 @@ ENV DB_HOST dsmrdb
 ENV DB_USER dsmrreader
 ENV DB_PASS dsmrreader
 ENV DB_NAME dsmrreader
+ENV AUTORESTART_DATALOGGER true
 
 RUN apk --update add --no-cache \
       bash \
