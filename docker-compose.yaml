@@ -33,8 +33,6 @@ services:
     ports:
       - 7777:80
       - 7779:443
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
 
 #volumes:
 #   dsmrdb:
