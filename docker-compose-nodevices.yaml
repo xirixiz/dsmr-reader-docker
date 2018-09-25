@@ -1,0 +1,40 @@
+version: '3.6'
+
+services:
+  dsmrdb:
+    image: postgres
+    container_name: dsmrdb
+    volumes:
+      - ./dsmrdb:/var/lib/postgresql/data
+      - ./dsmrdb_backups:/dsmr/backups
+    restart: always
+    environment:
+      - POSTGRES_USER=dsmrreader
+      - POSTGRES_PASSWORD=dsmrreader
+      - POSTGRES_DB=dsmrreader
+
+  dsmr:
+#    build: .
+    image: xirixiz/dsmr-reader-docker
+    container_name: dsmr
+    depends_on:
+      - dsmrdb
+    cap_add:
+      - NET_ADMIN    
+    links:
+      - dsmrdb
+    restart: always
+    environment:
+      - DB_HOST=dsmrdb
+      - DSMR_USER=admin
+      - DSMR_EMAIL=root@localhost
+      - DSMR_PASSWORD=admin
+      - VIRTUAL_HOST=localhost
+    ports:
+      - 7777:80
+      - 7779:443
+
+#volumes:
+#   dsmrdb:
+#   dsmrdb_backups:
+
