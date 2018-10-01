@@ -18,17 +18,16 @@ http://\<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
 
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
-Also you could easily create a backup:  
+Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:  
 - docker-compose stop dsmr
 - docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
 - docker-compose start dsmr
 
-
-Or drop the database and restore a backup:
+Or drop the database and restore a backup. Values depend on docker/docker-compose user and database variables:
 - docker-compose stop dsmr
 - docker exec -t dsmrdb dropdb dsmrreader -U dsmrreader
 - docker exec -t dsmrdb createdb -O dsmrreader dsmrreader -U dsmrreader
-- cat /tmp/<your_dump>.sql | docker exec -i dsmrdb psql -U dsmrreader
+- cat dsmrreader.sql | docker exec -i dsmrdb psql -U dsmrreader
 - docker-compose start dsmr
 
 ---
