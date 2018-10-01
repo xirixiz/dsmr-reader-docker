@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   dsmrdb:
-    image: postgres
+    image: postgres:10.5-alpine
     container_name: dsmrdb
     volumes:
       - ./dsmrdb:/var/lib/postgresql/data
