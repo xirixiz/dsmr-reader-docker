@@ -52,5 +52,5 @@ The current configuration has been tested on Ubuntu > 17.x and Manjaro > 17.x
 
 For Synology users:
 - Drivers are necessary: http://www.jadahl.com/drivers/
-- The docker-compose file must be set to version 2 instead of 3.
+- The docker-compose file must be set to version 3.2 or lower.
 
