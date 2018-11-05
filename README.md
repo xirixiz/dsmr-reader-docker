@@ -1,4 +1,4 @@
-# dsmr-reader-docker
+# DSMR Reader - Docker
 
 A docker-compose file in order to start the following application in Docker:  
 dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
@@ -9,7 +9,11 @@ You should first add the user you run Docker with on your host file system to th
 ```
 sudo usermod -aG dialout $(whoami)
 ```
-
+Then you should modify the docker-compose file with parameters that suit your environment.
+Run docker-compose afterwards:
+```
+docker-compose up -d 
+```
 After starting the containers with docker-compose, the dashboard is reachable at  
 HTTP: http://\<hostname>:7777  
 
@@ -17,6 +21,9 @@ After starting the containers, don't forget to modify the default DSMR version (
 http://\<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
 
 # Docker run
+
+Keep in mind the example below only runs dsmr, you need to run a postgres docker container or traditional postgres environment as well, since a database is needed.
+
 ```
 docker run -d \
   --name dsmr \
