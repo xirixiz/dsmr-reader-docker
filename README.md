@@ -9,11 +9,16 @@ You should first add the user you run Docker with on your host file system to th
 ```
 sudo usermod -aG dialout $(whoami)
 ```
-Then you should modify the docker-compose file with parameters that suit your environment.
-Run docker-compose afterwards:
+
+# Docker-compose
+
+An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.yaml
+
+You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
 ```
 docker-compose up -d 
 ```
+
 After starting the containers with docker-compose, the dashboard is reachable at  
 HTTP: http://\<hostname>:7777  
 
@@ -33,7 +38,6 @@ docker run -d \
   -e DSMR_USER=dsmrreader \
   -e DSMR_PASSWORD=dsmrreader \
   -e DSMR_EMAIL=root@localhost \
-  -v /dev:/dev \
   --device /dev/ttyUSB0:/dev/ttyUSB0 \
   xirixiz/dsmr-reader-docker
 ```
