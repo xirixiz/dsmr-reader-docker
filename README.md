@@ -6,7 +6,9 @@ dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
 Also it starts a postgres container for the application to store it's data.
 
 You should first add the user you run Docker with on your host file system to the dialout group:
+```
 sudo usermod -aG dialout $(whoami)
+```
 
 After starting the containers with docker-compose, the dashboard is reachable at  
 HTTP: http://\<hostname>:7777  
@@ -19,16 +21,20 @@ http://\<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
 Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:  
-- docker-compose stop dsmr
-- docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
-- docker-compose start dsmr
+```
+docker-compose stop dsmr
+docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
+docker-compose start dsmr
+```
 
 Or drop the database and restore a backup. Values depend on docker/docker-compose user and database variables:
+```
 - docker-compose stop dsmr
 - docker exec -t dsmrdb dropdb dsmrreader -U dsmrreader
 - docker exec -t dsmrdb createdb -O dsmrreader dsmrreader -U dsmrreader
 - cat dsmrreader.sql | docker exec -i dsmrdb psql -U dsmrreader
 - docker-compose start dsmr
+```
 
 ---
 
