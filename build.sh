@@ -78,7 +78,7 @@ function _build_docker_files() {
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
     docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}" .
-    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}${dsmr_release}"
+    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
       docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:latest
       docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:"${dsmr_release}"
