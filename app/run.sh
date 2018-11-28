@@ -14,10 +14,10 @@ TIMER=${TIMER:-60}
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
-function _info  () { echo -e "\\r[ \\033[00;34mINFO\\033[0m ] $*"; }
-function _warn  () { echo -e "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] $*"; }
-function _error () { echo -e "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] $*"; }
-function _debug () { echo -e "\\r[ \\033[00;37mDBUG\\033[0m ] $*"; }
+function _info  () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
+function _warn  () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
+function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
+function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   _info "Checking if the DSMR web credential variables have been set..."
@@ -34,18 +34,17 @@ function _pre_reqs() {
 }
 
 function _override_entrypoint() {
-  if [ -n "${COMMAND}" ]; then
+  if [[ -n "${COMMAND}" ]]; then
     _info "ENTRYPOINT: Executing override command..."
     exec "${COMMAND}"
   fi
 }
 
 function _check_db_availability() {
-  set -o xtrace
   _info "Verifying if Postgres in running..."
   cmd=$(command -v pg_isready)
   cmd="${cmd} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
-  while ! "${cmd}" >/dev/null 2>&1; do
+  while ! ${cmd} >/dev/null 2>&1; do
     TIMER=$((TIMER-1))
     sleep 1
     if [[ "${TIMER}" -eq 0 ]]; then
