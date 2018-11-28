@@ -41,6 +41,7 @@ function _override_entrypoint() {
 }
 
 function _check_db_availability() {
+  set -o xtrace
   _info "Verifying if Postgres in running..."
   cmd=$(command -v pg_isready)
   cmd="${cmd} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
@@ -49,7 +50,7 @@ function _check_db_availability() {
     sleep 1
     if [[ "${TIMER}" -eq 0 ]]; then
       _error "Could not connect to database server. Aborting..."
-      return 1
+      exit 1
     fi
     echo -n "."
   done

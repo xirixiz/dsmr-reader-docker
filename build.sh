@@ -15,10 +15,10 @@ set -o nounset
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
-function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
-function _info () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
-function _warn () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
+function _info  () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
+function _warn  () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
 function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
+function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   _info "Creating temporary directory..."
@@ -99,7 +99,6 @@ function _cleanup () {
 # MAIN
 #---------------------------------------------------------------------------------------------------------------------------
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
-#set -o xtrace
 
 _cleanup
 _pre_reqs
