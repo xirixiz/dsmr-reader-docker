@@ -106,7 +106,7 @@ function _push_docker_images() {
       docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
     else
       docker push xirixiz/dsmr-reader-docker:"${docker_arch}"-latest
-      docker push xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+      docker push xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     fi
   done
 }
