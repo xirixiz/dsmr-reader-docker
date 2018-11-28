@@ -29,10 +29,11 @@ function _dmsr_release() {
   dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
   _info "Using latest DSMR release: ${dsmr_release}."
   pushd ./tmp/dsmr
-  wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
-  tar -xf "${dsmr_release}".tar.gz --strip-components=1
-  #mv dsmr-reader-"${dsmr_release}" dsmr
-  rm -rf "${dsmr_release}".tar.gz
+  if [[ ! -d dsmrreader ]]; then
+    wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
+    tar -xf "${dsmr_release}".tar.gz --strip-components=1
+    rm -rf "${dsmr_release}".tar.gz
+  fi
   popd
 }
 
@@ -40,10 +41,20 @@ function _update_qemu() {
   qemu_release=$(curl -Ssl "https://api.github.com/repos/${QEMU_GIT_REPO}/releases/latest" | jq -r .tag_name)
   _info "Downloading latest Qemu release: ${qemu_release}."
   pushd ./tmp/qemu
-  for target_arch in ${ARCH_ARR}; do
-    wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${target_arch}"-static.tar.gz
-    tar -xf x86_64_qemu-"${target_arch}"-static.tar.gz
-    rm -rf x86_64_qemu-"${target_arch}"-static.tar.gz
+  for docker_arch in ${ARCH_ARR}; do
+      case ${docker_arch} in
+      amd64       ) qemu_arch="x86_64" ;;
+      arm32v6     ) qemu_arch="arm" ;;
+      arm64v8     ) qemu_arch="aarch64" ;;
+      *)
+        _error "Unknown target architechture."
+        exit 1
+    esac
+    if [[ ! -f x86_64_qemu-${qemu_arch}-static ]]; then
+      wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${qemu_arch}"-static.tar.gz
+      tar -xf x86_64_qemu-"${qemu_arch}"-static.tar.gz
+      rm -rf x86_64_qemu-"${qemu_arch}"-static.tar.gz
+    fi
   done
   popd
 }
@@ -65,7 +76,7 @@ function _generate_docker_files() {
       #sed -i '' "s/__CROSS_\"].*//" Dockerfile."${docker_arch}"
       #sed -i '' "/__CROSS_/d" Dockerfile."${docker_arch}"
       sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
-      sed -i '' "s/__BASEIMAGE_ARCH__//g" Dockerfile."${docker_arch}"
+      sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
     else
       sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
       sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
@@ -77,8 +88,8 @@ function _build_docker_files() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}" .
-    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+    docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
+    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
       docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:latest
       docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:"${dsmr_release}"
@@ -89,17 +100,16 @@ function _build_docker_files() {
 function _push_docker_images() {
   _info "Pushing Docker images to the Docker HUB..."
   for docker_arch in ${ARCH_ARR}; do
-    _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
+    _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
       docker push xirixiz/dsmr-reader-docker:latest
       docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
     else
-      docker push xirixiz/dsmr-reader-docker:"${docker_arch}" .
+      docker push xirixiz/dsmr-reader-docker:"${docker_arch}"-latest
       docker push xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     fi
   done
 }
-
 
 function _cleanup () {
   _info "Cleaning up temporary files..."

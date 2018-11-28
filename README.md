@@ -5,6 +5,14 @@ dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
 
 ualex73 created a fork, but that's based on an old setup. Docker image sizes have been reduced drastically (old 380mb, new 70mb), both for dsmr and dsmrdb.
 
+The following architectures are available on the Docker Hub:
+ - amd64 (default)
+ - arm32
+ - arm64
+
+See https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags/ for the available images.
+You can create specific architecture files by running the update_hub_images.sh file. Dockerfile.cross is being used as input (template).
+
 You should first add the user you run Docker with on your host file system to the dialout group:
 ```
 sudo usermod -aG dialout $(whoami)
