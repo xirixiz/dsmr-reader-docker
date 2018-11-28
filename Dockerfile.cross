@@ -1,4 +1,4 @@
-FROM __BASEIMAGE_ARCH__:3-alpine
+FROM __BASEIMAGE_ARCH__/python:alpine
 
 __CROSS_ENV QEMU_EXECVE 1
 __CROSS_COPY ./tmp/qemu/qemu-__QEMU_ARCH__-static /usr/bin/

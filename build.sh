@@ -12,9 +12,6 @@ set -o nounset
 : "${QEMU_GIT_REPO:=multiarch/qemu-user-static}"
 : "${DEBUG:=false}"
 
-dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
-
-
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -56,21 +53,21 @@ function _generate_docker_files() {
   for docker_arch in ${ARCH_ARR}; do
     case ${docker_arch} in
       amd64       ) qemu_arch="x86_64" ;;
-      arm32v7     ) qemu_arch="arm" ;;
+      arm32v6     ) qemu_arch="arm" ;;
       arm64v8     ) qemu_arch="aarch64" ;;
       *)
         _error "Unknown target architechture."
         exit 1
     esac
     cp Dockerfile.cross Dockerfile."${docker_arch}"
-    sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
     sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
       #sed -i '' "s/__CROSS_\"].*//" Dockerfile."${docker_arch}"
       #sed -i '' "/__CROSS_/d" Dockerfile."${docker_arch}"
       sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
-      sed -i '' "s/${docker_arch}/python/g" Dockerfile."${docker_arch}"
+      sed -i '' "s/__BASEIMAGE_ARCH__//g" Dockerfile."${docker_arch}"
     else
+      sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
       sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
     fi
   done
@@ -104,10 +101,10 @@ function _cleanup () {
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 #set -o xtrace
 
-#_cleanup
-#_pre_reqs
-#_dmsr_release
-#_update_qemu
+_cleanup
+_pre_reqs
+_dmsr_release
+_update_qemu
 _generate_docker_files
 _build_docker_files
-#_cleanup
+_cleanup
