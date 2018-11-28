@@ -86,6 +86,21 @@ function _build_docker_files() {
   done
 }
 
+function _push_docker_images() {
+  _info "Pushing Docker images to the Docker HUB..."
+  for docker_arch in ${ARCH_ARR}; do
+    _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
+    if [[ "${docker_arch}" == "amd64" ]]; then
+      docker push xirixiz/dsmr-reader-docker:latest
+      docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
+    else
+      docker push xirixiz/dsmr-reader-docker:"${docker_arch}" .
+      docker push xirixiz/dsmr-reader-docker:"${docker_arch}" xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+    fi
+  done
+}
+
+
 function _cleanup () {
   _info "Cleaning up temporary files..."
   rm -rf ./tmp
@@ -106,4 +121,5 @@ _dmsr_release
 _update_qemu
 _generate_docker_files
 _build_docker_files
+_push_docker_images
 _cleanup
