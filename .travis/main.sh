@@ -21,7 +21,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _preReqs() {
   _info "Creating temporary directory..."
-  mkdir -p ./tmp/{dsmr,qemu}
+  sudo mkdir -p ./tmp/{dsmr,qemu}
 
   _info "Logon to the Docker HUB..."
   echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
@@ -53,9 +53,9 @@ function _dmsrRelease() {
   _info "Using latest DSMR release: ${dsmr_release}."
   pushd ./tmp/dsmr
   if [[ ! -d dsmrreader ]]; then
-    wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
-    tar -xf "${dsmr_release}".tar.gz --strip-components=1
-    rm -rf "${dsmr_release}".tar.gz
+    sudo wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
+    sudo tar -xf "${dsmr_release}".tar.gz --strip-components=1
+    sudo rm -rf "${dsmr_release}".tar.gz
   fi
   popd
 }
@@ -74,9 +74,9 @@ function _updateQemu() {
         exit 1
     esac
     if [[ ! -f x86_64_qemu-${qemu_arch}-static ]]; then
-      wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${qemu_arch}"-static.tar.gz
-      tar -xf x86_64_qemu-"${qemu_arch}"-static.tar.gz
-      rm -rf x86_64_qemu-"${qemu_arch}"-static.tar.gz
+      sudo wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${qemu_arch}"-static.tar.gz
+      sudo tar -xf x86_64_qemu-"${qemu_arch}"-static.tar.gz
+      sudo rm -rf x86_64_qemu-"${qemu_arch}"-static.tar.gz
     fi
   done
   popd
@@ -93,16 +93,16 @@ function _generateDockerFiles() {
         _error "Unknown target architechture."
         exit 1
     esac
-    cp Dockerfile.cross Dockerfile."${docker_arch}"
-    sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
+    sudo cp Dockerfile.cross Dockerfile."${docker_arch}"
+    sudo sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
       #sed -i '' "s/__CROSS_\"].*//" Dockerfile."${docker_arch}"
       #sed -i '' "/__CROSS_/d" Dockerfile."${docker_arch}"
-      sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
-      sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
+      sudo sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
+      sudo sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
     else
-      sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
-      sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
+      sudo sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
+      sudo sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
     fi
   done
 }
@@ -111,11 +111,11 @@ function _buildDockerFiles() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
-    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+    sudo docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
+    sudo docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
-      docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:latest
-      docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:"${dsmr_release}"
+      sudo docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:latest
+      sudo docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:"${dsmr_release}"
     fi
   done
 }
@@ -125,20 +125,20 @@ function _pushDockerImages() {
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
-      docker push xirixiz/dsmr-reader-docker:latest
-      docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
+      sudo docker push xirixiz/dsmr-reader-docker:latest
+      sudo docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
     else
-      docker push xirixiz/dsmr-reader-docker:"${docker_arch}"-latest
-      docker push xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+      sudo docker push xirixiz/dsmr-reader-docker:"${docker_arch}"-latest
+      sudo docker push xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     fi
   done
 }
 
 function _cleanup () {
   _info "Cleaning up temporary files..."
-  rm -rf ./tmp
+  sudo  -rf ./tmp
   for docker_arch in ${ARCH_ARR}; do
-    [[ -f Dockerfile."${docker_arch}" ]] && rm -rf Dockerfile."${docker_arch}"
+    [[ -f Dockerfile."${docker_arch}" ]] && sudo rm -rf Dockerfile."${docker_arch}"
     continue
   done
 }
