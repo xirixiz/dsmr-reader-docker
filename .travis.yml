@@ -1,0 +1,10 @@
+sudo: 'required'
+
+services:
+  - 'docker'
+
+script:
+  - './.travis/main.sh'
+
+notifications:
+  email: false
