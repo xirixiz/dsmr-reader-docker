@@ -140,7 +140,6 @@ function _pushDockerImages() {
 #---------------------------------------------------------------------------------------------------------------------------
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 
-_cleanup
 _preReqs
 _setupDependencies
 _updateDockerConfig
