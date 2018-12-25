@@ -83,7 +83,9 @@ function _updateQemu() {
 }
 
 function _generateDockerFiles() {
-  _info "${ARCH_ARR}"
+  _info "Creating Dokcker file for: ${ARCH_ARR}"
+  sudo ls -al
+  sudo pwd
   for docker_arch in ${ARCH_ARR}; do
     case ${docker_arch} in
       amd64       ) qemu_arch="x86_64" ;;
