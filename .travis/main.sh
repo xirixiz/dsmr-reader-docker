@@ -106,7 +106,7 @@ function _generateDockerFiles() {
 }
 
 
-function _build_docker_files() {
+function _buildDockerFiles() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
