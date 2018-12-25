@@ -6,7 +6,7 @@ set -o nounset
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
-: "${DEBUG:=true}"
+: "${DEBUG:=false}"
 : "${ARCH_ARR:=amd64 arm32v6 arm64v8}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 : "${QEMU_GIT_REPO:=multiarch/qemu-user-static}"
@@ -134,14 +134,6 @@ function _pushDockerImages() {
   done
 }
 
-function _cleanup () {
-  _info "Cleaning up temporary files..."
-  sudo  -rf ./tmp
-  for docker_arch in ${ARCH_ARR}; do
-    [[ -f Dockerfile."${docker_arch}" ]] && sudo rm -rf Dockerfile."${docker_arch}"
-    continue
-  done
-}
 
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN
@@ -157,4 +149,3 @@ _updateQemu
 _generateDockerFiles
 _buildDockerFiles
 _pushDockerImages
-_cleanup
