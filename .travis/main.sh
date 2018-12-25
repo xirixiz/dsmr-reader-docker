@@ -105,15 +105,16 @@ function _generateDockerFiles() {
   done
 }
 
-function _buildDockerFiles() {
+
+function _build_docker_files() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    sudo docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
-    sudo docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+    docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
+    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
-      sudo docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:latest
-      sudo docker tag xirixiz/dsmr-reader-docker:amd64 xirixiz/dsmr-reader-docker:"${dsmr_release}"
+      docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:latest
+      docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${dsmr_release}"
     fi
   done
 }
