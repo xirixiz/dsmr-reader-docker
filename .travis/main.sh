@@ -84,9 +84,6 @@ function _updateQemu() {
 
 function _generateDockerFiles() {
   _info "Creating Dokcker file for: ${ARCH_ARR}"
-  sudo ls -al
-  sudo pwd
-  set -x
   for docker_arch in ${ARCH_ARR}; do
     case ${docker_arch} in
       amd64       ) qemu_arch="x86_64" ;;
@@ -97,15 +94,13 @@ function _generateDockerFiles() {
         exit 1
     esac
     sudo cp Dockerfile.cross Dockerfile."${docker_arch}"
-    sudo sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
+    sudo sed -i "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
-      #sed -i '' "s/__CROSS_\"].*//" Dockerfile."${docker_arch}"
-      #sed -i '' "/__CROSS_/d" Dockerfile."${docker_arch}"
-      sudo sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
-      sudo sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
+      sudo sed -i "s|__CROSS_||g" Dockerfile."${docker_arch}"
+      sudo sed -i "s|__BASEIMAGE_ARCH__/||g" Dockerfile."${docker_arch}"
     else
-      sudo sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
-      sudo sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
+      sudo sed -i "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
+      sudo sed -i "s|__CROSS_||g" Dockerfile."${docker_arch}"
     fi
   done
 }
