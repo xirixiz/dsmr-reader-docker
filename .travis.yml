@@ -3,7 +3,10 @@ sudo: 'required'
 services:
   - 'docker'
 
+language: bash
+
 script:
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - './.travis/main.sh'
 
 notifications:
