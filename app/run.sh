@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -o errexit
-set -o pipefail
-set -o nounset
+#set -o errexit
+#set -o pipefail
+#set -o nounset
 
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
@@ -21,7 +21,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   _info "Checking if the DSMR web credential variables have been set..."
-  if [ -z "${DSMR_USER}" ] || [ -z "${DSMR_EMAIL}" ] || [ -z "${DSMR_PASSWORD}" ]; then
+  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_EMAIL}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
@@ -55,6 +55,25 @@ function _check_db_availability() {
   done
 }
 
+function _set_throttle() {
+  if [[ -n "${DSMRREADER_BACKEND_SLEEP}" ]] ; then
+    if grep --quiet 'DSMRREADER_BACKEND_SLEEP' /dsmr/dsmrreader/settings.py; then
+      _info "Setting DSMRREADER_BACKEND_SLEEP already present...."
+    else
+      _info "Adding setting DSMRREADER_BACKEND_SLEEP..."
+      sed -i "/# Default settings/a DSMRREADER_BACKEND_SLEEP=${DSMRREADER_BACKEND_SLEEP}" /dsmr/dsmrreader/settings.py
+    fi
+  fi
+  if [[ -n "${DSMRREADER_DATALOGGER_SLEEP}" ]] ; then
+    if grep --quiet 'DSMRREADER_DATALOGGER_SLEEP' /dsmr/dsmrreader/settings.py; then
+      _info "Setting DSMRREADER_DATALOGGER_SLEEP already present..."
+    else
+      _info "Adding setting DSMRREADER_DATALOGGER_SLEEP..."
+      sed -i "/# Default settings/a DSMRREADER_DATALOGGER_SLEEP=${DSMRREADER_DATALOGGER_SLEEP}" /dsmr/dsmrreader/settings.py
+    fi
+  fi
+}
+
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
@@ -84,5 +103,6 @@ function _start_supervisord() {
 _pre_reqs
 _override_entrypoint
 _check_db_availability
+_set_throttle
 _run_post_config
 _start_supervisord

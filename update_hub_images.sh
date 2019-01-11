@@ -73,13 +73,9 @@ function _generate_docker_files() {
     cp Dockerfile.cross Dockerfile."${docker_arch}"
     sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
-      #sed -i '' "s/__CROSS_\"].*//" Dockerfile."${docker_arch}"
-      #sed -i '' "/__CROSS_/d" Dockerfile."${docker_arch}"
-      sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
       sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
     else
       sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
-      sed -i '' "s/__CROSS_//g" Dockerfile."${docker_arch}"
     fi
   done
 }
