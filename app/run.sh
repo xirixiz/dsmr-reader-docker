@@ -58,7 +58,8 @@ function _check_db_availability() {
 function _set_throttle() {
   if [[ -n "${DSMRREADER_BACKEND_SLEEP}" ]] ; then
     if grep --quiet 'DSMRREADER_BACKEND_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_BACKEND_SLEEP already present...."
+      _info "Setting DSMRREADER_BACKEND_SLEEP already present, replacing values..."
+      sed -i "s/DSMRREADER_BACKEND_SLEEP=.*/DSMRREADER_BACKEND_SLEEP=${DSMRREADER_BACKEND_SLEEP}/g"
     else
       _info "Adding setting DSMRREADER_BACKEND_SLEEP..."
       sed -i "/# Default settings/a DSMRREADER_BACKEND_SLEEP=${DSMRREADER_BACKEND_SLEEP}" /dsmr/dsmrreader/settings.py
@@ -66,7 +67,8 @@ function _set_throttle() {
   fi
   if [[ -n "${DSMRREADER_DATALOGGER_SLEEP}" ]] ; then
     if grep --quiet 'DSMRREADER_DATALOGGER_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_DATALOGGER_SLEEP already present..."
+      _info "Setting DSMRREADER_DATALOGGER_SLEEP already present, replacing values..."
+      sed -i "s/DSMRREADER_DATALOGGER_SLEEP=.*/DSMRREADER_DATALOGGER_SLEEP=${DSMRREADER_DATALOGGER_SLEEP}/g"     
     else
       _info "Adding setting DSMRREADER_DATALOGGER_SLEEP..."
       sed -i "/# Default settings/a DSMRREADER_DATALOGGER_SLEEP=${DSMRREADER_DATALOGGER_SLEEP}" /dsmr/dsmrreader/settings.py
