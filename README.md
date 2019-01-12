@@ -1,6 +1,6 @@
 # DSMR Reader - Docker
 
-# DSMR Reader - Environment variables
+#### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
 - DSMRREADER_BACKEND_SLEEP=60
 - DSMRREADER_DATALOGGER_SLEEP=60
