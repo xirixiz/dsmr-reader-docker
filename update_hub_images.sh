@@ -10,7 +10,8 @@ set -o nounset
 : "${ARCH_ARR:=amd64 arm32v6 arm64v8}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 : "${QEMU_GIT_REPO:=multiarch/qemu-user-static}"
-: "${DEBUG:=false}"
+: "${LOCAL:=}"
+: "${HUB:=}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -19,6 +20,18 @@ function _info  () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
 function _warn  () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
 function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
+
+function usage() {
+    echo -e "\nusage: $0 [--local --arch <arch> | --hub [--arch <arch>]]"
+    echo -e ""
+    echo -e "  General parameters:"
+    echo -e "    --local          generates a local test image for amd64, arm32v6 or arm64v8."
+    echo -e "    --arch           required for local test images, optional for hub images."
+    echo -e "    --hub            generates amd64, arm32v6 and arm64v8 Docker images and pushes them to the Docker Hub"
+    echo -e "    --debug          debug mode."
+    echo -e "    -?               help."
+    exit 0
+}
 
 function _pre_reqs() {
   _info "Creating temporary directory..."
@@ -85,9 +98,11 @@ function _build_docker_files() {
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
     docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
+    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:test-"${docker_arch}"-latest
     docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
       docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:latest
+      docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:test-latest
       docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${dsmr_release}"
     fi
   done
@@ -107,6 +122,20 @@ function _push_docker_images() {
   done
 }
 
+function _push_docker_test_image() {
+  _info "Pushing Docker test images to the Docker HUB..."
+  for docker_arch in ${ARCH_ARR}; do
+    _info "Pushing Docker test images for: ${docker_arch}, release ${dsmr_release}."
+    if [[ "${docker_arch}" == "amd64" ]]; then
+      docker push xirixiz/dsmr-reader-docker:test-latest
+    else
+      docker push xirixiz/dsmr-reader-docker:test-"${docker_arch}"-latest
+    fi
+  done
+}
+
+
+
 function _cleanup () {
   _info "Cleaning up temporary files..."
   rm -rf ./tmp
@@ -121,13 +150,44 @@ function _cleanup () {
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN
 #---------------------------------------------------------------------------------------------------------------------------
+
+[[ $# -eq 0 ]] && usage
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+      --local )        LOCAL=local&&ARCH_ARR='';;
+      --arch )         shift&&ARCH_ARR=$1;;
+      --hub )          HUB=hub;;
+      --debug )        DEBUG=true;;
+      -? | --help )    usage && exit ;;
+      * )              usage && exit 1 ;;
+    esac
+    shift
+done
+
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 
-_cleanup
-_pre_reqs
-_dmsr_release
-_update_qemu
-_generate_docker_files
-_build_docker_files
-_push_docker_images
-_cleanup
+if [[ ! -z "${LOCAL}" ]]; then
+  _info "Generating local Docker image for ${ARCH_ARR}"
+  [[ -z "${ARCH_ARR}" ]] && _error "Option --arch not specified!" && exit 1
+  _cleanup
+  _pre_reqs
+  _dmsr_release
+  _update_qemu
+  _generate_docker_files
+  _build_docker_files
+  _push_docker_test_image
+  _cleanup
+fi
+
+if [[ ! -z "${HUB}" ]]; then
+  _info "Generating Docker Hub images for ${ARCH_ARR}"
+  _cleanup
+  _pre_reqs
+  _dmsr_release
+  _update_qemu
+  _generate_docker_files
+  _build_docker_files
+  _push_docker_images
+  _cleanup
+fi
