@@ -26,7 +26,6 @@ RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
 
 RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
      "apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
-      pip3 install six --no-cache && \
       pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir && \
       pip3 install -r /dsmr/dsmrreader/provisioning/requirements/postgresql.txt --no-cache-dir && \
       apk --purge del .build-deps && \
