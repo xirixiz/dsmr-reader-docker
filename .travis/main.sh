@@ -10,6 +10,7 @@ set -o nounset
 : "${ARCH_ARR:=amd64 arm32v6 arm64v8}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 : "${QEMU_GIT_REPO:=multiarch/qemu-user-static}"
+: "${DOCKER_HUB_REPO:=xirixiz/dsmr-reader-docker}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -110,11 +111,11 @@ function _buildDockerFiles() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    docker build -f Dockerfile."${docker_arch}" -t xirixiz/dsmr-reader-docker:"${docker_arch}"-latest .
-    docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+    docker build -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
+    docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
-      docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:latest
-      docker tag xirixiz/dsmr-reader-docker:"${docker_arch}"-latest xirixiz/dsmr-reader-docker:"${dsmr_release}"
+      docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":latest
+      docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":"${dsmr_release}"
     fi
   done
 }
@@ -124,11 +125,11 @@ function _pushDockerImages() {
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
-      sudo docker push xirixiz/dsmr-reader-docker:latest
-      sudo docker push xirixiz/dsmr-reader-docker:"${dsmr_release}"
+      sudo docker push "${DOCKER_HUB_REPO}":latest
+      sudo docker push "${DOCKER_HUB_REPO}":"${dsmr_release}"
     else
-      sudo docker push xirixiz/dsmr-reader-docker:"${docker_arch}"-latest
-      sudo docker push xirixiz/dsmr-reader-docker:"${docker_arch}-${dsmr_release}"
+      sudo docker push "${DOCKER_HUB_REPO}":"${docker_arch}"-latest
+      sudo docker push "${DOCKER_HUB_REPO}":"${docker_arch}-${dsmr_release}"
     fi
   done
 }
