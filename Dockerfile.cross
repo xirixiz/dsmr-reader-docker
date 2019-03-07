@@ -13,6 +13,8 @@ ENV DB_USER dsmrreader
 ENV DB_PASS dsmrreader
 ENV DB_NAME dsmrreader
 
+ENV AUTORESTART_DATALOGGER true
+
 RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
      "apk --update add --no-cache \
       bash \
