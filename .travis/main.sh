@@ -74,7 +74,7 @@ function _updateQemu() {
         _error "Unknown target architechture."
         exit 1
     esac
-    if [[ ! -f x86_64_qemu-${qemu_arch}-static ]]; then
+    if [[ ! -f qemu-${qemu_arch}-static ]]; then
       sudo wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${qemu_arch}"-static.tar.gz
       sudo tar -xf x86_64_qemu-"${qemu_arch}"-static.tar.gz
       sudo rm -rf x86_64_qemu-"${qemu_arch}"-static.tar.gz
