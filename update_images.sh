@@ -64,7 +64,7 @@ function _update_qemu() {
         _error "Unknown target architechture."
         exit 1
     esac
-    if [[ ! -f x86_64_qemu-${qemu_arch}-static ]]; then
+    if [[ ! -f qemu-${qemu_arch}-static ]]; then
       wget -N https://github.com/"${QEMU_GIT_REPO}"/releases/download/"${qemu_release}"/x86_64_qemu-"${qemu_arch}"-static.tar.gz
       tar -xf x86_64_qemu-"${qemu_arch}"-static.tar.gz
       rm -rf x86_64_qemu-"${qemu_arch}"-static.tar.gz
@@ -139,7 +139,7 @@ function _push_docker_test_image() {
 
 function _cleanup () {
   _info "Cleaning up temporary files..."
-  rm -rf ./tmp
+  #rm -rf ./tmp
   docker images -q | xargs docker rmi -f
   for docker_arch in ${ARCH_ARR}; do
     [[ -f Dockerfile."${docker_arch}" ]] && rm -rf Dockerfile."${docker_arch}"
