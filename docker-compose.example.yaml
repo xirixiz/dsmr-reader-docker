@@ -6,6 +6,7 @@ services:
     container_name: dsmrdb
     restart: always
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ./dsmrdb:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=dsmrreader
@@ -24,9 +25,10 @@ services:
       - dsmrdb
     restart: always
     volumes:
-      - ./dsmrdb:/var/lib/postgresql/data
-      - ./dsmr_backups:/dsmr/backups    
+      - /etc/localtime:/etc/localtime:ro
+      - ./dsmr_backups:/dsmr/backups
     environment:
+      - DSMR_LOGLEVEL=WARNING
       - DB_HOST=dsmrdb
       - DSMR_USER=admin
       - DSMR_EMAIL=root@localhost
