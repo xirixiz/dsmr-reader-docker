@@ -9,6 +9,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmrdb:/var/lib/postgresql/data
     environment:
+      - TZ=Europe/Amsterdam
       - POSTGRES_USER=dsmrreader
       - POSTGRES_PASSWORD=dsmrreader
       - POSTGRES_DB=dsmrreader
@@ -28,6 +29,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/dsmr/backups
     environment:
+      - TZ=Europe/Amsterdam
       - DSMR_LOGLEVEL=WARNING
       - DB_HOST=dsmrdb
       - DSMR_USER=admin
