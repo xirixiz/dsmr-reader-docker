@@ -21,7 +21,8 @@ RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
       curl \
       nginx \
       postgresql-client \
-      supervisor"]
+      supervisor \
+      tzdata"]
 
 RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
      "cp /dsmr/dsmrreader/provisioning/django/postgresql.py /dsmr/dsmrreader/settings.py"]
