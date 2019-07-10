@@ -136,10 +136,17 @@ function _push_docker_test_image() {
 }
 
 
-
 function _cleanup () {
   _info "Cleaning up temporary files..."
-  rm -rf ./tmp
+  if [[ -d ./tmp ]]; then
+    read -p "The ./tmp directory already exists, cleanup?" -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      _info "Cleaning up the ./tmp directory!"
+      rm -rf ./tmp
+    else
+      _warn "Skipping cleanup of the ./tmp directory!"
+    fi
+  fi
   docker images -q | xargs docker rmi -f
   for docker_arch in ${ARCH_ARR}; do
     [[ -f Dockerfile."${docker_arch}" ]] && rm -rf Dockerfile."${docker_arch}"
