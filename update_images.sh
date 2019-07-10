@@ -139,7 +139,7 @@ function _push_docker_test_image() {
 
 function _cleanup () {
   _info "Cleaning up temporary files..."
-  #rm -rf ./tmp
+  rm -rf ./tmp
   docker images -q | xargs docker rmi -f
   for docker_arch in ${ARCH_ARR}; do
     [[ -f Dockerfile."${docker_arch}" ]] && rm -rf Dockerfile."${docker_arch}"
@@ -168,7 +168,7 @@ done
 
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 
-if [[ ! -z "${LOCAL}" ]]; then
+if [[ -n "${LOCAL}" ]]; then
   _info "Generating local Docker image for ${ARCH_ARR}"
   [[ -z "${ARCH_ARR}" ]] && _error "Option --arch not specified!" && exit 1
   _cleanup
@@ -181,7 +181,7 @@ if [[ ! -z "${LOCAL}" ]]; then
   _cleanup
 fi
 
-if [[ ! -z "${HUB}" ]]; then
+if [[ -n "${HUB}" ]]; then
   _info "Generating Docker Hub images for ${ARCH_ARR}"
   _cleanup
   _pre_reqs
