@@ -10,13 +10,14 @@ services:
       - ./dsmrdb:/var/lib/postgresql/data
     environment:
       - TZ=Europe/Amsterdam
+      - PG_TZ=Europe/Amsterdam
       - POSTGRES_USER=dsmrreader
       - POSTGRES_PASSWORD=dsmrreader
       - POSTGRES_DB=dsmrreader
 
   dsmr:
 #    build: .
-    image: xirixiz/dsmr-reader-docker
+    image: xirixiz/dsmr-reader-docker:test-latest
     container_name: dsmr
     depends_on:
       - dsmrdb
@@ -30,8 +31,14 @@ services:
       - ./dsmr_backups:/dsmr/backups
     environment:
       - TZ=Europe/Amsterdam
-      - DSMR_LOGLEVEL=WARNING
+      - DAEMON_LOGLEVEL=info # debug, warn, trace.
+      - AUTORESTART_DATALOGGER=true
       - DB_HOST=dsmrdb
+      - DB_USER=dsmrreader
+      - DB_PASS=dsmrreader
+      - DB_PORT=5432
+      - DAEMON_USER=root
+      - DAEMON_GROUP=root
       - DSMR_USER=admin
       - DSMR_EMAIL=root@localhost
       - DSMR_PASSWORD=admin

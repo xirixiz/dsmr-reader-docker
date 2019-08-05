@@ -76,21 +76,21 @@ function _set_throttle() {
   fi
 }
 
-function _set_loglevel() {
-  if [[ -n "${DSMR_LOGLEVEL}" ]] ; then
-    if grep 'CUSTOM_LOGLEVEL' /dsmr/dsmrreader/settings.py; then
-      _info "Setting CUSTOM_LOGLEVEL already present, replacing values..."
-      sed -e "/CUSTOM_LOGLEVEL/,+2d" /dsmr/dsmrreader/settings.py
-      echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
-      echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
-    else
-      _info "Adding setting CUSTOM_LOGLEVEL..."
-      sed -e "/LOGGING/,+2d" /dsmr/dsmrreader/settings.py
-      echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
-      echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
-    fi
-  fi
-}
+# function _set_loglevel() {
+#   if [[ -n "${DSMR_LOGLEVEL}" ]] ; then
+#     if grep 'CUSTOM_LOGLEVEL' /dsmr/dsmrreader/settings.py; then
+#       _info "Setting CUSTOM_LOGLEVEL already present, replacing values..."
+#       sed -e "/CUSTOM_LOGLEVEL/,+2d" /dsmr/dsmrreader/settings.py
+#       echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
+#       echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
+#     else
+#       _info "Adding setting CUSTOM_LOGLEVEL..."
+#       sed -e "/LOGGING/,+2d" /dsmr/dsmrreader/settings.py
+#       echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
+#       echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
+#     fi
+#   fi
+# }
 
 function _run_post_config() {
   _info "Running post configuration..."
@@ -122,6 +122,6 @@ _pre_reqs
 _override_entrypoint
 _check_db_availability
 _set_throttle
-_set_loglevel
+#_set_loglevel
 _run_post_config
 _start_supervisord
