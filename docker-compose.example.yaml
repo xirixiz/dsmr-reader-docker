@@ -31,14 +31,14 @@ services:
       - ./dsmr_backups:/dsmr/backups
     environment:
       - TZ=Europe/Amsterdam
-      - DAEMON_LOGLEVEL=info # debug, warn, trace.
-      - AUTORESTART_DATALOGGER=true
+      - SD_LOGLEVEL=info
+      - SD_AUTORESTART_DATALOGGER=true
       - DB_HOST=dsmrdb
       - DB_USER=dsmrreader
       - DB_PASS=dsmrreader
       - DB_PORT=5432
-      - DAEMON_USER=root
-      - DAEMON_GROUP=root
+      - SD_USER=root
+      - SD_GROUP=root
       - DSMR_USER=admin
       - DSMR_EMAIL=root@localhost
       - DSMR_PASSWORD=admin
