@@ -31,13 +31,9 @@ services:
       - ./dsmr_backups:/dsmr/backups
     environment:
       - TZ=Europe/Amsterdam
-      - DB_HOST=dsmrdb
-      - DB_USER=dsmrreader
-      - DB_PASS=dsmrreader
-      - DSMR_USER=admin
-      - DSMR_EMAIL=root@localhost
-      - DSMR_PASSWORD=admin
       - VIRTUAL_HOST=localhost
+      - SD_AUTOSTART_MQTT=false
+      - SD_AUTORESTART_MQTT=false
     ports:
       - 7777:80
       - 7779:443

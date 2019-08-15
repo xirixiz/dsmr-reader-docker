@@ -9,11 +9,21 @@ ENV DSMR_EMAIL root@localhost
 ENV DSMR_PASSWORD admin
 
 ENV DB_HOST dsmrdb
+ENV DB_PORT 5432
 ENV DB_USER dsmrreader
 ENV DB_PASS dsmrreader
 ENV DB_NAME dsmrreader
 
 ENV AUTORESTART_DATALOGGER true
+ENV SD_LOGLEVEL info
+ENV SD_USER root
+ENV SD_GROUP root
+ENV SD_AUTOSTART_DATALOGGER true
+ENV SD_AUTORESTART_DATALOGGER true
+ENV SD_AUTOSTART_BACKEND true
+ENV SD_AUTORESTART_BACKEND true
+ENV SD_AUTOSTART_MQTT true
+ENV SD_AUTORESTART_MQTT true
 
 RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
      "apk --update add --no-cache \

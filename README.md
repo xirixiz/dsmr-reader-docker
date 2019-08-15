@@ -3,12 +3,6 @@ Now it's possible to set the following settings as environment variables, for ex
 ```
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
-- DB_HOST=dsmrdb
-- DB_USER=dsmrreader
-- DB_PASS=dsmrreader
-- DSMR_USER=admin
-- DSMR_EMAIL=root@localhost
-- DSMR_PASSWORD=admin
 - VIRTUAL_HOST=localhost
 
 Optional (defaults are shown as value):
@@ -20,13 +14,20 @@ Supervisord related:
 - SD_AUTORESTART_DATALOGGER=true
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_MQTT=false
-- SD_AUTORESTART_MQTT=false
+- SD_AUTOSTART_MQTT=true
+- SD_AUTORESTART_MQTT=true
 
-DSMR related:
+DSMR related (defaults are shown as value):
+- DSMR_USER=admin
+- DSMR_EMAIL=root@localhost
+- DSMR_PASSWORD=admin
+
+DB related (defaults are shown as value):
+- DB_HOST=dsmrdb
 - DB_PORT=5432
-- DSMRREADER_BACKEND_SLEEP=60
-- DSMRREADER_DATALOGGER_SLEEP=60
+- DB_USER=dsmrreader
+- DB_PASS=dsmrreader
+- DB_NAME dsmrreader
 ```
 
 # DSMR Reader - Docker
@@ -77,9 +78,6 @@ docker run -d \
   -e DB_HOST=x.x.x.x \
   -e DB_USER=dsmrreader \
   -e DB_PASS=dsmrreader \
-  -e DSMR_USER=dsmrreader \
-  -e DSMR_PASSWORD=dsmrreader \
-  -e DSMR_EMAIL=root@localhost \
   -e VIRTUAL_HOST=localhost \
   --device /dev/ttyUSB0:/dev/ttyUSB0 \
   xirixiz/dsmr-reader-docker
