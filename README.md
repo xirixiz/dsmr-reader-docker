@@ -72,10 +72,15 @@ docker run -d \
   --name dsmr \
   --restart always \
   -p 7777:80 \
+  -p 7779:443 \
+  -e TZ=Europe/Amsterdam \
   -e DB_HOST=x.x.x.x \
+  -e DB_USER=dsmrreader \
+  -e DB_PASS=dsmrreader \
   -e DSMR_USER=dsmrreader \
   -e DSMR_PASSWORD=dsmrreader \
   -e DSMR_EMAIL=root@localhost \
+  -e VIRTUAL_HOST=localhost \
   --device /dev/ttyUSB0:/dev/ttyUSB0 \
   xirixiz/dsmr-reader-docker
 ```
