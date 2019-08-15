@@ -32,6 +32,7 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _export_variables() {
+  export DB_PORT
   # Nescessary for supervisord (subshell)
   export SD_LOGLEVEL
   export SD_USER

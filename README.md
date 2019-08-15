@@ -6,14 +6,12 @@ Required (defaults are shown as value):
 - DB_HOST=dsmrdb
 - DB_USER=dsmrreader
 - DB_PASS=dsmrreader
-- DB_PORT=5432
 - DSMR_USER=admin
 - DSMR_EMAIL=root@localhost
 - DSMR_PASSWORD=admin
 - VIRTUAL_HOST=localhost
 
 Optional (defaults are shown as value):
-
 Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
@@ -26,6 +24,7 @@ Supervisord related:
 - SD_AUTORESTART_MQTT=false
 
 DSMR related:
+- DB_PORT=5432
 - DSMRREADER_BACKEND_SLEEP=60
 - DSMRREADER_DATALOGGER_SLEEP=60
 ```
