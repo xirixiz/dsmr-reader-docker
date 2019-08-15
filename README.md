@@ -4,8 +4,11 @@ Now it's possible to set the following settings as environment variables, for ex
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
+```
 
+```
 Optional (defaults are shown as value):
+
 Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
