@@ -10,10 +10,18 @@
 : "${COMMAND:=$@}"
 : "${DB_PORT:=5432}"
 : "${TIMER:=60}"
+
+# Set defaults for supervisord
 : "${SD_LOGLEVEL:=info}"
-: "${SD_AUTORESTART_DATALOGGER:=true}"
 : "${SD_USER:=root}"
 : "${SD_GROUP:=root}"
+: "${SD_AUTOSTART_DATALOGGER:=true}"
+: "${SD_AUTORESTART_DATALOGGER:=true}"
+: "${SD_AUTOSTART_BACKEND:=true}"
+: "${SD_AUTORESTART_BACKEND:=true}"
+: "${SD_AUTOSTART_MQTT:=false}"
+: "${SD_AUTORESTART_MQTT:=false}"
+
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -22,6 +30,19 @@ function _info  () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
 function _warn  () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
 function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
+
+function _export_variables() {
+  # Nescessary for supervisord (subshell)
+  export SD_LOGLEVEL
+  export SD_USER
+  export SD_GROUP
+  export SD_AUTOSTART_DATALOGGER
+  export SD_AUTORESTART_DATALOGGER
+  export SD_AUTOSTART_BACKEND
+  export SD_AUTORESTART_BACKEND
+  export SD_AUTOSTART_MQTT
+  export SD_AUTORESTART_MQTT
+}
 
 function _pre_reqs() {
   _info "Checking if the DSMR web credential variables have been set..."
@@ -80,22 +101,6 @@ function _set_throttle() {
   fi
 }
 
-# function _set_loglevel() {
-#   if [[ -n "${DSMR_LOGLEVEL}" ]] ; then
-#     if grep 'CUSTOM_LOGLEVEL' /dsmr/dsmrreader/settings.py; then
-#       _info "Setting CUSTOM_LOGLEVEL already present, replacing values..."
-#       sed -e "/CUSTOM_LOGLEVEL/,+2d" /dsmr/dsmrreader/settings.py
-#       echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
-#       echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
-#     else
-#       _info "Adding setting CUSTOM_LOGLEVEL..."
-#       sed -e "/LOGGING/,+2d" /dsmr/dsmrreader/settings.py
-#       echo "# CUSTOM_LOGLEVEL" >> /dsmr/dsmrreader/settings.py
-#       echo "LOGGING['loggers']['commands']['level'] = '${DSMR_LOGLEVEL}'" >> /dsmr/dsmrreader/settings.py
-#     fi
-#   fi
-# }
-
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
@@ -122,10 +127,10 @@ function _start_supervisord() {
 #---------------------------------------------------------------------------------------------------------------------------
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 
+_export_variables
 _pre_reqs
 _override_entrypoint
 _check_db_availability
 _set_throttle
-#_set_loglevel
 _run_post_config
 _start_supervisord

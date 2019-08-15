@@ -1,6 +1,31 @@
 #### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
 ```
+Required (defaults are shown as value):
+- TZ=Europe/Amsterdam
+- DB_HOST=dsmrdb
+- DB_USER=dsmrreader
+- DB_PASS=dsmrreader
+- DB_PORT=5432
+- DSMR_USER=admin
+- DSMR_EMAIL=root@localhost
+- DSMR_PASSWORD=admin
+- VIRTUAL_HOST=localhost
+
+Optional (defaults are shown as value):
+
+Supervisord related:
+- SD_LOGLEVEL=info
+- SD_USER=root
+- SD_GROUP=root
+- SD_AUTOSTART_DATALOGGER=true
+- SD_AUTORESTART_DATALOGGER=true
+- SD_AUTOSTART_BACKEND=true
+- SD_AUTORESTART_BACKEND=true
+- SD_AUTOSTART_MQTT=false
+- SD_AUTORESTART_MQTT=false
+
+DSMR related:
 - DSMRREADER_BACKEND_SLEEP=60
 - DSMRREADER_DATALOGGER_SLEEP=60
 ```
