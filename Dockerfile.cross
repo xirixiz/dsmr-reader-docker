@@ -14,7 +14,6 @@ ENV DB_USER dsmrreader
 ENV DB_PASS dsmrreader
 ENV DB_NAME dsmrreader
 
-ENV AUTORESTART_DATALOGGER true
 ENV SD_LOGLEVEL info
 ENV SD_USER root
 ENV SD_GROUP root
