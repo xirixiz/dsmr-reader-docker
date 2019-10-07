@@ -24,6 +24,8 @@ DSMR related (defaults are shown as value):
 - DSMR_USER=admin
 - DSMR_EMAIL=root@localhost
 - DSMR_PASSWORD=admin
+- DSMR_BACKEND_SLEEP=<value in seconds>
+- DSMR_DATALOGGER_SLEEP=<value in seconds>
 
 DB related (defaults are shown as value):
 - DB_HOST=dsmrdb
