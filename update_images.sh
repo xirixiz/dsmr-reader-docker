@@ -14,6 +14,7 @@ set -o nounset
 : "${LOCAL:=}"
 : "${HUB:=}"
 : "${TAG:=}"
+: "${SED:=}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -30,7 +31,7 @@ function usage() {
     echo -e "    --local          generates a local test image for amd64, arm32v6 or arm64v8."
     echo -e "    --arch           required for local test images, optional for hub images."
     echo -e "    --hub            generates amd64, arm32v6 and arm64v8 Docker images and pushes them to the Docker Hub."
-    echo -e "    --tag            option provide a different tag to push to the Docker Hub. Default the DSMR release version is used."
+    echo -e "    --tag            Default is the DSMR release version is used, adding a tag appends a tag to the version."
     echo -e "    --debug          debug mode."
     echo -e "    -?               help."
     exit 0
@@ -39,13 +40,14 @@ function usage() {
 function _pre_reqs() {
   _info "Creating temporary directory..."
   mkdir -p ./tmp/{dsmr,qemu}
-
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    SED=""${SED}""
+    SED="sed -i ''"
   else
     SED="sed -i"
   fi
 }
+
+
 
 function _dmsr_release() {
   dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
@@ -93,11 +95,11 @@ function _generate_docker_files() {
         exit 1
     esac
     cp Dockerfile.cross Dockerfile."${docker_arch}"
-    "${SED}" "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
+    ${SED} "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
-      "${SED}" "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
+      ${SED} "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
     else
-      "${SED}" "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
+      ${SED} "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
     fi
   done
 }
@@ -105,7 +107,7 @@ function _generate_docker_files() {
 function _tag_release() {
   if [[ -n "${TAG}" ]] ; then
     _info "TAG has been set, pushing a custom release as '"${TAG}"'..."
-    dsmr_release=${TAG}
+    dsmr_release="${dsmr_release}"-"${TAG}"
   fi
 }
 
