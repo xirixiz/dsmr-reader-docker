@@ -47,8 +47,6 @@ function _pre_reqs() {
   fi
 }
 
-
-
 function _dmsr_release() {
   dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
   _info "Using latest DSMR release: ${dsmr_release}."
