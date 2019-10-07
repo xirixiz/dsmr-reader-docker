@@ -13,6 +13,7 @@ set -o nounset
 : "${DOCKER_HUB_REPO:=xirixiz/dsmr-reader-docker}"
 : "${LOCAL:=}"
 : "${HUB:=}"
+: "${TAG:=}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -28,7 +29,8 @@ function usage() {
     echo -e "  General parameters:"
     echo -e "    --local          generates a local test image for amd64, arm32v6 or arm64v8."
     echo -e "    --arch           required for local test images, optional for hub images."
-    echo -e "    --hub            generates amd64, arm32v6 and arm64v8 Docker images and pushes them to the Docker Hub"
+    echo -e "    --hub            generates amd64, arm32v6 and arm64v8 Docker images and pushes them to the Docker Hub."
+    echo -e "    --tag            option provide a different tag to push to the Docker Hub. Default the DSMR release version is used."
     echo -e "    --debug          debug mode."
     echo -e "    -?               help."
     exit 0
@@ -37,6 +39,12 @@ function usage() {
 function _pre_reqs() {
   _info "Creating temporary directory..."
   mkdir -p ./tmp/{dsmr,qemu}
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    SED=""${SED}""
+  else
+    SED="sed -i"
+  fi
 }
 
 function _dmsr_release() {
@@ -85,20 +93,28 @@ function _generate_docker_files() {
         exit 1
     esac
     cp Dockerfile.cross Dockerfile."${docker_arch}"
-    sed -i '' "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
+    "${SED}" "s|__QEMU_ARCH__|${qemu_arch}|g" Dockerfile."${docker_arch}"
     if [[ ${docker_arch} == "amd64" ]]; then
-      sed -i '' "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
+      "${SED}" "s/__BASEIMAGE_ARCH__\///g" Dockerfile."${docker_arch}"
     else
-      sed -i '' "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
+      "${SED}" "s|__BASEIMAGE_ARCH__|${docker_arch}|g" Dockerfile."${docker_arch}"
     fi
   done
 }
 
+function _tag_release() {
+  if [[ -n "${TAG}" ]] ; then
+    _info "TAG has been set, pushing a custom release as '"${TAG}"'..."
+    dsmr_release=${TAG}
+  fi
+}
+
 function _build_docker_files() {
   _info "Building Docker images..."
+  _tag_release
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    docker build -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
+    docker build --rm -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
     docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":test-"${docker_arch}"-latest
     docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
@@ -111,6 +127,7 @@ function _build_docker_files() {
 
 function _push_docker_images() {
   _info "Pushing Docker images to the Docker HUB..."
+  _tag_release
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
@@ -125,6 +142,7 @@ function _push_docker_images() {
 
 function _push_docker_test_image() {
   _info "Pushing Docker test images to the Docker HUB..."
+  _tag_release
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker test images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
@@ -147,7 +165,13 @@ function _cleanup () {
       _warn "Skipping cleanup of the ./tmp directory!"
     fi
   fi
-  docker images -q | xargs docker rmi -f
+  if [[ -n $(docker images -q --filter=reference="${DSMR_GIT_REPO}") ]]; then
+    docker images -q --filter=reference="${DSMR_GIT_REPO}" | xargs docker rmi -f
+  elif [[ -n $(docker images -q --filter=reference="${QEMU_GIT_REPO}") ]]; then
+    docker images -q --filter=reference="${QEMU_GIT_REPO}" | xargs docker rmi -f
+  elif [[ -n $(docker images -q --filter=reference="${DOCKER_HUB_REPO}") ]]; then
+    docker images -q --filter=reference="${DOCKER_HUB_REPO}" | xargs docker rmi -f
+  fi
   for docker_arch in ${ARCH_ARR}; do
     [[ -f Dockerfile."${docker_arch}" ]] && rm -rf Dockerfile."${docker_arch}"
     continue
@@ -166,6 +190,7 @@ while [[ $# -gt 0 ]]; do
       --local )        LOCAL=local&&ARCH_ARR='';;
       --arch )         shift&&ARCH_ARR=$1;;
       --hub )          HUB=hub;;
+      --tag)           shift&&TAG=$1;;
       --debug )        DEBUG=true;;
       -? | --help )    usage && exit ;;
       * )              usage && exit 1 ;;
@@ -189,12 +214,12 @@ if [[ -n "${LOCAL}" ]]; then
   [[ -z "${ARCH_ARR}" ]] && _error "Option --arch not specified!" && exit 1
   _generic_build
   _push_docker_test_image
-fi
-
-if [[ -n "${HUB}" ]]; then
+elif [[ -n "${HUB}" ]]; then
   _info "Generating Docker Hub images for ${ARCH_ARR}"
   _generic_build
   _push_docker_images
+else
+ usage
 fi
 
 _cleanup
