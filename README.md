@@ -34,7 +34,7 @@ DB related (defaults are shown as value):
 ```
 
 # DSMR Reader - Docker
-A docker-compose file in order to start the following application in Docker:  
+A docker-compose file in order to start the following application in Docker:
 dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
 
 ualex73 created a fork, but that's based on an old setup. Docker image sizes have been reduced drastically (old 380mb, new 70mb), both for dsmr and dsmrdb.
@@ -58,13 +58,13 @@ An example docker-compose.yaml file can be found here: https://raw.githubusercon
 
 You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
 ```
-docker-compose up -d 
+docker-compose up -d
 ```
 
-After starting the containers with docker-compose, the dashboard is reachable at  
-HTTP: http://\<hostname>:7777  
+After starting the containers with docker-compose, the dashboard is reachable at
+HTTP: http://\<hostname>:7777
 
-After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):  
+After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):
 http://\<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
 
 # Docker run
@@ -89,7 +89,7 @@ docker run -d \
 # Backup and restore meganism 1
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
-Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:  
+Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:
 ```
 docker-compose stop dsmr
 docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql

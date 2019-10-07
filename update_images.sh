@@ -175,27 +175,26 @@ done
 
 [[ "${DEBUG}" == 'true' ]] && set -o xtrace
 
-if [[ -n "${LOCAL}" ]]; then
-  _info "Generating local Docker image for ${ARCH_ARR}"
-  [[ -z "${ARCH_ARR}" ]] && _error "Option --arch not specified!" && exit 1
+function _generic_build () {
   _cleanup
   _pre_reqs
   _dmsr_release
   _update_qemu
   _generate_docker_files
   _build_docker_files
+}
+
+if [[ -n "${LOCAL}" ]]; then
+  _info "Generating local Docker image for ${ARCH_ARR}"
+  [[ -z "${ARCH_ARR}" ]] && _error "Option --arch not specified!" && exit 1
+  _generic_build
   _push_docker_test_image
-  _cleanup
 fi
 
 if [[ -n "${HUB}" ]]; then
   _info "Generating Docker Hub images for ${ARCH_ARR}"
-  _cleanup
-  _pre_reqs
-  _dmsr_release
-  _update_qemu
-  _generate_docker_files
-  _build_docker_files
+  _generic_build
   _push_docker_images
-  _cleanup
 fi
+
+_cleanup
