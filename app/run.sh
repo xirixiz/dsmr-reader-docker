@@ -90,6 +90,39 @@ else:
 PYTHON
 }
 
+function _generate_auth_configuration() {
+  _info "Checking for HTTP AUTHENTICATION configuration..."
+  if [[ ! -z "${ENABLE_HTTP_AUTH}" ]]; then
+    if [[ "${ENABLE_HTTP_AUTH}" = true ]] ; then
+      _info "ENABLE_HTTP_AUTH is enabled, let's secure this!"
+      canWeContinue=true
+      if [[ -z "${HTTP_AUTH_USERNAME}" ]]; then
+        _warn "Please provide a HTTP_AUTH_USERNAME"
+        canWeContinue=false
+      fi
+      if [[ -z "${HTTP_AUTH_PASSWORD}" ]]; then
+        _warn "Please provide a HTTP_AUTH_PASSWORD"
+        canWeContinue=false
+      fi
+      if [[ "${canWeContinue}" = false ]] ; then
+        _error "Cannot generate a valid .htpasswd file, please check above warnings."
+        exit 1
+      fi
+      _info "Generating htpasswd..."
+      printf ${HTTP_AUTH_USERNAME}":$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")\n" > /etc/nginx/htpasswd
+      _info "Done! Enabling the configuration in NGINX..."
+      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
+      if [[ $($(nginx -c /etc/nginx/nginx.conf -t 2>/dev/null); echo $?) > 0 ]]; then
+        _error "NGINX configuration error"
+        exit 1
+      fi
+      _info "HTTP AUTHENTICATION configured and enabled"
+      return
+    fi
+  fi
+  _info "ENABLE_HTTP_AUTH is disabled, nothing to see here."
+}
+
 function _start_supervisord() {
   _info "Starting supervisord..."
   cmd=$(command -v supervisord)
@@ -106,4 +139,5 @@ _override_entrypoint
 _check_db_availability
 _set_throttle
 _run_post_config
+_generate_auth_configuration
 _start_supervisord
