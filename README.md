@@ -138,4 +138,5 @@ For Synology users:
 [opensourcelovebadge]: https://badges.frapsoft.com/os/v1/open-source.png?v=103
 [opensourcelove]: https://github.com/ellerbrock/open-source-badges/
 [dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
-[dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker?style=plastic
+[dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
+
