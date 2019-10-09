@@ -1,3 +1,5 @@
+|pulls|
+
 #### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
 ```
@@ -129,3 +131,6 @@ For Synology users:
 - Drivers are necessary: http://www.jadahl.com/drivers/
 - The docker-compose file must be set to version 3.2 or lower.
 
+.. |pulls| image:: https://img.shields.io/docker/pulls/cilium/cilium.svg
+    :alt: dsmr-reader-docker pulls
+    :target: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags/
