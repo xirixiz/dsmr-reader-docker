@@ -1,3 +1,6 @@
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
+[![OpenSourceLove][opensourcelovebadge]][opensourcelove]
+
 #### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
 ```
@@ -128,3 +131,8 @@ The current configuration has been tested on Ubuntu > 17.x and Manjaro > 17.x
 For Synology users:
 - Drivers are necessary: http://www.jadahl.com/drivers/
 - The docker-compose file must be set to version 3.2 or lower.
+
+[buymecoffee]: https://www.buymeacoffee.com/xirixiz
+[buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
+[opensourcelovebadge]: https://badges.frapsoft.com/os/v1/open-source.png?v=103
+[opensourcelove]: https://github.com/ellerbrock/open-source-badges/
