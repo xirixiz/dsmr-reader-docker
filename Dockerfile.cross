@@ -29,6 +29,7 @@ RUN ["/usr/bin/qemu-__QEMU_ARCH__-static", "/bin/sh", "-c", \
       bash \
       curl \
       nginx \
+      openssl \
       postgresql-client \
       tzdata \
       supervisor"]
