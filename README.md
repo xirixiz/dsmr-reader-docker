@@ -12,6 +12,11 @@ Required (defaults are shown as value):
 ```
 Optional (defaults are shown as value):
 
+Nginx related (thanks @Caroga):
+- ENABLE_HTTP_AUTH=false
+- HTTP_AUTH_USERNAME=
+- HTTP_AUTH_PASSWORD=
+
 Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
