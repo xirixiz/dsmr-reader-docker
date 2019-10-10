@@ -104,14 +104,13 @@ function _generate_docker_files() {
 
 function _tag_release() {
   if [[ -n "${TAG}" ]] ; then
-    _info "TAG has been set, pushing a custom release as '"${TAG}"'..."
     dsmr_release="${dsmr_release}"-"${TAG}"
+    _info "TAG has been set, pushing a custom release as '"${dsmr_release}"'..."
   fi
 }
 
 function _build_docker_files() {
   _info "Building Docker images..."
-  _tag_release
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
     docker build --rm -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
@@ -127,7 +126,6 @@ function _build_docker_files() {
 
 function _push_docker_images() {
   _info "Pushing Docker images to the Docker HUB..."
-  _tag_release
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
@@ -205,6 +203,7 @@ function _generic_build () {
   _pre_reqs
   _dmsr_release
   _update_qemu
+  _tag_release
   _generate_docker_files
   _build_docker_files
 }
