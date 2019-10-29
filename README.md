@@ -43,6 +43,23 @@ DB related (defaults are shown as value):
 - DB_NAME dsmrreader
 ```
 
+# DSMR Reader - Plugins
+DSMR Reader plugins (https://dsmr-reader.readthedocs.io/en/latest/plugins.html) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
+
+```
+    volumes:
+      - ./modules/forward_telegram_to_api.py:/dsmr/dsmr_plugins/modules/forward_telegram_to_api.py
+    environment:
+      - DSMRREADER_PLUGINS=dsmr_plugins.modules.forward_telegram_to_api
+```
+
+# DSMR Reader - Debugging
+If you ever need to set the loglevel to DEBUG you can do that by setting the `DSMRREADER_LOGLEVEL` environmental variable
+
+```
+- DSMRREADER_LOGLEVEL=DEBUG
+```
+
 # DSMR Reader - Docker
 A docker-compose file in order to start the following application in Docker:
 dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
