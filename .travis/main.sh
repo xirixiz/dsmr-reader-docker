@@ -25,7 +25,7 @@ function _preReqs() {
   sudo mkdir -p ./tmp/{dsmr,qemu}
 
   _info "Logon to the Docker HUB..."
-  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 }
 
 function _setupDependencies() {
