@@ -23,11 +23,7 @@ steps:
     docker login $(DOCKER_FQDN) \
     --username $(DOCKER_USERNAME) \
     --password $(DOCKER_PASSWORD)
-
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
+- script: echo ${DOCKER_USERNAME}
 
 - task: Bash@3
   inputs:
@@ -39,13 +35,6 @@ steps:
     targetType: 'inline'
     script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-        docker login $(DOCKER_FQDN) \
-        --username $(DOCKER_USERNAME) \
-        --password $(DOCKER_PASSWORD)
 - task: Bash@3
   inputs:
     targetType: 'inline'
