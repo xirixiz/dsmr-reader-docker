@@ -17,13 +17,10 @@ steps:
   env:
     MySecret: $(DOCKER_PASSWORD)
 
-- script: |
-    docker login $(DOCKER_FQDN) \
-    --username $(DOCKER_USERNAME) \
-    --password $(DOCKER_PASSWORD)
+- script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
 
-- script: 'apt-get update && sudo apt-get install qemu-user-static -y'
+- script: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
-- script: 'docker run --rm --privileged multiarch/qemu-user-static:register --reset'
+- script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- script: '$(System.DefaultWorkingDirectory)/.azure/deploy.sh'
+- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
