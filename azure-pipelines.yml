@@ -4,6 +4,18 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+        docker login $(DOCKER_FQDN) \
+        --username $(DOCKER_USERNAME) \
+        --password $(DOCKER_PASSWORD)
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
+
 steps:
 - task: Bash@3
   inputs:
@@ -25,4 +37,4 @@ steps:
 - task: Bash@3
   inputs:
     targetType: 'inline'
-    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
+    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
