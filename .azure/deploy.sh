@@ -5,8 +5,8 @@ set -euo pipefail
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
 
-DOCKER_USERNAME=$(DOCKER_USERNAME)
-DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+echo "##vso[task.setvariable variable=DOCKER_USERNAME;issecret=true]${DOCKER_USERNAME}"
+echo "##vso[task.setvariable variable=DOCKER_PASSWORD;issecret=true]${DOCKER_PASSWORD}"
 
 : "${DEBUG:=false}"
 : "${ARCH_ARR:=amd64 arm32v6 arm64v8}"
