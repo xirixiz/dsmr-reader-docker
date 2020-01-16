@@ -5,37 +5,22 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-        docker login $(DOCKER_FQDN) \
-        --username $(DOCKER_USERNAME) \
-        --password $(DOCKER_PASSWORD)
-
-- script: export DOCKER_USERNAME=$DOCKER_USERNAME
+- script: echo $DOCKER_USERNAME
   env:
     MySecret: $(DOCKER_USERNAME)
-- script: export DOCKER_USERNAME=$DOCKER_PASSWORD
+
+- script: echo $DOCKER_PASSWORD
   env:
     MySecret: $(DOCKER_PASSWORD)
+
 - script: |
     docker login $(DOCKER_FQDN) \
     --username $(DOCKER_USERNAME) \
     --password $(DOCKER_PASSWORD)
-- script: echo ${DOCKER_USERNAME}
+- script: echo "test ${DOCKER_USERNAME}"
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
+- script: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
+- script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
+#- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
