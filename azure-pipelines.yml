@@ -1,29 +1,28 @@
-# Docker
-# Build a Docker image 
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+# Build and push an ARM32v7 IoT Edge module
 
 trigger:
 - master
 
-resources:
-- repo: self
+pool:
+  vmImage: 'ubuntu-latest'
 
-variables:
-  tag: '$(Build.BuildId)'
+steps:
+#Exporting the module version from module.json for Docker Image Module versioning
+- script: |
+    echo '##vso[task.setvariable variable=moduleversion]'$(jq -r .image.tag.version $(System.DefaultWorkingDirectory)/edgeSolution/modules/mymodule/module.json)
+    
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'sudo apt update && sudo apt install qemu-user-static -y'
 
-stages:
-- stage: Build
-  displayName: Build image
-  jobs:  
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: Docker@2
-      displayName: Build an image
-      inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile.cross'
-        tags: |
-          $(tag)
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
+
+#Copying the qemu-arm-static Intel binary in the root folder of my module (where the Dockerfile.arm32v7 is located)
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'sudo $(System.DefaultWorkingDirectory)/.travis/main.sh'
