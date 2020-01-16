@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# set -o errexit
-# set -o pipefail
-# set -o nounset
+set -euo pipefail
 
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
+
+DOCKER_USERNAME=$(DOCKER_USERNAME)
+DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+
 : "${DEBUG:=false}"
 : "${ARCH_ARR:=amd64 arm32v6 arm64v8}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
