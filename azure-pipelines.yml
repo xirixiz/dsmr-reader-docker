@@ -8,13 +8,20 @@ steps:
 - task: Bash@3
   inputs:
     targetType: 'inline'
-    script: 'sudo apt update && sudo apt install qemu-user-static -y'
+    script: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
 - task: Bash@3
   inputs:
     targetType: 'inline'
     script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+        docker login $(DOCKER_FQDN) \
+        --username $(DOCKER_USERNAME) \
+        --password $(DOCKER_PASSWORD)
 - task: Bash@3
   inputs:
     targetType: 'inline'
