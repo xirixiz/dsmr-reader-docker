@@ -5,6 +5,10 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- script: echo $DOCKER_FQDN
+  env:
+    MySecret: $(DOCKER_FQDN)
+    
 - script: echo $DOCKER_USERNAME
   env:
     MySecret: $(DOCKER_USERNAME)
@@ -17,10 +21,9 @@ steps:
     docker login $(DOCKER_FQDN) \
     --username $(DOCKER_USERNAME) \
     --password $(DOCKER_PASSWORD)
-- script: echo "test ${DOCKER_USERNAME}"
 
-- script: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
+- script: 'apt-get update && sudo apt-get install qemu-user-static -y'
 
-- script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
+- script: 'docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-#- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/test.sh'
+- script: '$(System.DefaultWorkingDirectory)/.azure/deploy.sh'
