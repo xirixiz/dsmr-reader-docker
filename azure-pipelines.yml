@@ -36,7 +36,7 @@ steps:
       sudo mkdir -p ./tmp/{dsmr,qemu}
     
     
-      _info "${DOCKER_FQDN} docker fqdn"
+      _info "$(DOCKER_FQDN) docker fqdn"
       _info "Logon to the Docker HUB..."
       echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
     }
