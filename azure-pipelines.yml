@@ -11,12 +11,6 @@ steps:
 
 - script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- task: AzureCLI@1
-    inputs:
-      scriptPath: '$(System.DefaultWorkingDirectory)/.azure/env.sh'
-      addSpnToEnvironment: true
-      failOnStandardError: true
-
 - script: 'sudo $(System.DefaultWorkingDirectory)/.azure/env.sh'
   env:
     DOCKER_USERNAME: $(DOCKER_USERNAME)
