@@ -12,6 +12,18 @@ steps:
         docker login $(DOCKER_FQDN) \
         --username $(DOCKER_USERNAME) \
         --password $(DOCKER_PASSWORD)
+
+- script: export DOCKER_USERNAME=$DOCKER_USERNAME
+  env:
+    MySecret: $(DOCKER_USERNAME)
+- script: export DOCKER_USERNAME=$DOCKER_PASSWORD
+  env:
+    MySecret: $(DOCKER_PASSWORD)
+- script: |
+    docker login $(DOCKER_FQDN) \
+    --username $(DOCKER_USERNAME) \
+    --password $(DOCKER_PASSWORD)
+
 - task: Bash@3
   inputs:
     targetType: 'inline'
