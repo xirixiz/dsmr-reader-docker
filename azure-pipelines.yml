@@ -11,7 +11,7 @@ steps:
 
 - script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/env.sh'
+- script: 'sudo chmod 755 $(System.DefaultWorkingDirectory)/.azure/env.sh && sudo $(System.DefaultWorkingDirectory)/.azure/env.sh'
   env:
     DOCKER_USERNAME: $(DOCKER_USERNAME)
     DOCKER_PASSWORD: $(DOCKER_PASSWORD)
