@@ -23,9 +23,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 function _preReqs() {
   _info "Creating temporary directory..."
   sudo mkdir -p ./tmp/{dsmr,qemu}
-
-
-  _info "${DOCKER_FQDN} docker fqdn"
+  
   _info "Logon to the Docker HUB..."
   echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 }
