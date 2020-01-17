@@ -16,5 +16,5 @@ steps:
 
 - script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
   env:
-    DOCKER_USERNAME: $(DOCKER_USERNAME)
-    DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+    DOCKER_USERNAME: ${{ variables.DOCKER_USERNAME }}
+    DOCKER_PASSWORD: ${{ variables.DOCKER_PASSWORD }}
