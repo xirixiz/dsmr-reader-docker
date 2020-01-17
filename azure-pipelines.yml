@@ -9,7 +9,7 @@ pool:
 
 steps:
 # - script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
-- script: echo $MYSECRET
+- script: echo $MySecret
   env:
     MySecret: $(DOCKER_FQDN)
     
