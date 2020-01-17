@@ -10,7 +10,7 @@ pool:
 steps:
 # - script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
 
-- script: sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh
+- script: '$(System.DefaultWorkingDirectory)/.azure/deploy.sh'
   env:
     DOCKER_FQDN: $(DOCKER_FQDN)
     DOCKER_USERNAME: $(DOCKER_USERNAME)
