@@ -9,15 +9,13 @@ pool:
 
 steps:
 # - script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
-- script: echo $DOCKER_FQDN
+
+- script: sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh
   env:
     DOCKER_FQDN: $(DOCKER_FQDN)
-    
+    DOCKER_USERNAME: $(DOCKER_USERNAME)
+    DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+ 
 - bash: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
 - bash: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
-
-- task: Bash@3
-  inputs:
-    script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
-    arguments: '$(DOCKER_USERNAME) $(DOCKER_PASSWORD)'
