@@ -9,9 +9,9 @@ pool:
 
 steps:
 # - script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
-- script: echo $MySecret
+- script: echo $DOCKER_FQDN
   env:
-    MySecret: $(DOCKER_FQDN)
+    DOCKER_FQDN: $(DOCKER_FQDN)
     
 - bash: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
@@ -20,4 +20,4 @@ steps:
 - task: Bash@3
   inputs:
     script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
-    arguments: "$(DOCKER_USERNAME) $(DOCKER_PASSWORD)"
+    arguments: '$(DOCKER_USERNAME) $(DOCKER_PASSWORD)'
