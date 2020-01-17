@@ -14,7 +14,4 @@ steps:
 
 - script: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
 
-- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh'
-  env:
-    DOCKER_USERNAME: ${{ variables.DOCKER_USERNAME }}
-    DOCKER_PASSWORD: ${{ variables.DOCKER_PASSWORD }}
+- script: 'sudo $(System.DefaultWorkingDirectory)/.azure/deploy.sh ${{ variables.DOCKER_USERNAME }} ${{ variables.DOCKER_PASSWORD }}'
