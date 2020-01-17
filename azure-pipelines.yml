@@ -9,7 +9,10 @@ pool:
 
 steps:
 # - script: 'sudo docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
-
+- script: echo $MYSECRET
+  env:
+    MySecret: $(DOCKER_FQDN)
+    
 - bash: 'sudo apt-get update && sudo apt-get install qemu-user-static -y'
 
 - bash: 'sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset'
