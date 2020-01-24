@@ -13,6 +13,7 @@ set -o nounset
 : "${DOCKER_HUB_REPO:=xirixiz/dsmr-reader-docker}"
 : "${LOCAL:=}"
 : "${HUB:=}"
+: "${VERSION:=}"
 : "${TAG:=}"
 : "${SED:=}"
 
@@ -31,6 +32,7 @@ function usage() {
     echo -e "    --local          generates a local test image for amd64, arm32v6 or arm64v8."
     echo -e "    --arch           required for local test images, optional for hub images."
     echo -e "    --hub            generates amd64, arm32v6 and arm64v8 Docker images and pushes them to the Docker Hub."
+    echo -e "    --version        optional to create a Docker image with a specifi DSMR Reader version."
     echo -e "    --tag            Default is the DSMR release version is used, adding a tag appends a tag to the version."
     echo -e "    --debug          debug mode."
     echo -e "    -?               help."
@@ -48,8 +50,12 @@ function _pre_reqs() {
 }
 
 function _dmsr_release() {
-  dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
-  _info "Using latest DSMR release: ${dsmr_release}."
+  if [[ -n "${VERSION}" ]]; then
+    dsmr_release="${VERSION}"
+  else
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
+  fi
+  _info "Using DSMR release: ${dsmr_release}."
   pushd ./tmp/dsmr
   if [[ ! -d dsmrreader ]]; then
     wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
@@ -129,10 +135,14 @@ function _push_docker_images() {
   for docker_arch in ${ARCH_ARR}; do
     _info "Pushing Docker images for: ${docker_arch}, release ${dsmr_release}."
     if [[ "${docker_arch}" == "amd64" ]]; then
-      docker push "${DOCKER_HUB_REPO}":latest
+      if [[ ! -n "${VERSION}" ]]; then
+        docker push "${DOCKER_HUB_REPO}":latest
+      fi
       docker push "${DOCKER_HUB_REPO}":"${dsmr_release}"
     else
-      docker push "${DOCKER_HUB_REPO}":"${docker_arch}"-latest
+      if [[ ! -n "${VERSION}" ]]; then
+        docker push "${DOCKER_HUB_REPO}":"${docker_arch}"-latest
+      fi
       docker push "${DOCKER_HUB_REPO}":"${docker_arch}-${dsmr_release}"
     fi
   done
@@ -188,6 +198,7 @@ while [[ $# -gt 0 ]]; do
       --local )        LOCAL=local&&ARCH_ARR='';;
       --arch )         shift&&ARCH_ARR=$1;;
       --hub )          HUB=hub;;
+      --version )      shift&&VERSION=$1;;
       --tag)           shift&&TAG=$1;;
       --debug )        DEBUG=true;;
       -? | --help )    usage && exit ;;
