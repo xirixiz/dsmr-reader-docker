@@ -119,7 +119,7 @@ function _build_docker_files() {
   _info "Building Docker images..."
   for docker_arch in ${ARCH_ARR}; do
     _info "Building Docker images for: ${docker_arch}, release ${dsmr_release}."
-    docker build --rm -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
+    docker build -f Dockerfile."${docker_arch}" -t "${DOCKER_HUB_REPO}":"${docker_arch}"-latest .
     docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":test-"${docker_arch}"-latest
     docker tag "${DOCKER_HUB_REPO}":"${docker_arch}"-latest "${DOCKER_HUB_REPO}":"${docker_arch}-${dsmr_release}"
     if [[ "${docker_arch}" == "amd64" ]]; then
