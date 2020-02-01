@@ -5,7 +5,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-16.04'
 
 steps:
 - script: 'docker login $(DOCKER_FQDN) --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)'
