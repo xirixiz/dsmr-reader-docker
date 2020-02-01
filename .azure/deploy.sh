@@ -29,7 +29,7 @@ function _preReqs() {
 function _setupDependencies() {
   _info "Setting up dependencies..."
   sudo apt-get update -y
-  sudo apt-get install realpath python python-pip -y
+  sudo apt-get install python python-pip -y
   #sudo apt-get install --only-upgrade docker-ce -y
   #sudo pip install docker-compose || true
   docker info
