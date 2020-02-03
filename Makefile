@@ -20,11 +20,11 @@ export SHELL=/bin/bash
 
 dsmr:
 	@echo "==> Fetching DSMR version $(APP_VERSION)."
-	mkdir -p tmp/dsmr
-	mkdir -p src/dsmr
+	-mkdir -p tmp/dsmr
+	-mkdir -p src/dsmr
 	cd tmp/dsmr && \
 	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
-	tar -xf $(APP_VERSION).tar.gz --strip-components=1 && \
+	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
 	rm -rf $(APP_VERSION).tar.gz && \
 	cp -R  * ../../src/dsmr/
 	@echo "==> Fetching DSMR done."
@@ -40,9 +40,8 @@ fetch-qemu-%:
 	$(eval ARCH := $*)
 	@echo "--> Fetching QEMU binary for $(ARCH)"
 	cd tmp/qemu && \
-	curl -L -o qemu-$(ARCH)-static.tar.gz \
-		https://github.com/multiarch/qemu-user-static/releases/download/v$(QEMU_VERSION)/qemu-$(ARCH)-static.tar.gz && \
-	tar xzf qemu-$(ARCH)-static.tar.gz && \
+	wget -N https://github.com/multiarch/qemu-user-static/releases/download/v$(QEMU_VERSION)/qemu-$(ARCH)-static.tar.gz && \
+	tar -zxf qemu-$(ARCH)-static.tar.gz && \
 	cp qemu-$(ARCH)-static ../qemu/
 	@echo "--> Done."
 
