@@ -16,7 +16,7 @@ stages:
 
 
 - stage: arm32v6
-  displayName: arm32v6 (Pi 2+ and other armhf)
+  displayName: arm32v6 (Pi 1+, Zero and other armhf)
   dependsOn: []
   jobs:
   - template: .azure-pipelines-job.yml
@@ -27,7 +27,7 @@ stages:
 
 
 - stage: arm32v7
-  displayName: arm32v7 (Pi 2+ and other armhf)
+  displayName: arm32v7 (Pi 1+ and other armhf)
   dependsOn: []
   jobs:
   - template: .azure-pipelines-job.yml
