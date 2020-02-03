@@ -42,7 +42,7 @@ fetch-qemu-%:
 	cd tmp/qemu && \
 	wget -N https://github.com/multiarch/qemu-user-static/releases/download/v$(QEMU_VERSION)/qemu-$(ARCH)-static.tar.gz && \
 	tar -zxf qemu-$(ARCH)-static.tar.gz && \
-	cp qemu-$(ARCH)-static ../qemu/
+	cp qemu-$(ARCH)-static ../../qemu/
 	@echo "--> Done."
 
 wrap:
