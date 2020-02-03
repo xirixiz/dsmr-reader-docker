@@ -1,3 +1,4 @@
 dsmrdb/
+src/dsmr/
 tmp/
-Dockerfile.*
+.DS_Store

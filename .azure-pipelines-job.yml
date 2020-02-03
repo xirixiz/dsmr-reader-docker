@@ -1,0 +1,25 @@
+  parameters:
+    vmImage: 'ubuntu-latest'
+    timeout: 60
+ 
+  jobs:
+  - job: ${{ parameters.arch }}
+    displayName: Build ${{ parameters.arch }}
+    timeoutInMinutes: ${{ parameters.timeout }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+      ARCH: ${{ parameters.arch }} 
+      DOCKER: docker --config=~/.docker
+    steps:
+        - script: |
+            make qemu
+            make wrap-$(ARCH)
+          displayName: Setup ${{ parameters.arch }}
+        - script: |
+            make build-$(ARCH)
+          displayName: Build ${{ parameters.arch }}
+        - script: |
+            echo ${{ parameters.password }} | $(DOCKER) login --username ${{ parameters.username }} --password-stdin
+            make push-$(ARCH)
+          displayName: Push ${{ parameters.arch }}
