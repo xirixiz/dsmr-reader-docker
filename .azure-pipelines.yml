@@ -15,6 +15,17 @@ stages:
       password: $(DOCKER_PASSWORD)
 
 
+- stage: arm32v6
+  displayName: arm32v6 (Pi 2+ and other armhf)
+  dependsOn: []
+  jobs:
+  - template: .azure-pipelines-job.yml
+    parameters:
+      arch: arm32v6
+      username: $(DOCKER_USERNAME)
+      password: $(DOCKER_PASSWORD)
+
+
 - stage: arm32v7
   displayName: arm32v7 (Pi 2+ and other armhf)
   dependsOn: []
@@ -41,6 +52,7 @@ stages:
   displayName: multi-arch manifest
   dependsOn: 
     - amd64
+    - arm32v6
     - arm32v7
     - arm64v8
   variables:
