@@ -1,7 +1,5 @@
-FROM __BASEIMAGE_ARCH__/python:alpine
-
-COPY ./tmp/qemu/qemu-__QEMU_ARCH__-static /usr/bin/
-COPY ./tmp/dsmr/ /dsmr
+ARG BASE
+FROM ${BASE}
 
 ENV DSMR_USER admin
 ENV DSMR_EMAIL root@localhost
@@ -22,6 +20,8 @@ ENV SD_AUTOSTART_BACKEND true
 ENV SD_AUTORESTART_BACKEND true
 ENV SD_AUTOSTART_MQTT true
 ENV SD_AUTORESTART_MQTT true
+
+COPY ./dsmr/ /dsmr
 
 RUN apk --update add --no-cache \
       bash \
