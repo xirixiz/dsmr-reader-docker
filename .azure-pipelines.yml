@@ -64,5 +64,5 @@ stages:
       vmImage: 'ubuntu-latest'
     steps:
         - script: |
-            echo $(DOCKER_PASSWORD) | docker login --username $(DOCKER_USERNAME) --password-stdin
+            echo $(DOCKER_PASSWORD) | $(DOCKER) login --username $(DOCKER_USERNAME) --password-stdin
             make manifest
