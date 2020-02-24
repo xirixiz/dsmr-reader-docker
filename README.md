@@ -81,7 +81,8 @@ sudo usermod -aG dialout $(whoami)
 
 # Docker-compose
 
-An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml
+An example docker-compose.yaml file can be found here: 
+https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml
 
 You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
 ```
