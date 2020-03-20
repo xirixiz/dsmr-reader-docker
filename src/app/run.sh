@@ -36,6 +36,7 @@ function _pre_reqs() {
 function _update_on_startup() {
   dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
   _info "Update on startup enabled! Using latest DSMR release: ${dsmr_release}."
+  mkdir -p /dsmr
   rm -rf /dsmr/*
   pushd /dsmr
   wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
