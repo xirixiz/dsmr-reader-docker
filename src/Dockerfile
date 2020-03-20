@@ -28,6 +28,9 @@ RUN apk --update add --no-cache \
       nginx \
       openssl \
       postgresql-client \
+      gcc \
+      python3-dev \ 
+      musl-dev \
       postgresql-dev \
       tzdata \
       jq \
