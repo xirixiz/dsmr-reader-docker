@@ -2,6 +2,7 @@
 
 trigger:
 - master
+- dynamic_dsmr_reader_docker
 
 stages:
 - stage: amd64
@@ -48,21 +49,21 @@ stages:
       password: $(DOCKER_PASSWORD)
 
 
-- stage: Manifest
-  displayName: multi-arch manifest
-  dependsOn: 
-    - amd64
-    - arm32v6
-    - arm32v7
-    - arm64v8
-  variables:
-    - name: DOCKER
-      value: docker --config=/home/vsts/.docker
-  jobs:
-  - job: Manifest 
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-        - script: |
-            echo $(DOCKER_PASSWORD) | $(DOCKER) login --username $(DOCKER_USERNAME) --password-stdin
-            make manifest
+# - stage: Manifest
+#   displayName: multi-arch manifest
+#   dependsOn: 
+#     - amd64
+#     - arm32v6
+#     - arm32v7
+#     - arm64v8
+#   variables:
+#     - name: DOCKER
+#       value: docker --config=/home/vsts/.docker
+#   jobs:
+#   - job: Manifest 
+#     pool:
+#       vmImage: 'ubuntu-latest'
+#     steps:
+#         - script: |
+#             echo $(DOCKER_PASSWORD) | $(DOCKER) login --username $(DOCKER_USERNAME) --password-stdin
+#             make manifest
