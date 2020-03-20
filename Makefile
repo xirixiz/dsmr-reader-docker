@@ -1,5 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
+export DYNAMIC_VERSION=DYNUP
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`
@@ -95,8 +96,8 @@ push:
 
 push-%:
 	$(eval ARCH := $*)
-	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME)-${DYNAMIC_VERSION}:$(ARCH)
-	$(DOCKER) push $(IMAGE_NAME)-$(DYNAMIC_VERSION):$(ARCH)
+	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):${DYNAMIC_VERSION}-$(ARCH)
+	$(DOCKER) push $(IMAGE_NAME):$(DYNAMIC_VERSION)-$(ARCH)
 
 expand-%: # expand architecture variants for manifest
 	@if [ "$*" == "amd64" ] ; then \
