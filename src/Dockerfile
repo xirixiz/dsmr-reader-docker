@@ -21,8 +21,6 @@ ENV SD_AUTORESTART_BACKEND true
 ENV SD_AUTOSTART_MQTT true
 ENV SD_AUTORESTART_MQTT true
 
-COPY ./dsmr/ /dsmr
-
 RUN apk --update add --no-cache \
       bash \
       curl \
@@ -32,11 +30,7 @@ RUN apk --update add --no-cache \
       tzdata \
       supervisor
 
-RUN cp /dsmr/dsmrreader/provisioning/django/postgresql.py /dsmr/dsmrreader/settings.py
-
 RUN apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
-      pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir && \
-      pip3 install -r /dsmr/dsmrreader/provisioning/requirements/postgresql.txt --no-cache-dir && \
       apk --purge del .build-deps && \
       rm -rf /tmp/*
 
@@ -45,7 +39,6 @@ RUN mkdir -p /run/nginx/ && \
       ln -sf /dev/stderr /var/log/nginx/error.log && \
       rm -f /etc/nginx/conf.d/default.conf && \
       mkdir -p /var/www/dsmrreader/static && \
-      cp /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
 COPY ./app/run.sh /run.sh
 RUN chmod u+x /run.sh
@@ -53,7 +46,5 @@ RUN chmod u+x /run.sh
 COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
-
-WORKDIR /dsmr
 
 CMD ["/run.sh"]
