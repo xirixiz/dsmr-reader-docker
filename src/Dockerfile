@@ -28,6 +28,7 @@ RUN apk --update add --no-cache \
       nginx \
       openssl \
       postgresql-client \
+      postgresql-dev \
       tzdata \
       jq \
       supervisor
