@@ -96,9 +96,9 @@ function _set_throttle() {
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
-  "${cmd}" manage.py migrate --noinput
-  "${cmd}" manage.py collectstatic --noinput
-"${cmd}" manage.py shell -i python << PYTHON
+  "${cmd}" /dsmr/manage.py migrate --noinput
+  "${cmd}" /dmsr/manage.py collectstatic --noinput
+"${cmd}" /dsmr/manage.py shell -i python << PYTHON
 from django.contrib.auth.models import User
 if not User.objects.filter(username='${DSMR_USER}'):
   User.objects.create_superuser('${DSMR_USER}', '${DSMR_EMAIL}', '${DSMR_PASSWORD}')
