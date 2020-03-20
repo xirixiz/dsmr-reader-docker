@@ -24,10 +24,12 @@ ENV SD_AUTORESTART_MQTT true
 RUN apk --update add --no-cache \
       bash \
       curl \
+      wget \
       nginx \
       openssl \
       postgresql-client \
       tzdata \
+      jq \
       supervisor
 
 RUN apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
