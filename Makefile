@@ -96,8 +96,8 @@ push:
 push-%:
 	$(eval ARCH := $*)
 	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):$(ARCH)-$(APP_VERSION)
-	$(DOCKER) push $(IMAGE_NAME):$(ARCH)
-	$(DOCKER) push $(IMAGE_NAME):$(ARCH)-$(APP_VERSION)
+	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME)-${DYNAMIC_VERSION}:$(ARCH)
+	$(DOCKER) push $(IMAGE_NAME)-$(DYNAMIC_VERSION):$(ARCH)
 
 expand-%: # expand architecture variants for manifest
 	@if [ "$*" == "amd64" ] ; then \
