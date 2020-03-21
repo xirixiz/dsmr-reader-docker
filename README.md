@@ -3,22 +3,28 @@
 
 #### DSMR Reader - Releases info
 ##### Latest releases, build-in DSMR Reader release
+```
 arm32v6
 arm64v8
 amd64
 arm32v7
+```
 
 ##### Version releases, build-in DSMR Reader release
+```
 arm32v6-<version>
 arm64v8-<version
 amd64-<version>
 arm32v7-<version>
+```
 
 ##### Download and install DSMR Reader release on container startup
+```
 DYNUP-arm32v6
 DYNUP-arm64v8
 DYNUP-amd64
 DYNUP-arm32v7
+```
 
 #### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
