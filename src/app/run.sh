@@ -30,6 +30,9 @@ function _pre_reqs() {
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
+  
+  _info "Creating log directory..."
+  mkdir -p /var/log/supervisor/
 }
 
 function _override_entrypoint() {
