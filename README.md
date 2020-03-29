@@ -57,15 +57,19 @@ DSMR related (defaults are shown as value):
 - DSMR_USER=admin
 - DSMR_EMAIL=root@localhost
 - DSMR_PASSWORD=admin
-- DSMR_BACKEND_SLEEP=<value in seconds>
-- DSMR_DATALOGGER_SLEEP=<value in seconds>
+- DSMR_BACKEND_SLEEP = <value in seconds> # Not needed anymore
+- DSMR_DATALOGGER_SLEEP = <value in seconds> # Not needed anymore
+- DSMRREADER_LOGLEVEL=WARNING # Valid values are WARNING, INFO, DEBUG
+- DSMRREADER_PLUGINS = ['dsmr_plugins.modules.plugin_name1','dsmr_plugins.modules.plugin_name2']
+- SECRET_KEY = <some value>
 
 DB related (defaults are shown as value):
-- DB_HOST=dsmrdb
-- DB_PORT=5432
-- DB_USER=dsmrreader
-- DB_PASS=dsmrreader
-- DB_NAME dsmrreader
+- DSMRREADER_NAME = 'dsmrreader'
+- DSMRREADER_USER = 'dsmrreader'
+- DSMRREADER_PASSWORD = 'dsmrreader'
+- DSMRREADER_HOST = 'localhost'
+- DSMRREADER_PORT = 5432
+- DSMRREADER_CONN_MAX_AGE = 60
 ```
 
 # DSMR Reader - Plugins
