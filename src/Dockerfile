@@ -5,11 +5,7 @@ ENV DSMR_USER admin
 ENV DSMR_EMAIL root@localhost
 ENV DSMR_PASSWORD admin
 
-ENV DB_HOST dsmrdb
-ENV DB_PORT 5432
-ENV DB_USER dsmrreader
-ENV DB_PASS dsmrreader
-ENV DB_NAME dsmrreader
+ENV DSMRREADER_HOST dsmrdb
 
 ENV SD_LOGLEVEL info
 ENV SD_USER root
