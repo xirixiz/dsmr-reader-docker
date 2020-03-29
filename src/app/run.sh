@@ -45,7 +45,7 @@ function _override_entrypoint() {
 function _check_db_availability() {
   _info "Verifying if Postgres in running..."
   cmd=$(command -v pg_isready)
-  cmd="${cmd} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
+  cmd="${cmd} -h ${DSMRREADER_HOST} -p ${DSMRREADER_PORT} -U ${DSMRREADER_USER} -d ${DSMRREADER_NAME} -t 1"
   while ! ${cmd} >/dev/null 2>&1; do
     TIMER=$((TIMER-1))
     sleep 1
