@@ -9,7 +9,7 @@ ENV DB_HOST dsmrdb
 ENV DB_PORT 5432
 ENV DB_NAME dsmrreader
 ENV DB_USER dsmrreader
-ENV DB_PASSWORD dsmrreader
+ENV DB_PASS dsmrreader
 
 ENV SD_LOGLEVEL info
 ENV SD_USER root
