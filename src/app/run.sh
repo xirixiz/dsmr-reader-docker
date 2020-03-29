@@ -31,6 +31,9 @@ function _pre_reqs() {
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
+
+  _info "Creating log directory..."
+  mkdir -p /var/log/supervisor/
 }
 
 function _update_on_startup() {
@@ -143,6 +146,7 @@ function _generate_auth_configuration() {
 
 function _start_supervisord() {
   _info "Starting supervisord..."
+  _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
   cmd=$(command -v supervisord)
   "${cmd}" -n
 }
