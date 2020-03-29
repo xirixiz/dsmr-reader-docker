@@ -64,12 +64,12 @@ DSMR related (defaults are shown as value):
 - DSMR_DATALOGGER_SLEEP=<value in seconds> # Not needed anymore, only for slow hardware
 
 DB related (defaults are shown as value):
-- DSMRREADER_NAME=dsmrreader
-- DSMRREADER_USER=dsmrreader
-- DSMRREADER_PASSWORD=dsmrreader
-- DSMRREADER_HOST=dsmrdb
-- DSMRREADER_PORT=5432
-- DSMRREADER_CONN_MAX_AGE=60
+- DB_NAME=dsmrreader
+- DB_USER=dsmrreader
+- DB_PASS=dsmrreader
+- DB_HOST=dsmrdb
+- DB_PORT=5432
+- CONN_MAX_AGE=60
 ```
 
 # DSMR Reader - Plugins
