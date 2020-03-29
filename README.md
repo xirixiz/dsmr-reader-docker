@@ -1,6 +1,31 @@
 [![DockerPulls][dockerpullsbadge]][dockerpulls]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
+#### DSMR Reader - Releases info
+##### Download and install DSMR Reader release on container startup
+```
+DYNUP-arm32v6
+DYNUP-arm64v8
+DYNUP-amd64
+DYNUP-arm32v7
+```
+
+##### Latest releases, build-in DSMR Reader release
+```
+arm32v6
+arm64v8
+amd64
+arm32v7
+```
+
+##### Version releases, build-in DSMR Reader release
+```
+arm32v6-<version>
+arm64v8-<version
+amd64-<version>
+arm32v7-<version>
+```
+
 #### DSMR Reader - Environment variables
 Now it's possible to set the following settings as environment variables, for example:
 ```
@@ -29,18 +54,22 @@ Supervisord related:
 - SD_AUTORESTART_MQTT=true
 
 DSMR related (defaults are shown as value):
-- DSMR_USER=admin
-- DSMR_EMAIL=root@localhost
-- DSMR_PASSWORD=admin
-- DSMR_BACKEND_SLEEP=<value in seconds>
-- DSMR_DATALOGGER_SLEEP=<value in seconds>
+- DSMR_USER=admin             # Webinterface user
+- DSMR_EMAIL=root@localhost   # Webinterface user
+- DSMR_PASSWORD=admin         # Webinterface user
+- DSMRREADER_LOGLEVEL=WARNING # Valid values are WARNING, INFO, DEBUG
+- DSMRREADER_PLUGINS=['dsmr_plugins.modules.plugin_name1','dsmr_plugins.modules.plugin_name2']
+- SECRET_KEY=<some value>
+- DSMR_BACKEND_SLEEP=<value in seconds>    # Not needed anymore, only for slow hardware
+- DSMR_DATALOGGER_SLEEP=<value in seconds> # Not needed anymore, only for slow hardware
 
 DB related (defaults are shown as value):
-- DB_HOST=dsmrdb
-- DB_PORT=5432
+- DB_NAME=dsmrreader
 - DB_USER=dsmrreader
 - DB_PASS=dsmrreader
-- DB_NAME dsmrreader
+- DB_HOST=dsmrdb
+- DB_PORT=5432
+- CONN_MAX_AGE=60
 ```
 
 # DSMR Reader - Plugins
@@ -159,4 +188,3 @@ For Synology users:
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
 [dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
 [dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
-
