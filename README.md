@@ -143,7 +143,7 @@ docker run -d \
   xirixiz/dsmr-reader-docker
 ```
 
-# Backup and restore meganism 1
+# Backup and restore mechanism 1
 dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
 
 Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:
@@ -162,7 +162,7 @@ cat dsmrreader.sql | docker exec -i dsmrdb psql -U dsmrreader
 docker-compose start dsmr
 ```
 
-# Backup and restore meganism 2
+# Backup and restore mechanism 2
 Ofcourse it's also possible to use Docker's own volume backup and restore megansim.
 
 Backup:
