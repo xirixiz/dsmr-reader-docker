@@ -57,40 +57,12 @@ function _check_db_availability() {
   done
 }
 
-function _set_throttle() {
-  if [[ -n "${DSMR_BACKEND_SLEEP}" ]] ; then
-    if grep 'DSMRREADER_BACKEND_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_BACKEND_SLEEP already present, replacing values..."
-      sed -i "s/DSMRREADER_BACKEND_SLEEP=.*/DSMRREADER_BACKEND_SLEEP=${DSMR_BACKEND_SLEEP}/g"
-    else
-      _info "Adding setting DSMRREADER_BACKEND_SLEEP..."
-      sed -i "/# Default settings/a DSMRREADER_BACKEND_SLEEP=${DSMR_BACKEND_SLEEP}" /dsmr/dsmrreader/settings.py
-    fi
-  fi
-  if [[ -n "${DSMR_DATALOGGER_SLEEP}" ]] ; then
-    if grep 'DSMRREADER_DATALOGGER_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_DATALOGGER_SLEEP already present, replacing values..."
-      sed -i "s/DSMRREADER_DATALOGGER_SLEEP=.*/DSMRREADER_DATALOGGER_SLEEP=${DSMR_DATALOGGER_SLEEP}/g"
-    else
-      _info "Adding setting DSMRREADER_DATALOGGER_SLEEP..."
-      sed -i "/# Default settings/a DSMRREADER_DATALOGGER_SLEEP=${DSMR_DATALOGGER_SLEEP}" /dsmr/dsmrreader/settings.py
-    fi
-  fi
-}
-
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
   "${cmd}" manage.py migrate --noinput
   "${cmd}" manage.py collectstatic --noinput
-"${cmd}" manage.py shell -i python << PYTHON
-from django.contrib.auth.models import User
-if not User.objects.filter(username='${DSMR_USER}'):
-  User.objects.create_superuser('${DSMR_USER}', '${DSMR_EMAIL}', '${DSMR_PASSWORD}')
-  print('${DSMR_USER} created')
-else:
-  print('${DSMR_USER} already exists')
-PYTHON
+  "${cmd}" manage.py dsmr_superuser
 }
 
 function _generate_auth_configuration() {
@@ -141,7 +113,6 @@ function _start_supervisord() {
 _pre_reqs
 _override_entrypoint
 _check_db_availability
-_set_throttle
 _run_post_config
 _generate_auth_configuration
 _start_supervisord
