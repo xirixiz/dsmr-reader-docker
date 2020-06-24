@@ -30,12 +30,12 @@ RUN apk --update add --no-cache \
       postgresql-client \
       tzdata \
       supervisor
+      py3-psycopg2
 
-RUN cp /dsmr/dsmrreader/provisioning/django/postgresql.py /dsmr/dsmrreader/settings.py
+RUN cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
-RUN apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
-      pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir && \
-      pip3 install -r /dsmr/dsmrreader/provisioning/requirements/postgresql.txt --no-cache-dir && \
+RUN apk add --virtual .build-deps gcc musl-dev && \
+      pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
       apk --purge del .build-deps && \
       rm -rf /tmp/*
 
