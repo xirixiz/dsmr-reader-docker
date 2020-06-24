@@ -32,8 +32,6 @@ services:
     environment:
       - TZ=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
-      - SD_AUTOSTART_MQTT=false
-      - SD_AUTORESTART_MQTT=false
     ports:
       - 7777:80
       - 7779:443

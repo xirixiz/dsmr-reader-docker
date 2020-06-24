@@ -27,7 +27,21 @@ arm32v7-<version>
 ```
 
 #### DSMR Reader - Environment variables
-Now it's possible to set the following settings as environment variables, for example:
+##### v4 changes
+- Removed ``DSMR_EMAIL``
+- Removed``SD_AUTOSTART_MQTT``
+- Removed``SD_AUTORESTART_MQTT``
+- Removed``DSMR_BACKEND_SLEEP``
+- Removed``DSMR_DATALOGGER_SLEEP``
+- Added``SD_AUTOSTART_CLIENT``
+- Added``SD_AUTORESTART_CLIENT``
+- Changed ``SD_AUTORESTART_CLIENT`` is now a comma separated list without quotes. E.g.: 
+```
+dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+```
+
+##### Currently supported
+It's possible to set the following settings as environment variables, for example:
 ```
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
@@ -50,8 +64,9 @@ Supervisord related:
 - SD_AUTORESTART_DATALOGGER=true
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_MQTT=true
-- SD_AUTORESTART_MQTT=true
+- SD_AUTOSTART_CLIENT=true
+- SD_AUTORESTART_CLIENT=true
+
 
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
