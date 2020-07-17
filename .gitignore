@@ -2,3 +2,4 @@ dsmrdb/
 src/dsmr/
 tmp/
 .DS_Store
+.idea
