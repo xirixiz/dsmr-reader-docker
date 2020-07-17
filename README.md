@@ -33,7 +33,7 @@ arm32v7-<version>
 - Removed``SD_AUTORESTART_MQTT``
 - Removed``DSMR_BACKEND_SLEEP``
 - Removed``DSMR_DATALOGGER_SLEEP``
-- Changed ``SD_AUTORESTART_CLIENT`` is now a comma separated list without quotes. E.g.: 
+- Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.: 
 ```
 dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
 ```
