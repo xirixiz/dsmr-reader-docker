@@ -27,7 +27,7 @@ RUN apk --update add --no-cache \
       openssl \
       postgresql-client \
       tzdata \
-      supervisor
+      supervisor \
       py3-psycopg2
 
 RUN cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
