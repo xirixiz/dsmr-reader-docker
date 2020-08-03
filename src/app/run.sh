@@ -20,7 +20,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   _info "Checking if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_EMAIL}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
+  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
