@@ -9,6 +9,7 @@
 : "${DEBUG:=false}"
 : "${COMMAND:=$@}"
 : "${TIMER:=60}"
+: "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -25,14 +26,42 @@ function _pre_reqs() {
     exit 1
   fi
 
+  _info "Checking if the DSMR web credential variables have been set..."
+  if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] || [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
+    _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
+    exit 1
+  fi
+
   _info "Fixing /dev/ttyUSB* security..."
   [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
-  
+
   _info "Creating log directory..."
   mkdir -p /var/log/supervisor/
+}
+
+function _update_on_startup() {
+  if [[ "${DSMR_TAG_RELEASE}" = true ]] ; then
+    _info "Using the latest TAG release."
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
+  else
+    _info "Using the latest release."
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
+  fi
+  _info "Update on startup enabled! Using latest DSMR release: ${dsmr_release}."
+  mkdir -p /dsmr
+  rm -rf /dsmr/*
+  pushd /dsmr
+  wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
+  tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
+  rm -rf "${dsmr_release}".tar.gz
+  popd
+  yes | cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
+  pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
+  yes | cp /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+  rm -rf /tmp/*
 }
 
 function _override_entrypoint() {
@@ -108,9 +137,12 @@ function _start_supervisord() {
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN
 #---------------------------------------------------------------------------------------------------------------------------
-[[ "${DEBUG}" == 'true' ]] && set -o xtrace
+[[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
+if [[ "${DSMR_UPDATE_ON_STARTUP}" = true ]] ; then
+  _update_on_startup
+fi
 _override_entrypoint
 _check_db_availability
 _run_post_config
