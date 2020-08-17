@@ -43,7 +43,6 @@ function _pre_reqs() {
   mkdir -p /var/log/supervisor/
 }
 
-
 function _update_on_startup() {
   if [[ "${DSMR_RELEASE}" = latest ]]; then
     _info "Using the latest release."
@@ -71,7 +70,8 @@ function __dsmr_installation() {
   _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
   echo "${dsmr_release}" > release.txt
   mkdir -p /dsmr
-  rm -rf /dsmr/*
+  find /dsmr/* ! -name backups -delete
+  find /dsmr/ -name ".*" ! -name "backups" -delete
   pushd /dsmr
   wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
   tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
