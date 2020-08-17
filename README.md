@@ -27,7 +27,19 @@ arm32v7-<version>
 ```
 
 #### DSMR Reader - Environment variables
-Now it's possible to set the following settings as environment variables, for example:
+##### v4 changes
+- Removed ``DSMR_EMAIL``
+- Removed``SD_AUTOSTART_MQTT``
+- Removed``SD_AUTORESTART_MQTT``
+- Removed``DSMR_BACKEND_SLEEP``
+- Removed``DSMR_DATALOGGER_SLEEP``
+- Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.:
+```
+dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+```
+
+##### Currently supported
+It's possible to set the following settings as environment variables, for example:
 ```
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
@@ -50,18 +62,16 @@ Supervisord related:
 - SD_AUTORESTART_DATALOGGER=true
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_MQTT=true
-- SD_AUTORESTART_MQTT=true
+- SD_AUTOSTART_CLIENT=true
+- SD_AUTORESTART_CLIENT=true
+
 
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
-- DSMR_EMAIL=root@localhost   # Webinterface user
 - DSMR_PASSWORD=admin         # Webinterface user
 - DSMRREADER_LOGLEVEL=WARNING # Valid values are WARNING, INFO, DEBUG
-- DSMRREADER_PLUGINS=['dsmr_plugins.modules.plugin_name1','dsmr_plugins.modules.plugin_name2']
-- SECRET_KEY=<some value>
-- DSMR_BACKEND_SLEEP=<value in seconds>    # Not needed anymore, only for slow hardware
-- DSMR_DATALOGGER_SLEEP=<value in seconds> # Not needed anymore, only for slow hardware
+- DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+- SECRET_KEY=<some randomly generated value>
 
 DB related (defaults are shown as value):
 - DB_NAME=dsmrreader
@@ -110,7 +120,7 @@ sudo usermod -aG dialout $(whoami)
 
 # Docker-compose
 
-An example docker-compose.yaml file can be found here: 
+An example docker-compose.yaml file can be found here:
 https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml
 
 You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:

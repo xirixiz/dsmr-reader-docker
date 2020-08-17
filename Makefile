@@ -1,6 +1,7 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
-export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
-export DYNAMIC_VERSION=DYNUP
+#export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
+#export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
+export DOCKER_TAG=DEVELOPMENT
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`
@@ -17,7 +18,7 @@ export SHELL=/bin/bash
 # Permanent local overrides
 -include .env
 
-.PHONY: build dsmr qemu wrap push manifest clean
+.PHONY: build qemu wrap push manifest clean
 
 dsmr:
 	@echo "==> Fetching DSMR version $(APP_VERSION)."
@@ -55,12 +56,12 @@ wrap-amd64:
 	$(DOCKER) pull amd64/$(BASE_VERSION)
 	$(DOCKER) tag amd64/$(BASE_VERSION) $(BUILD_IMAGE_NAME):amd64
 
-wrap-translate-%: 
+wrap-translate-%:
 	@if [[ "$*" == "arm64v8" ]] ; then \
 	   echo "aarch64"; \
 	else \
 		echo "arm"; \
-	fi 
+	fi
 
 wrap-%:
 	$(eval ARCH := $*)
@@ -96,8 +97,8 @@ push:
 
 push-%:
 	$(eval ARCH := $*)
-	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):${DYNAMIC_VERSION}-$(ARCH)
-	$(DOCKER) push $(IMAGE_NAME):$(DYNAMIC_VERSION)-$(ARCH)
+	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):${DOCKER_TAG}-$(ARCH)
+	$(DOCKER) push $(IMAGE_NAME):$(DOCKER_TAG)-$(ARCH)
 
 expand-%: # expand architecture variants for manifest
 	@if [ "$*" == "amd64" ] ; then \

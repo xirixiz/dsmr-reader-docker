@@ -2,7 +2,6 @@ ARG BASE
 FROM ${BASE}
 
 ENV DSMR_USER admin
-ENV DSMR_EMAIL root@localhost
 ENV DSMR_PASSWORD admin
 
 ENV DB_HOST dsmrdb
@@ -18,8 +17,6 @@ ENV SD_AUTOSTART_DATALOGGER true
 ENV SD_AUTORESTART_DATALOGGER true
 ENV SD_AUTOSTART_BACKEND true
 ENV SD_AUTORESTART_BACKEND true
-ENV SD_AUTOSTART_MQTT true
-ENV SD_AUTORESTART_MQTT true
 
 RUN apk --update add --no-cache \
       bash \
@@ -29,7 +26,8 @@ RUN apk --update add --no-cache \
       openssl \
       postgresql-client \
       gcc \
-      python3-dev \ 
+      python3-dev \
+      py3-psycopg2 \
       musl-dev \
       postgresql-dev \
       tzdata \
