@@ -96,9 +96,9 @@ function _check_db_availability() {
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
-  "${cmd}" manage.py migrate --noinput
-  "${cmd}" manage.py collectstatic --noinput
-  "${cmd}" manage.py dsmr_superuser
+  "${cmd}" /dsmr/manage.py migrate --noinput
+  "${cmd}" /dsmr/manage.py collectstatic --noinput
+  "${cmd}" /dsmr/manage.py dsmr_superuser
 }
 
 function _generate_auth_configuration() {
