@@ -3,6 +3,7 @@ FROM ${BASE}
 
 ENV DSMR_USER admin
 ENV DSMR_PASSWORD admin
+ENV SECRET_KEY dsmrreader
 
 ENV DB_HOST dsmrdb
 ENV DB_PORT 5432

@@ -26,18 +26,17 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  _info "Checking if the DSMR web credential variables have been set..."
+  _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
 
-  # Code for future release
-  # _info "Checking if the DSMR web credential variables have been set..."
-  # if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] && [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
-  #   _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
-  #   exit 1
-  # fi
+  _info "Verifying which release to install..."
+  if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] && [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
+    _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
+    exit 1
+  fi
 
   _info "Fixing /dev/ttyUSB* security..."
   [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
