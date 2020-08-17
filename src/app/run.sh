@@ -43,6 +43,7 @@ function _pre_reqs() {
   mkdir -p /var/log/supervisor/
 }
 
+
 function _update_on_startup() {
   if [[ "${DSMR_RELEASE}" = latest ]]; then
     _info "Using the latest release."
@@ -54,7 +55,21 @@ function _update_on_startup() {
     _info "Using the release specified - v${DSMR_RELEASE}."
     dsmr_release=v"${DSMR_RELEASE}"
   fi
-  _info "Update on startup enabled! Using latest DSMR release: ${dsmr_release}."
+
+  if [[ -f "release.txt" ]]; then
+    if [[ "${dsmr_release}" != $(cat release.txt) ]]; then
+      __dsmr_installation
+    else
+      _info "DSMR already installed with the desired release. Continuing..."
+    fi
+  else
+    __dsmr_installation
+  fi
+}
+
+function __dsmr_installation() {
+  _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
+  echo "${dsmr_release}" > release.txt
   mkdir -p /dsmr
   rm -rf /dsmr/*
   pushd /dsmr
