@@ -2,6 +2,7 @@
 
 trigger:
 - master
+- development
 - dynamic_dsmr_reader_docker
 
 stages:
