@@ -20,16 +20,16 @@ export SHELL=/bin/bash
 
 .PHONY: build qemu wrap push manifest clean
 
-dsmr:
-	@echo "==> Fetching DSMR version $(APP_VERSION)."
-	-mkdir -p tmp/dsmr
-	-mkdir -p src/dsmr
-	cd tmp/dsmr && \
-	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
-	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
-	rm -rf $(APP_VERSION).tar.gz && \
-	cp -R  * ../../src/dsmr/
-	@echo "==> Fetching DSMR done."
+# dsmr:
+# 	@echo "==> Fetching DSMR version $(APP_VERSION)."
+# 	-mkdir -p tmp/dsmr
+# 	-mkdir -p src/dsmr
+# 	cd tmp/dsmr && \
+# 	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
+# 	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
+# 	rm -rf $(APP_VERSION).tar.gz && \
+# 	cp -R  * ../../src/dsmr/
+# 	@echo "==> Fetching DSMR done."
 
 qemu:
 	@echo "==> Setting up QEMU"

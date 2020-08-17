@@ -32,11 +32,12 @@ function _pre_reqs() {
     exit 1
   fi
 
-  _info "Checking if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] || [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
-    _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
-    exit 1
-  fi
+  # Code for future release
+  # _info "Checking if the DSMR web credential variables have been set..."
+  # if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] && [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
+  #   _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
+  #   exit 1
+  # fi
 
   _info "Fixing /dev/ttyUSB* security..."
   [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
@@ -49,7 +50,7 @@ function _pre_reqs() {
 }
 
 function _update_on_startup() {
-  if [[ "${DSMR_TAG_RELEASE}" == true ]] ; then
+  if [[ "${DSMR_TAG_RELEASE}" = true ]] ; then
     _info "Using the latest TAG release."
     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
   else
