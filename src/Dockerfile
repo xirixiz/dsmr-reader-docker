@@ -4,11 +4,6 @@ FROM ${BASE}
 ENV SECRET_KEY dsmrreader
 ENV DB_ENGINE django.db.backends.postgresql
 
-# ENV DSMRREADER_LOGLEVEL
-# ENV DSMRREADER_PLUGINS
-# ENV CONN_MAX_AGE
-# ENV TZ
-
 ENV DB_NAME dsmrreader
 ENV DB_USER dsmrreader
 ENV DB_PASS dsmrreader
@@ -36,7 +31,6 @@ RUN apk --update add --no-cache \
       postgresql-client \
       gcc \
       python3-dev \
-      py3-psycopg2 \
       musl-dev \
       postgresql-dev \
       tzdata \
