@@ -43,15 +43,11 @@ RUN apk --update add --no-cache \
       jq \
       supervisor
 
-RUN apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
-      apk --purge del .build-deps && \
-      rm -rf /tmp/*
-
-RUN mkdir -p /run/nginx/ && \
-      ln -sf /dev/stdout /var/log/nginx/access.log && \
-      ln -sf /dev/stderr /var/log/nginx/error.log && \
-      rm -f /etc/nginx/conf.d/default.conf && \
-      mkdir -p /var/www/dsmrreader/static
+RUN mkdir -p /run/nginx/ \
+      && ln -sf /dev/stdout /var/log/nginx/access.log \
+      && ln -sf /dev/stderr /var/log/nginx/error.log \
+      && rm -f /etc/nginx/conf.d/default.conf \
+      && mkdir -p /var/www/dsmrreader/static
 
 COPY ./app/run.sh /run.sh
 RUN chmod u+x /run.sh

@@ -66,6 +66,7 @@ function _update_on_startup() {
   popd
   yes | cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
   pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
+  pip3 install psycopg2
   yes | cp /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
   rm -rf /tmp/*
 }
