@@ -11,12 +11,6 @@
 : "${TIMER:=60}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 
-
-# DEVELOPMENT
-: "${DSMR_UPDATE_ON_STARTUP:=true}"
-: "${DSMR_TAG_RELEASE:=true}"
-
-
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -32,9 +26,10 @@ function _pre_reqs() {
     exit 1
   fi
 
-  _info "Verifying which release to install..."
-  if [[ -z "${DSMR_UPDATE_ON_STARTUP}" ]] && [[ ! -z "${DSMR_TAG_RELEASE}" ]]; then
-    _error "Cannot use a TAG release without DSMR_UPDATE_ON_STARTUP being set. Exiting..."
+  _info "Verifying if DSMR_RELEASE has been set correctly!"
+  version_rx='^([0-9]+\.){0,2}(\*|[0-9]+)$'
+  if ! [[ "${DSMR_RELEASE}" =~ ^(latest|latest_tag|${version_rx})$ ]]; then
+    _error "The value for DSMR_RELEASE isn't valid - ${DSMR_RELEASE}. Please use latest, latest_tag or specify a version (without the v in front!). Exiting..."
     exit 1
   fi
 
@@ -49,12 +44,15 @@ function _pre_reqs() {
 }
 
 function _update_on_startup() {
-  if [[ "${DSMR_TAG_RELEASE}" = true ]] ; then
-    _info "Using the latest TAG release."
-    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
-  else
+  if [[ "${DSMR_RELEASE}" = latest ]]; then
     _info "Using the latest release."
     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
+  elif [[ "${DSMR_RELEASE}" = latest_tag ]]; then
+    _info "Using the latest TAG release."
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
+  elif [[ "${DSMR_RELEASE}" =~ ^(${version_rx})$ ]]; then
+    _info "Using the release specified - v${DSMR_RELEASE}."
+    dsmr_release=v"${DSMR_RELEASE}"
   fi
   _info "Update on startup enabled! Using latest DSMR release: ${dsmr_release}."
   mkdir -p /dsmr
@@ -147,9 +145,7 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
-if [[ "${DSMR_UPDATE_ON_STARTUP}" = true ]] ; then
-  _update_on_startup
-fi
+_update_on_startup
 _override_entrypoint
 _check_db_availability
 _run_post_config
