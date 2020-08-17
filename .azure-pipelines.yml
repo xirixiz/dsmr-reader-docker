@@ -1,48 +1,46 @@
-# https://aka.ms/yaml
-
-trigger:
-- master
+# trigger:
+# - master
 
 stages:
 - stage: amd64
   displayName: amd64 (Intel/AMD)
-  dependsOn: [] 
+  dependsOn: []
   jobs:
-  - template: .azure-pipelines-job.yml 
+  - template: .azure-pipelines-job.yml
     parameters:
       arch: amd64
       username: $(DOCKER_USERNAME)
       password: $(DOCKER_PASSWORD)
 
 
-- stage: arm32v6
-  displayName: arm32v6 (Pi 1+, Zero and other armhf)
-  dependsOn: []
-  jobs:
-  - template: .azure-pipelines-job.yml
-    parameters:
-      arch: arm32v6
-      username: $(DOCKER_USERNAME)
-      password: $(DOCKER_PASSWORD)
+# - stage: arm32v6
+#   displayName: arm32v6 (Pi 1+, Zero and other armhf)
+#   dependsOn: []
+#   jobs:
+#   - template: .azure-pipelines-job.yml
+#     parameters:
+#       arch: arm32v6
+#       username: $(DOCKER_USERNAME)
+#       password: $(DOCKER_PASSWORD)
 
 
-- stage: arm32v7
-  displayName: arm32v7 (Pi 1+ and other armhf)
-  dependsOn: []
-  jobs:
-  - template: .azure-pipelines-job.yml
-    parameters:
-      arch: arm32v7
-      username: $(DOCKER_USERNAME)
-      password: $(DOCKER_PASSWORD)
+# - stage: arm32v7
+#   displayName: arm32v7 (Pi 1+ and other armhf)
+#   dependsOn: []
+#   jobs:
+#   - template: .azure-pipelines-job.yml
+#     parameters:
+#       arch: arm32v7
+#       username: $(DOCKER_USERNAME)
+#       password: $(DOCKER_PASSWORD)
 
 
-- stage: arm64v8
-  displayName: arm64v8 (Pi 3+ and other ARM64)
-  dependsOn: []
-  jobs:
-  - template: .azure-pipelines-job.yml
-    parameters:
-      arch: arm64v8
-      username: $(DOCKER_USERNAME)
-      password: $(DOCKER_PASSWORD)
+# - stage: arm64v8
+#   displayName: arm64v8 (Pi 3+ and other ARM64)
+#   dependsOn: []
+#   jobs:
+#   - template: .azure-pipelines-job.yml
+#     parameters:
+#       arch: arm64v8
+#       username: $(DOCKER_USERNAME)
+#       password: $(DOCKER_PASSWORD)
