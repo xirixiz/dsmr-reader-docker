@@ -66,15 +66,15 @@ Supervisord related:
 - SD_AUTOSTART_CLIENT=true
 - SD_AUTORESTART_CLIENT=true
 
-
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
 - DSMR_PASSWORD=admin         # Webinterface user
 - DSMRREADER_LOGLEVEL=WARNING # Valid values are WARNING, INFO, DEBUG
 - DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
-- SECRET_KEY=<some randomly generated value>
+- SECRET_KEY=dsmrreader
 
 DB related (defaults are shown as value):
+- DB_ENGINE django.db.backends.postgresql
 - DB_NAME=dsmrreader
 - DB_USER=dsmrreader
 - DB_PASS=dsmrreader
@@ -82,6 +82,8 @@ DB related (defaults are shown as value):
 - DB_PORT=5432
 - CONN_MAX_AGE=60
 ```
+
+For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
 # DSMR Reader - Plugins
 DSMR Reader plugins (https://dsmr-reader.readthedocs.io/en/latest/plugins.html) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
