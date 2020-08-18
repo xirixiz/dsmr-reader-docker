@@ -44,6 +44,7 @@ It's possible to set the following settings as environment variables, for exampl
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
+- DSMR_RELEASE=latest_tag # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
 ```
 
 ```
@@ -58,8 +59,8 @@ Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
 - SD_GROUP=root
-- SD_AUTOSTART_DATALOGGER=true
-- SD_AUTORESTART_DATALOGGER=true
+- SD_AUTOSTART_DATALOGGER=true # Set to false if datalogger is running on another container
+- SD_AUTORESTART_DATALOGGER=true # Set to false if datalogger is running on another container
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
 - SD_AUTOSTART_CLIENT=true
