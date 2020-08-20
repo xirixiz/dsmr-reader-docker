@@ -17,7 +17,7 @@ services:
 
   dsmr:
 #    build: .
-    image: xirixiz/dsmr-reader-docker:test-latest
+    image: xirixiz/dsmr-reader-docker:latest-amd64
     container_name: dsmr
     depends_on:
       - dsmrdb
