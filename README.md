@@ -2,37 +2,29 @@
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 #### DSMR Reader - Releases info
-##### Download and install DSMR Reader release on container startup
+##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-DYNUP-arm32v6
-DYNUP-arm64v8
-DYNUP-amd64
-DYNUP-arm32v7
-```
-
-##### Latest releases, build-in DSMR Reader release
-```
-arm32v6
-arm64v8
-amd64
-arm32v7
+latest-arm32v6
+latest-arm64v8
+latest-amd64
+latest-arm32v7
 ```
 
-##### Version releases, build-in DSMR Reader release
+##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-arm32v6-<version>
-arm64v8-<version
-amd64-<version>
-arm32v7-<version>
+DEVELOPMENT-arm32v6
+DEVELOPMENT-arm64v8
+DEVELOPMENT-amd64
+DEVELOPMENT-arm32v7
 ```
 
 #### DSMR Reader - Environment variables
 ##### v4 changes
 - Removed ``DSMR_EMAIL``
-- Removed``SD_AUTOSTART_MQTT``
-- Removed``SD_AUTORESTART_MQTT``
-- Removed``DSMR_BACKEND_SLEEP``
-- Removed``DSMR_DATALOGGER_SLEEP``
+- Removed ``SD_AUTOSTART_MQTT``
+- Removed ``SD_AUTORESTART_MQTT``
+- Removed ``DSMR_BACKEND_SLEEP``
+- Removed ``DSMR_DATALOGGER_SLEEP``
 - Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.:
 ```
 dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
@@ -44,7 +36,7 @@ It's possible to set the following settings as environment variables, for exampl
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
-- DSMR_RELEASE=latest_tag # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
+- DSMR_RELEASE=latest # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
 ```
 
 ```
