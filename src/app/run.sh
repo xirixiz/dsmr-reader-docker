@@ -9,6 +9,7 @@
 : "${DEBUG:=false}"
 : "${COMMAND:=$@}"
 : "${TIMER:=60}"
+: "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -19,9 +20,16 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  _info "Checking if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_EMAIL}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
+  _info "Verifying if the DSMR web credential variables have been set..."
+  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
+    exit 1
+  fi
+
+  _info "Verifying if DSMR_RELEASE has been set correctly!"
+  version_rx='^([0-9]+\.){0,2}(\*|[0-9]+)$'
+  if ! [[ "${DSMR_RELEASE}" =~ ^(latest|latest_tag|${version_rx})$ ]]; then
+    _error "The value for DSMR_RELEASE isn't valid - ${DSMR_RELEASE}. Please use latest, latest_tag or specify a version (without the v in front!). Exiting..."
     exit 1
   fi
 
@@ -30,9 +38,50 @@ function _pre_reqs() {
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
-  
+
   _info "Creating log directory..."
   mkdir -p /var/log/supervisor/
+}
+
+function _update_on_startup() {
+  if [[ "${DSMR_RELEASE}" = latest ]]; then
+    _info "Using the latest release."
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
+  elif [[ "${DSMR_RELEASE}" = latest_tag ]]; then
+    _info "Using the latest TAG release."
+    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
+  elif [[ "${DSMR_RELEASE}" =~ ^(${version_rx})$ ]]; then
+    _info "Using the release specified - v${DSMR_RELEASE}."
+    dsmr_release=v"${DSMR_RELEASE}"
+  fi
+
+  if [[ -f "release.txt" ]]; then
+    if [[ "${dsmr_release}" != $(cat release.txt) ]]; then
+      __dsmr_installation
+    else
+      _info "DSMR already installed with the desired release. Continuing..."
+    fi
+  else
+    __dsmr_installation
+  fi
+}
+
+function __dsmr_installation() {
+  _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
+  echo "${dsmr_release}" > release.txt
+  mkdir -p /dsmr
+  find /dsmr/* ! -name backups -delete
+  find /dsmr/ -name ".*" ! -name "backups" -delete
+  pushd /dsmr
+  wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
+  tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
+  rm -rf "${dsmr_release}".tar.gz
+  popd
+  yes | cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
+  pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
+  pip3 install psycopg2
+  yes | cp /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+  rm -rf /tmp/*
 }
 
 function _override_entrypoint() {
@@ -57,40 +106,12 @@ function _check_db_availability() {
   done
 }
 
-function _set_throttle() {
-  if [[ -n "${DSMR_BACKEND_SLEEP}" ]] ; then
-    if grep 'DSMRREADER_BACKEND_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_BACKEND_SLEEP already present, replacing values..."
-      sed -i "s/DSMRREADER_BACKEND_SLEEP=.*/DSMRREADER_BACKEND_SLEEP=${DSMR_BACKEND_SLEEP}/g"
-    else
-      _info "Adding setting DSMRREADER_BACKEND_SLEEP..."
-      sed -i "/# Default settings/a DSMRREADER_BACKEND_SLEEP=${DSMR_BACKEND_SLEEP}" /dsmr/dsmrreader/settings.py
-    fi
-  fi
-  if [[ -n "${DSMR_DATALOGGER_SLEEP}" ]] ; then
-    if grep 'DSMRREADER_DATALOGGER_SLEEP' /dsmr/dsmrreader/settings.py; then
-      _info "Setting DSMRREADER_DATALOGGER_SLEEP already present, replacing values..."
-      sed -i "s/DSMRREADER_DATALOGGER_SLEEP=.*/DSMRREADER_DATALOGGER_SLEEP=${DSMR_DATALOGGER_SLEEP}/g"
-    else
-      _info "Adding setting DSMRREADER_DATALOGGER_SLEEP..."
-      sed -i "/# Default settings/a DSMRREADER_DATALOGGER_SLEEP=${DSMR_DATALOGGER_SLEEP}" /dsmr/dsmrreader/settings.py
-    fi
-  fi
-}
-
 function _run_post_config() {
   _info "Running post configuration..."
   cmd=$(command -v python3)
-  "${cmd}" manage.py migrate --noinput
-  "${cmd}" manage.py collectstatic --noinput
-"${cmd}" manage.py shell -i python << PYTHON
-from django.contrib.auth.models import User
-if not User.objects.filter(username='${DSMR_USER}'):
-  User.objects.create_superuser('${DSMR_USER}', '${DSMR_EMAIL}', '${DSMR_PASSWORD}')
-  print('${DSMR_USER} created')
-else:
-  print('${DSMR_USER} already exists')
-PYTHON
+  "${cmd}" /dsmr/manage.py migrate --noinput
+  "${cmd}" /dsmr/manage.py collectstatic --noinput
+  "${cmd}" /dsmr/manage.py dsmr_superuser
 }
 
 function _generate_auth_configuration() {
@@ -136,12 +157,12 @@ function _start_supervisord() {
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN
 #---------------------------------------------------------------------------------------------------------------------------
-[[ "${DEBUG}" == 'true' ]] && set -o xtrace
+[[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
+_update_on_startup
 _override_entrypoint
 _check_db_availability
-_set_throttle
 _run_post_config
 _generate_auth_configuration
 _start_supervisord

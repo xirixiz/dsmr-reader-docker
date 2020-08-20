@@ -27,11 +27,24 @@ arm32v7-<version>
 ```
 
 #### DSMR Reader - Environment variables
-Now it's possible to set the following settings as environment variables, for example:
+##### v4 changes
+- Removed ``DSMR_EMAIL``
+- Removed``SD_AUTOSTART_MQTT``
+- Removed``SD_AUTORESTART_MQTT``
+- Removed``DSMR_BACKEND_SLEEP``
+- Removed``DSMR_DATALOGGER_SLEEP``
+- Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.:
+```
+dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+```
+
+##### Currently supported
+It's possible to set the following settings as environment variables, for example:
 ```
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
+- DSMR_RELEASE=latest_tag # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
 ```
 
 ```
@@ -46,24 +59,22 @@ Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
 - SD_GROUP=root
-- SD_AUTOSTART_DATALOGGER=true
-- SD_AUTORESTART_DATALOGGER=true
+- SD_AUTOSTART_DATALOGGER=true # Set to false if datalogger is running on another container
+- SD_AUTORESTART_DATALOGGER=true # Set to false if datalogger is running on another container
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_MQTT=true
-- SD_AUTORESTART_MQTT=true
+- SD_AUTOSTART_CLIENT=true
+- SD_AUTORESTART_CLIENT=true
 
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
-- DSMR_EMAIL=root@localhost   # Webinterface user
 - DSMR_PASSWORD=admin         # Webinterface user
 - DSMRREADER_LOGLEVEL=WARNING # Valid values are WARNING, INFO, DEBUG
-- DSMRREADER_PLUGINS=['dsmr_plugins.modules.plugin_name1','dsmr_plugins.modules.plugin_name2']
-- SECRET_KEY=<some value>
-- DSMR_BACKEND_SLEEP=<value in seconds>    # Not needed anymore, only for slow hardware
-- DSMR_DATALOGGER_SLEEP=<value in seconds> # Not needed anymore, only for slow hardware
+- DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+- SECRET_KEY=dsmrreader
 
 DB related (defaults are shown as value):
+- DB_ENGINE django.db.backends.postgresql
 - DB_NAME=dsmrreader
 - DB_USER=dsmrreader
 - DB_PASS=dsmrreader
@@ -71,6 +82,8 @@ DB related (defaults are shown as value):
 - DB_PORT=5432
 - CONN_MAX_AGE=60
 ```
+
+For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
 # DSMR Reader - Plugins
 DSMR Reader plugins (https://dsmr-reader.readthedocs.io/en/latest/plugins.html) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
@@ -110,7 +123,7 @@ sudo usermod -aG dialout $(whoami)
 
 # Docker-compose
 
-An example docker-compose.yaml file can be found here: 
+An example docker-compose.yaml file can be found here:
 https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml
 
 You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
@@ -188,4 +201,3 @@ For Synology users:
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
 [dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
 [dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
-
