@@ -1,5 +1,6 @@
-# trigger:
-# - master
+trigger:
+- master
+- development
 
 stages:
 - stage: amd64
