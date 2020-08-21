@@ -107,6 +107,27 @@ expand-%: # expand architecture variants for manifest
 	   echo '--arch arm --variant $*' | cut -c 1-21,27-; \
 	fi
 
+manifest:
+	@echo "==> Building multi-architecture manifest"
+	$(foreach STEP, build push, make $(STEP)-manifest;)
+	@echo "==> Done."	
+
+build-manifest:
+	@echo "--> Creating manifest"
+	$(eval DOCKER_CONFIG := $(shell echo "$(DOCKER)" | cut -f 2 -d=)/config.json)
+	cat $(DOCKER_CONFIG) | grep -v auth
+	$(DOCKER) manifest create --amend \
+		$(IMAGE_NAME):latest \
+		$(foreach arch, $(TARGET_ARCHITECTURES), $(IMAGE_NAME):$(arch) )
+	$(foreach arch, $(TARGET_ARCHITECTURES), \
+		$(DOCKER) manifest annotate \
+			$(IMAGE_NAME):latest \
+			$(IMAGE_NAME):$(arch) $(shell make expand-$(arch));)
+
+push-manifest:
+	@echo "--> Pushing manifest"
+	$(DOCKER) manifest push $(IMAGE_NAME):latest
+
 clean:
 	@echo "==> Cleaning up tmp folder..."
 	rm -rf tmp/*
