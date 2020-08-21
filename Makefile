@@ -118,11 +118,11 @@ build-manifest:
 	cat $(DOCKER_CONFIG) | grep -v auth
 	$(DOCKER) manifest create --amend \
 		$(IMAGE_NAME):latest \
-		$(foreach arch, $(TARGET_ARCHITECTURES), $(IMAGE_NAME):${DOCKER_TAG}-$(arch) )
-	$(foreach arch, $(TARGET_ARCHITECTURES), \
+		$(foreach ARCH, $(TARGET_ARCHITECTURES), $(IMAGE_NAME):${DOCKER_TAG}-$(ARCH) )
+	$(foreach ARCH, $(TARGET_ARCHITECTURES), \
 		$(DOCKER) manifest annotate \
 			$(IMAGE_NAME):latest \
-			$(IMAGE_NAME):${DOCKER_TAG}-$(arch) $(shell make expand-$(arch));)
+			$(IMAGE_NAME):${DOCKER_TAG}-$(ARCH) $(shell make expand-$(ARCH));)
 
 push-manifest:
 	@echo "--> Pushing manifest"
