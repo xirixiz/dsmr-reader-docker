@@ -2,6 +2,9 @@ trigger:
 - master
 - development
 
+variables:
+  isMasterBranch: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
 stages:
 - stage: amd64
   displayName: amd64 (Intel/AMD)
@@ -37,7 +40,7 @@ stages:
 
 - stage: arm64v8
   displayName: arm64v8 (Pi 3+ and other ARM64)
-  dependsOn: 
+  dependsOn:
     - amd64
   jobs:
   - template: .azure-pipelines-job.yml
@@ -48,6 +51,7 @@ stages:
 
 - stage: Manifest
   displayName: multi-arch manifest
+  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn: 
     - amd64
     - arm32v6

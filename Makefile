@@ -1,7 +1,8 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
-export DOCKER_TAG=latest
+#export DOCKER_TAG=master
+export DOCKER_TAG=`git rev-parse --abbrev-ref HEAD`
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`

@@ -12,10 +12,10 @@ latest-arm32v7
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-DEVELOPMENT-arm32v6
-DEVELOPMENT-arm64v8
-DEVELOPMENT-amd64
-DEVELOPMENT-arm32v7
+development-arm32v6
+development-arm64v8
+development-amd64
+development-arm32v7
 ```
 
 #### DSMR Reader - Environment variables

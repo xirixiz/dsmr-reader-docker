@@ -20,6 +20,8 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
+  alias cp="cp"
+
   _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
@@ -72,15 +74,15 @@ function __dsmr_installation() {
   mkdir -p /dsmr
   find /dsmr/* ! -name backups -delete
   find /dsmr/ -name ".*" ! -name "backups" -delete
-  pushd /dsmr
+  pushd /dsmr || exit
   wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
   tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
   rm -rf "${dsmr_release}".tar.gz
-  popd
-  yes | cp /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
+  popd || exit
+  cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
   pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
   pip3 install psycopg2
-  yes | cp /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+  cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
   rm -rf /tmp/*
 }
 
@@ -116,7 +118,7 @@ function _run_post_config() {
 
 function _generate_auth_configuration() {
   _info "Checking for HTTP AUTHENTICATION configuration..."
-  if [[ ! -z "${ENABLE_HTTP_AUTH}" ]]; then
+  if [[ -n "${ENABLE_HTTP_AUTH}" ]]; then
     if [[ "${ENABLE_HTTP_AUTH}" = true ]] ; then
       _info "ENABLE_HTTP_AUTH is enabled, let's secure this!"
       canWeContinue=true
@@ -133,18 +135,20 @@ function _generate_auth_configuration() {
         exit 1
       fi
       _info "Generating htpasswd..."
-      printf ${HTTP_AUTH_USERNAME}":$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")\n" > /etc/nginx/htpasswd
+	    HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
+    	printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" > /etc/nginx/htpasswd
       _info "Done! Enabling the configuration in NGINX..."
       sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
-      if [[ $($(nginx -c /etc/nginx/nginx.conf -t 2>/dev/null); echo $?) > 0 ]]; then
-        _error "NGINX configuration error"
+      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+        echo "HTTP AUTHENTICATION configured and enabled"
+        return
+      else
+        echo "NGINX configuration error"
         exit 1
       fi
-      _info "HTTP AUTHENTICATION configured and enabled"
-      return
     fi
   fi
-  _info "ENABLE_HTTP_AUTH is disabled, nothing to see here."
+  _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
 function _start_supervisord() {
