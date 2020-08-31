@@ -66,6 +66,23 @@ function _update_on_startup() {
   else
     __dsmr_installation
   fi
+
+  if [[ "${SD_AUTOSTART_REMOTE_DATALOGGER}" = true ]]; then
+    _info "Running DSMR in remote datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=false
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=false
+    export SD_AUTORESTART_WEBINTERFACE=false
+    __dsmr_client_installation
+  fi
+
+  if [[ "${SD_AUTOSTART_DATALOGGER}" = true ]]; then
+    _info "Running DSMR in local datalogger mode...."
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+  fi
 }
 
 function __dsmr_installation() {
@@ -86,6 +103,55 @@ function __dsmr_installation() {
   rm -rf /tmp/*
 }
 
+function __dsmr_client_installation() {
+  _info "Installing the DSMR remote datalogger client..."
+  wget -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
+  if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
+      _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS required values are not set. Exiting..."
+      exit 1
+  else
+    if [[ "${DATALOGGER_INPUT_METHOD}" = ipv4 ]]; then
+      _info "Using a network socket for the DSMR remote datalogger..."
+      if [[ -z "${DATALOGGER_NETWORK_HOST}" || -z "${DATALOGGER_NETWORK_PORT}" ]]; then
+        _error "DATALOGGER_NETWORK_HOST and/or DATALOGGER_NETWORK_PORT required values are not set. Exiting..."
+        exit 1
+      else
+        _info "Adding DATALOGGER_NETWORK_HOST and DATALOGGER_NETWORK_PORT to the DSMR remote datalogger configuration..."
+        { echo "${DATALOGGER_NETWORK_HOST}"; echo "${DATALOGGER_NETWORK_PORT}"; } >> /dmsr/.env
+      fi
+    elif [[ "${DATALOGGER_INPUT_METHOD}" = serial ]]; then
+      _info "Using a serial connection for the DSMR remote datalogger..."
+      if [[ -z "${DATALOGGER_SERIAL_PORT}" || -z "${DATALOGGER_SERIAL_BAUDRATE}" ]]; then
+        _error "DATALOGGER_SERIAL_PORT and/or DATALOGGER_SERIAL_BAUDRATE required values are not set. Exiting..."
+        exit 1
+      else
+        _info "Adding DATALOGGER_SERIAL_PORT and DATALOGGER_SERIAL_PORT to the DSMR remote datalogger configuration..."
+        { echo "${DATALOGGER_SERIAL_PORT}"; echo "${DATALOGGER_SERIAL_PORT}"; } >> /dmsr/.env
+      fi
+    else
+      _error "Incorrect configuration of the DATALOGGER_INPUT_METHOD value. Exiting..."
+      exit 1
+    fi
+    _info "Adding DATALOGGER_API_HOSTS, DATALOGGER_API_KEYS and DATALOGGER_INPUT_METHOD to the DSMR remote datalogger configuration..."
+    { echo "${DATALOGGER_API_HOSTS}"; echo "${DATALOGGER_API_KEYS}"; echo "${DATALOGGER_INPUT_METHOD}"; } >> /dmsr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_TIMEOUT}" ]]; then
+    _info "Adding DATALOGGER_TIMEOUT to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >> /dmsr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_SLEEP}" ]]; then
+    _info "Adding DATALOGGER_SLEEP to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >> /dmsr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_DEBUG_LOGGING}" ]]; then
+    _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dmsr/.env
+  fi
+}
+
 function _override_entrypoint() {
   if [[ -n "${COMMAND}" ]]; then
     _info "ENTRYPOINT: Executing override command..."
@@ -101,7 +167,7 @@ function _check_db_availability() {
     TIMER=$((TIMER-1))
     sleep 1
     if [[ "${TIMER}" -eq 0 ]]; then
-      _error "Could not connect to database server. Aborting..."
+      _error "Could not connect to database server. Exiting..."
       exit 1
     fi
     echo -n "."
@@ -140,10 +206,10 @@ function _generate_auth_configuration() {
       _info "Done! Enabling the configuration in NGINX..."
       sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-        echo "HTTP AUTHENTICATION configured and enabled"
+        _info "HTTP AUTHENTICATION configured and enabled"
         return
       else
-        echo "NGINX configuration error"
+        _error "NGINX configuration error"
         exit 1
       fi
     fi
@@ -164,9 +230,9 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
-_update_on_startup
 _override_entrypoint
 _check_db_availability
+_update_on_startup
 _run_post_config
 _generate_auth_configuration
 _start_supervisord
