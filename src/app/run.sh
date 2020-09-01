@@ -67,7 +67,7 @@ function _update_on_startup() {
     __dsmr_installation
   fi
 
-  if [[ "${SD_AUTOSTART_REMOTE_DATALOGGER}" = true ]]; then
+  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
     _info "Running DSMR in remote datalogger mode...."
     export SD_AUTOSTART_DATALOGGER=false
     export SD_AUTORESTART_DATALOGGER=false
@@ -76,9 +76,7 @@ function _update_on_startup() {
     export SD_AUTOSTART_WEBINTERFACE=false
     export SD_AUTORESTART_WEBINTERFACE=false
     __dsmr_client_installation
-  fi
-
-  if [[ "${SD_AUTOSTART_DATALOGGER}" = true ]]; then
+  else
     _info "Running DSMR in local datalogger mode...."
     export SD_AUTOSTART_REMOTE_DATALOGGER=false
     export SD_AUTORESTART_REMOTE_DATALOGGER=false

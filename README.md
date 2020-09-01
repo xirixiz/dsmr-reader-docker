@@ -51,26 +51,28 @@ Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
 - SD_GROUP=root
-
-- SD_AUTOSTART_DATALOGGER=true           # Set to false if datalogger is running on another container
-- SD_AUTORESTART_DATALOGGER=true         # Set to false if datalogger is running on another container
-- SD_AUTOSTART_REMOTE_DATALOGGER=false   # Set to true if datalogger is running on another container
-- SD_AUTORESTART_REMOTE_DATALOGGER=false # Set to true if datalogger is running on another container
-
+- SD_AUTOSTART_DATALOGGER=true
+- SD_AUTORESTART_DATALOGGER=true
+- SD_AUTOSTART_REMOTE_DATALOGGER=false
+- SD_AUTORESTART_REMOTE_DATALOGGER=false
 - SD_AUTOSTART_BACKEND=true
 - SD_AUTORESTART_BACKEND=true
 - SD_AUTOSTART_WEBINTERFACE=true
 - SD_AUTORESTART_WEBINTERFACE=true
 
-More datalogger related info in order to run the remote datalogger can be found here: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html
-- DATALOGGER_INPUT_METHOD=serial or ipv4
+Remote DSMR datalogger related (more info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html)
+- REMOTE_DATALOGGER=false             # Set to true if datalogger is running on another container
+- DATALOGGER_INPUT_METHOD=x           # Required. Only serial or ipv4 (network) are valid values
+
 - DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 # Required if the input method is set to serial
 - DATALOGGER_SERIAL_BAUDRATE=115200   # Required if the input method is set to serial
+
 - DATALOGGER_NETWORK_HOST=x.x.x.x     # Required if the input method is set to ipv4
-- DATALOGGER_NETWORK_PORT=7777        # Required if the input method is set to ipv4 (Docker port)
-- DATALOGGER_TIMEOUT=x                # In seconds
-- DATALOGGER_SLEEP=x                  # In seconds
-- DATALOGGER_DEBUG_LOGGING=false
+- DATALOGGER_NETWORK_PORT=x           # Required if the input method is set to ipv4 (Docker port)
+
+- DATALOGGER_TIMEOUT=x                # Optional. In seconds
+- DATALOGGER_SLEEP=x                  # Optional. In seconds
+- DATALOGGER_DEBUG_LOGGING=false      # Optional.
 
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
