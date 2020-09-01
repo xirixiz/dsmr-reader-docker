@@ -21,6 +21,8 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
+  echo "${DATALOGGER_API_HOSTS}"
+  echo "${DATALOGGER_API_KEYS}"
   _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
