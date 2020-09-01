@@ -57,4 +57,4 @@ COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
-CMD ["/run.sh"]
+CMD ["sh", "-c", "/run.sh"]

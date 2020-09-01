@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#/bin/bash -l -c "$*"
 #set -o errexit
 #set -o pipefail
 #set -o nounset
