@@ -56,6 +56,7 @@ fetch-qemu-%:
 	cp qemu-$(ARCH)-static ../../qemu/
 	@echo "--> Done."
 
+
 wrap:
 	@echo "==> Building local base containers"
 	$(foreach ARCH, $(TARGET_ARCHITECTURES), make wrap-$(ARCH);)
