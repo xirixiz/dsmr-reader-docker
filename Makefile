@@ -2,7 +2,7 @@ export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
 #export DOCKER_TAG=master
-export DOCKER_TAG=`git branch --show-current`
+export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`
@@ -15,6 +15,22 @@ export QEMU_ARCHITECTURES=arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
 export SHELL=/bin/bash
+
+ifeq ($(GIT_BRANCH), master)
+  $(info master)
+  DOCKER_TAG=master
+else
+  $(info development)
+  DOCKER_TAG=development
+endif
+
+# @if [[ "${GIT_BRANCH}" == "master" ]] ; then \
+#   echo "master"; \
+# elsif [[ "${GIT_BRANCH}" == "development" ]] ; then \
+#   echo "development"; \
+# else \
+#   echo "Branch used is not allowed! Please use either master or development!; \
+# fi
 
 # Permanent local overrides
 -include .env
