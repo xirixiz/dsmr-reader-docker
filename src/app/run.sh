@@ -105,7 +105,7 @@ function __dsmr_installation() {
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
-      _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS required values are not set. Exiting..."
+      _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
       exit 1
   else
     if [[ "${DATALOGGER_INPUT_METHOD}" = ipv4 ]]; then
