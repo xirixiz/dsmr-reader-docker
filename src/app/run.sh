@@ -54,9 +54,7 @@ function _update_on_startup() {
     export SD_AUTORESTART_BACKEND=false
     export SD_AUTOSTART_WEBINTERFACE=false
     export SD_AUTORESTART_WEBINTERFACE=false
-    echo "${SD_AUTOSTART_DATALOGGER}"
     __dsmr_client_installation
-    /dmsr/.env
   else
     _info "Installing DSMR in local datalogger mode...."
     export SD_AUTOSTART_REMOTE_DATALOGGER=false
@@ -105,7 +103,6 @@ function __dsmr_installation() {
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
-  wget -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
       _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS required values are not set. Exiting..."
       exit 1
@@ -150,6 +147,7 @@ function __dsmr_client_installation() {
     _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
     echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dmsr/.env
   fi
+  wget -N -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 }
 
 function _override_entrypoint() {

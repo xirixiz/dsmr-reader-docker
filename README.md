@@ -62,6 +62,8 @@ Supervisord related:
 
 Remote DSMR datalogger related (more info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html)
 - REMOTE_DATALOGGER=false             # Set to true if datalogger is running on another container
+- DATALOGGER_API_HOSTS=x              # Required. Destination(s) of the DSMR Reader (Docker) host(s)
+- DATALOGGER_API_KEYS=x               # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
 - DATALOGGER_INPUT_METHOD=x           # Required. Only serial or ipv4 (network) are valid values
 
 - DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 # Required if the input method is set to serial
