@@ -117,7 +117,7 @@ function __dsmr_client_installation() {
         exit 1
       else
         _info "Adding DATALOGGER_NETWORK_HOST and DATALOGGER_NETWORK_PORT to the DSMR remote datalogger configuration..."
-        { echo DATALOGGER_NETWORK_HOST="${DATALOGGER_NETWORK_HOST}"; echo DATALOGGER_NETWORK_PORT="${DATALOGGER_NETWORK_PORT}"; } >> /dmsr/.env
+        { echo DATALOGGER_NETWORK_HOST="${DATALOGGER_NETWORK_HOST}"; echo DATALOGGER_NETWORK_PORT="${DATALOGGER_NETWORK_PORT}"; } >> /dsmr/.env
       fi
     elif [[ "${DATALOGGER_INPUT_METHOD}" = serial ]]; then
       _info "Using a serial connection for the DSMR remote datalogger..."
@@ -126,29 +126,29 @@ function __dsmr_client_installation() {
         exit 1
       else
         _info "Adding DATALOGGER_SERIAL_PORT and DATALOGGER_SERIAL_PORT to the DSMR remote datalogger configuration..."
-        { echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; } >> /dmsr/.env
+        { echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; } >> /dsmr/.env
       fi
     else
       _error "Incorrect configuration of the DATALOGGER_INPUT_METHOD value. Exiting..."
       exit 1
     fi
     _info "Adding DATALOGGER_API_HOSTS, DATALOGGER_API_KEYS and DATALOGGER_INPUT_METHOD to the DSMR remote datalogger configuration..."
-    { echo DATALOGGER_API_HOSTS="${DATALOGGER_API_HOSTS}"; echo DATALOGGER_API_KEYS="${DATALOGGER_API_KEYS}"; echo DATALOGGER_INPUT_METHOD="${DATALOGGER_INPUT_METHOD}"; } >> /dmsr/.env
+    { echo DATALOGGER_API_HOSTS="${DATALOGGER_API_HOSTS}"; echo DATALOGGER_API_KEYS="${DATALOGGER_API_KEYS}"; echo DATALOGGER_INPUT_METHOD="${DATALOGGER_INPUT_METHOD}"; } >> /dsmr/.env
   fi
 
   if [[ -n "${DATALOGGER_TIMEOUT}" ]]; then
     _info "Adding DATALOGGER_TIMEOUT to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >> /dmsr/.env
+    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >> /dsmr/.env
   fi
 
   if [[ -n "${DATALOGGER_SLEEP}" ]]; then
     _info "Adding DATALOGGER_SLEEP to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >> /dmsr/.env
+    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >> /dsmr/.env
   fi
 
   if [[ -n "${DATALOGGER_DEBUG_LOGGING}" ]]; then
     _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dmsr/.env
+    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dsmr/.env
   fi
   wget -N -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 }
