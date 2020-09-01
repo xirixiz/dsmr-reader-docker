@@ -57,4 +57,13 @@ COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
-CMD ["sh", "-c", "/run.sh"]
+CMD ["sh", "-c", "/run.sh ${DATALOGGER_API_HOSTS}"]
+
+# --env "DATALOGGER_API_HOSTS=test" \
+# --env "DATALOGGER_API_KEYS=test" \
+# --env "DATALOGGER_INPUT_METHOD=serial" \
+# --env "DATALOGGER_SERIAL_PORT=/dev/ttyUSB0" \
+# --env "DATALOGGER_SERIAL_BAUDRATE=115200" \
+# --env "DATALOGGER_NETWORK_HOST=192.168.1.15" \
+# --env "DATALOGGER_NETWORK_PORT=7777" \
+# --env "DATALOGGER_TIMEOUT=60" \
