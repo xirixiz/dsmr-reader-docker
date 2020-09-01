@@ -11,8 +11,6 @@
 : "${TIMER:=60}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 
-export DSMR_RELEASE=latest
-export REMOTE_DATALOGGER=false
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -23,8 +21,6 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
-  echo "Remote datalogger ${REMOTE_DATALOGGER}"
-  exit 1
 
   _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
@@ -70,24 +66,24 @@ function _update_on_startup() {
   else
     __dsmr_installation
   fi
-
-  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
-    _info "Installing DSMR in remote datalogger mode...."
-    export SD_AUTOSTART_DATALOGGER=false
-    export SD_AUTORESTART_DATALOGGER=false
-    export SD_AUTOSTART_BACKEND=false
-    export SD_AUTORESTART_BACKEND=false
-    export SD_AUTOSTART_WEBINTERFACE=false
-    export SD_AUTORESTART_WEBINTERFACE=false
-    __dsmr_client_installation
-  else
-    _info "Installing DSMR in local datalogger mode...."
-    export SD_AUTOSTART_REMOTE_DATALOGGER=false
-    export SD_AUTORESTART_REMOTE_DATALOGGER=false
-  fi
 }
 
-echo ${SD_AUTOSTART_REMOTE_DATALOGGER}
+if [[ "${REMOTE_DATALOGGER}" = true ]]; then
+  _info "Installing DSMR in remote datalogger mode...."
+  export SD_AUTOSTART_DATALOGGER=false
+  export SD_AUTORESTART_DATALOGGER=false
+  export SD_AUTOSTART_BACKEND=false
+  export SD_AUTORESTART_BACKEND=false
+  export SD_AUTOSTART_WEBINTERFACE=false
+  export SD_AUTORESTART_WEBINTERFACE=false
+  __dsmr_client_installation
+else
+  _info "Installing DSMR in local datalogger mode...."
+  export SD_AUTOSTART_REMOTE_DATALOGGER=false
+  export SD_AUTORESTART_REMOTE_DATALOGGER=false
+fi
+
+echo "aaa ${SD_AUTOSTART_REMOTE_DATALOGGER}"
 
 function __dsmr_installation() {
   _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
@@ -225,6 +221,7 @@ function _generate_auth_configuration() {
 function _start_supervisord() {
   _info "Starting supervisord..."
   _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
+  echo "aaa ${SD_AUTOSTART_REMOTE_DATALOGGER}"
   cmd=$(command -v supervisord)
   "${cmd}" -n
 }
@@ -235,7 +232,7 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
-#_override_entrypoint
+_override_entrypoint
 _check_db_availability
 _update_on_startup
 _run_post_config
