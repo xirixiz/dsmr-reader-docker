@@ -17,10 +17,8 @@ export SHELL=/bin/bash
 
 # Set the Docker TAG value based on the branch name. If not master, then always development
 ifeq ($(GIT_BRANCH), master)
-  $(info master)
   DOCKER_TAG=master
 else
-  $(info development)
   DOCKER_TAG=development
 endif
 
