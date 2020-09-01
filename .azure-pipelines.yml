@@ -18,7 +18,6 @@ stages:
 
 - stage: arm32v6
   displayName: arm32v6 (Pi 1+, Zero and other armhf)
-  condition: and(succeeded(), eq(variables.isMasterBranch, true))  
   dependsOn:
     - amd64
   jobs:
@@ -30,7 +29,6 @@ stages:
 
 - stage: arm32v7
   displayName: arm32v7 (Pi 1+ and other armhf)
-  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn: 
     - amd64
   jobs:
@@ -42,7 +40,6 @@ stages:
 
 - stage: arm64v8
   displayName: arm64v8 (Pi 3+ and other ARM64)
-  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
   jobs:
