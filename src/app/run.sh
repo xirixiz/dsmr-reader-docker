@@ -117,7 +117,7 @@ function __dsmr_client_installation() {
         exit 1
       else
         _info "Adding DATALOGGER_NETWORK_HOST and DATALOGGER_NETWORK_PORT to the DSMR remote datalogger configuration..."
-        { echo "${DATALOGGER_NETWORK_HOST}"; echo "${DATALOGGER_NETWORK_PORT}"; } >> /dmsr/.env
+        { echo DATALOGGER_NETWORK_HOST="${DATALOGGER_NETWORK_HOST}"; echo DATALOGGER_NETWORK_PORT="${DATALOGGER_NETWORK_PORT}"; } >> /dmsr/.env
       fi
     elif [[ "${DATALOGGER_INPUT_METHOD}" = serial ]]; then
       _info "Using a serial connection for the DSMR remote datalogger..."
@@ -126,14 +126,14 @@ function __dsmr_client_installation() {
         exit 1
       else
         _info "Adding DATALOGGER_SERIAL_PORT and DATALOGGER_SERIAL_PORT to the DSMR remote datalogger configuration..."
-        { echo "${DATALOGGER_SERIAL_PORT}"; echo "${DATALOGGER_SERIAL_PORT}"; } >> /dmsr/.env
+        { echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; } >> /dmsr/.env
       fi
     else
       _error "Incorrect configuration of the DATALOGGER_INPUT_METHOD value. Exiting..."
       exit 1
     fi
     _info "Adding DATALOGGER_API_HOSTS, DATALOGGER_API_KEYS and DATALOGGER_INPUT_METHOD to the DSMR remote datalogger configuration..."
-    { echo "${DATALOGGER_API_HOSTS}"; echo "${DATALOGGER_API_KEYS}"; echo "${DATALOGGER_INPUT_METHOD}"; } >> /dmsr/.env
+    { echo DATALOGGER_API_HOSTS="${DATALOGGER_API_HOSTS}"; echo DATALOGGER_API_KEYS="${DATALOGGER_API_KEYS}"; echo DATALOGGER_INPUT_METHOD="${DATALOGGER_INPUT_METHOD}"; } >> /dmsr/.env
   fi
 
   if [[ -n "${DATALOGGER_TIMEOUT}" ]]; then
