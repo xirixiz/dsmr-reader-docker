@@ -14,9 +14,6 @@ ENV DB_PORT 5432
 ENV DSMR_USER admin
 ENV DSMR_PASSWORD admin
 
-ENV DSMR_RELEASE latest
-ENV REMOTE_DATALOGGER false
-
 ENV SD_LOGLEVEL info
 ENV SD_USER root
 ENV SD_GROUP root
@@ -57,4 +54,4 @@ COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
-CMD ["bash", "-c", "/run.sh"]
+CMD ["/bin/bash", "-c", "/run.sh"]

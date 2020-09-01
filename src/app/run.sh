@@ -11,6 +11,8 @@
 : "${TIMER:=60}"
 : "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
 
+export DSMR_RELEASE=latest
+export REMOTE_DATALOGGER=false
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -21,6 +23,8 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
+  echo "Remote datalogger ${REMOTE_DATALOGGER}"
+  exit 1
 
   _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
@@ -83,6 +87,8 @@ function _update_on_startup() {
   fi
 }
 
+echo ${SD_AUTOSTART_REMOTE_DATALOGGER}
+
 function __dsmr_installation() {
   _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
   echo "${dsmr_release}" > release.txt
@@ -103,7 +109,7 @@ function __dsmr_installation() {
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
-  touch /dmsr/.env
+  touch /dsmr/.env
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
       _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
       exit 1
