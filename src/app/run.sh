@@ -46,6 +46,23 @@ function _pre_reqs() {
 }
 
 function _update_on_startup() {
+  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
+    _info "Installing DSMR in remote datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=false
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=false
+    export SD_AUTORESTART_WEBINTERFACE=false
+    echo "${SD_AUTOSTART_DATALOGGER}"
+    __dsmr_client_installation
+    /dmsr/.env
+  else
+    _info "Installing DSMR in local datalogger mode...."
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+  fi
+
   if [[ "${DSMR_RELEASE}" = latest ]]; then
     _info "Using the latest release."
     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
@@ -65,21 +82,6 @@ function _update_on_startup() {
     fi
   else
     __dsmr_installation
-  fi
-
-  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
-    _info "Running DSMR in remote datalogger mode...."
-    export SD_AUTOSTART_DATALOGGER=false
-    export SD_AUTORESTART_DATALOGGER=false
-    export SD_AUTOSTART_BACKEND=false
-    export SD_AUTORESTART_BACKEND=false
-    export SD_AUTOSTART_WEBINTERFACE=false
-    export SD_AUTORESTART_WEBINTERFACE=false
-    __dsmr_client_installation
-  else
-    _info "Running DSMR in local datalogger mode...."
-    export SD_AUTOSTART_REMOTE_DATALOGGER=false
-    export SD_AUTORESTART_REMOTE_DATALOGGER=false
   fi
 }
 
