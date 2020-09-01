@@ -21,8 +21,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
-  echo "${DATALOGGER_API_HOSTS}"
-  echo "${DATALOGGER_API_KEYS}"
+
   _info "Verifying if the DSMR web credential variables have been set..."
   if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
@@ -47,21 +46,6 @@ function _pre_reqs() {
 }
 
 function _update_on_startup() {
-  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
-    _info "Installing DSMR in remote datalogger mode...."
-    export SD_AUTOSTART_DATALOGGER=false
-    export SD_AUTORESTART_DATALOGGER=false
-    export SD_AUTOSTART_BACKEND=false
-    export SD_AUTORESTART_BACKEND=false
-    export SD_AUTOSTART_WEBINTERFACE=false
-    export SD_AUTORESTART_WEBINTERFACE=false
-    __dsmr_client_installation
-  else
-    _info "Installing DSMR in local datalogger mode...."
-    export SD_AUTOSTART_REMOTE_DATALOGGER=false
-    export SD_AUTORESTART_REMOTE_DATALOGGER=false
-  fi
-
   if [[ "${DSMR_RELEASE}" = latest ]]; then
     _info "Using the latest release."
     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
@@ -81,6 +65,21 @@ function _update_on_startup() {
     fi
   else
     __dsmr_installation
+  fi
+
+  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
+    _info "Installing DSMR in remote datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=false
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=false
+    export SD_AUTORESTART_WEBINTERFACE=false
+    __dsmr_client_installation
+  else
+    _info "Installing DSMR in local datalogger mode...."
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
   fi
 }
 
@@ -104,6 +103,7 @@ function __dsmr_installation() {
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
+  touch /dmsr/.env
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
       _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
       exit 1
