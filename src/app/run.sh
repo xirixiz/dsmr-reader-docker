@@ -100,6 +100,7 @@ function _update_on_startup() {
     export SD_AUTORESTART_WEBINTERFACE=true
   else
     _error "Invalid value of the DATALOGGER_MODE has been set. Exiting..."
+    exit 1
   fi
 }
 
