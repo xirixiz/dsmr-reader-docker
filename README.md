@@ -109,8 +109,6 @@ If you ever need to set the loglevel to DEBUG you can do that by setting the `DS
 A docker-compose file in order to start the following application in Docker:
 dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
 
-ualex73 created a fork, but that's based on an old setup. Docker image sizes have been reduced drastically (old 380mb, new 70mb), both for dsmr and dsmrdb.
-
 The following architectures are available on the Docker Hub:
  - amd64 (default)
  - arm32
