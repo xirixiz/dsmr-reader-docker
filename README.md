@@ -51,27 +51,20 @@ Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
 - SD_GROUP=root
-- SD_AUTOSTART_DATALOGGER=true
-- SD_AUTORESTART_DATALOGGER=true
-- SD_AUTOSTART_REMOTE_DATALOGGER=false
-- SD_AUTORESTART_REMOTE_DATALOGGER=false
-- SD_AUTOSTART_BACKEND=true
-- SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_WEBINTERFACE=true
-- SD_AUTORESTART_WEBINTERFACE=true
+- DATALOGGER_MODE=standalone          # Set the datalogger mode. Valid values are sender (datlogger sender only), receiver (local datalogger disabled, api container), standalone (a single container setup)
 
 Remote DSMR datalogger related (more info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html)
-- REMOTE_DATALOGGER=false             # Set to true if datalogger is running on another container
 - DATALOGGER_API_HOSTS=x              # Required. Destination(s) of the DSMR Reader (Docker) host(s)
 - DATALOGGER_API_KEYS=x               # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
-- DATALOGGER_INPUT_METHOD=x           # Required. Only serial or ipv4 (network) are valid values
 
+- DATALOGGER_INPUT_METHOD=x           # Required. Only serial or ipv4 (network) are valid values
+  ##################################################################################################################
 - DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 # Required if the input method is set to serial
 - DATALOGGER_SERIAL_BAUDRATE=115200   # Required if the input method is set to serial
-
+  ##################################################################################################################
 - DATALOGGER_NETWORK_HOST=x.x.x.x     # Required if the input method is set to ipv4
 - DATALOGGER_NETWORK_PORT=x           # Required if the input method is set to ipv4 (Docker port)
-
+  ##################################################################################################################
 - DATALOGGER_TIMEOUT=x                # Optional. In seconds
 - DATALOGGER_SLEEP=x                  # Optional. In seconds
 - DATALOGGER_DEBUG_LOGGING=false      # Optional.
@@ -211,3 +204,4 @@ For Synology users:
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
 [dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
 [dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
+

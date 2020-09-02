@@ -67,8 +67,18 @@ function _update_on_startup() {
     __dsmr_installation
   fi
 
-  if [[ "${REMOTE_DATALOGGER}" = true ]]; then
-    _info "Installing DSMR in remote datalogger mode...."
+  if [[ "${DATALOGGER_MODE}" = standalone ]]; then
+    _info "Configuring DSMR in standlone datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=true
+    export SD_AUTORESTART_DATALOGGER=true
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=true
+  elif [[ "${DATALOGGER_MODE}" = sender ]]; then
+    _info "Configuring DSMR in sender datalogger mode...."
     export SD_AUTOSTART_DATALOGGER=false
     export SD_AUTORESTART_DATALOGGER=false
     export SD_AUTOSTART_REMOTE_DATALOGGER=true
@@ -78,10 +88,18 @@ function _update_on_startup() {
     export SD_AUTOSTART_WEBINTERFACE=false
     export SD_AUTORESTART_WEBINTERFACE=false
     __dsmr_client_installation
-  else
-    _info "Installing DSMR in local datalogger mode...."
+  elif [[ "${DATALOGGER_MODE}" = receiver ]]; then
+    _info "Configuring DSMR in receiver datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
     export SD_AUTOSTART_REMOTE_DATALOGGER=false
     export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=true
+  else
+    _error "Invalid value of the DATALOGGER_MODE has been set. Exiting..."
   fi
 }
 
