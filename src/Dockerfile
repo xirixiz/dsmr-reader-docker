@@ -29,6 +29,7 @@ RUN apk --update add --no-cache \
       nginx \
       openssl \
       postgresql-client \
+      postgresql-libs \
       tzdata \
       jq \
       supervisor
@@ -36,8 +37,8 @@ RUN apk --update add --no-cache \
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
 RUN apk add --virtual .build-deps gcc musl-dev \
-      && pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-      && pip3 install psycopg2 \
+      && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
+      && python3 -m pip install psycopg2 --no-cache-dir \
       && apk --purge del .build-deps \
       && rm -rf /tmp/*
 
