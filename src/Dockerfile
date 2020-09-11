@@ -42,13 +42,6 @@ RUN apk add --virtual .build-deps gcc python3-dev musl-dev postgresql-dev \
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
-# RUN apk update && apk add --no-cache --virtual .build-deps postgresql-dev gcc libpq python3-dev musl-dev linux-headers \
-#     && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-#     && python3 -m pip install psycopg2 --no-cache-dir \
-#     && apk --purge del .build-deps \
-#     && rm -rf /var/cache/apk/* \
-#     && rm -rf /tmp/*
-
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \

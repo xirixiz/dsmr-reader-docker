@@ -4,18 +4,18 @@
 #### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-latest-arm32v6
-latest-arm64v8
-latest-amd64
-latest-arm32v7
+latest-<version>-arm32v6
+latest-<version>-arm64v8
+latest-<version>-amd64
+latest-<version>-arm32v7
 ```
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-arm32v6
-development-arm64v8
-development-amd64
-development-arm32v7
+development-<version>-rm32v6
+development-<version>-arm64v8
+development-<version>-amd64
+development-<version>-arm32v7
 ```
 
 #### DSMR Reader - Environment variables
@@ -25,6 +25,7 @@ development-arm32v7
 - Removed ``SD_AUTORESTART_MQTT``
 - Removed ``DSMR_BACKEND_SLEEP``
 - Removed ``DSMR_DATALOGGER_SLEEP``
+- Removed ``DSMR_RELEASE``
 - Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.:
 ```
 dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
@@ -36,7 +37,6 @@ It's possible to set the following settings as environment variables, for exampl
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
-- DSMR_RELEASE=latest # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
 ```
 
 ```
@@ -202,4 +202,3 @@ For Synology users:
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
 [dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
 [dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
-
