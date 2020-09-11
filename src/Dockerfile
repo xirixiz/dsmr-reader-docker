@@ -36,10 +36,10 @@ RUN apk --update add --no-cache \
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
 RUN apk add --virtual .build-deps gcc musl-dev && \
-    && pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-    && pip3 install psycopg2 \
-    && apk --purge del .build-deps \
-    && rm -rf /tmp/*
+      && pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
+      && pip3 install psycopg2 \
+      && apk --purge del .build-deps \
+      && rm -rf /tmp/*
 
 RUN mkdir -p /run/nginx/ \
       && ln -sf /dev/stdout /var/log/nginx/access.log \
