@@ -1,6 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
-#export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
+export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
 export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
@@ -17,26 +17,27 @@ export SHELL=/bin/bash
 
 # Set the Docker TAG value based on the branch name. If not master, then always development
 ifeq ($(GIT_BRANCH), master)
-  DOCKER_TAG=master
+  DOCKER_TAG=${APP_VERSION}
 else
-  DOCKER_TAG=development
+  DOCKER_TAG=development-${APP_VERSION}
 endif
 
 # Permanent local overrides
 -include .env
 
-.PHONY: build qemu wrap push manifest clean
+.PHONY: build dsmr qemu wrap push manifest clean
 
-# dsmr:
-# 	@echo "==> Fetching DSMR version $(APP_VERSION)."
-# 	-mkdir -p tmp/dsmr
-# 	-mkdir -p src/dsmr
-# 	cd tmp/dsmr && \
-# 	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
-# 	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
-# 	rm -rf $(APP_VERSION).tar.gz && \
-# 	cp -R  * ../../src/dsmr/
-# 	@echo "==> Fetching DSMR done."
+dsmr:
+	@echo "==> Fetching DSMR version $(APP_VERSION)."
+	-mkdir -p tmp/dsmr
+	-mkdir -p src/dsmr
+	cd tmp/dsmr && \
+	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
+	wget -N -O dsmr_datalogger_api_client.py https://raw.githubusercontent.com/dennissiemensma/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
+	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
+	rm -rf $(APP_VERSION).tar.gz && \
+	cp -R  * ../../src/dsmr/
+	@echo "==> Fetching DSMR done."
 
 qemu:
 	@echo "==> Setting up QEMU"
@@ -53,7 +54,6 @@ fetch-qemu-%:
 	tar -zxf qemu-$(ARCH)-static.tar.gz && \
 	cp qemu-$(ARCH)-static ../../qemu/
 	@echo "--> Done."
-
 
 wrap:
 	@echo "==> Building local base containers"
@@ -118,7 +118,7 @@ expand-%: # expand architecture variants for manifest
 manifest:
 	@echo "==> Building multi-architecture manifest"
 	$(foreach STEP, build push, make $(STEP)-manifest;)
-	@echo "==> Done."	
+	@echo "==> Done."
 
 build-manifest:
 	@echo "--> Creating manifest"
