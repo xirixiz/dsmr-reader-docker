@@ -18,7 +18,7 @@ services:
 
   dsmr:
 #    build: .
-    image: xirixiz/dsmr-reader-docker:latest-amd64
+    image: xirixiz/dsmr-reader-docker:latest
     container_name: dsmr
     depends_on:
       - dsmrdb
@@ -33,8 +33,6 @@ services:
     environment:
       - TZ=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
-      - SD_AUTOSTART_MQTT=false
-      - SD_AUTORESTART_MQTT=false
     ports:
       - 7777:80
       - 7779:443
