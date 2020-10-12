@@ -12,7 +12,7 @@ latest-<version>-arm32v7
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-<version>-rm32v6
+development-<version>-arm32v6
 development-<version>-arm64v8
 development-<version>-amd64
 development-<version>-arm32v7
