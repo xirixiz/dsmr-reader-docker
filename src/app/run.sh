@@ -28,13 +28,6 @@ function _pre_reqs() {
     exit 1
   fi
 
-  _info "Verifying if DSMR_RELEASE has been set correctly!"
-  version_rx='^([0-9]+\.){0,2}(\*|[0-9]+)$'
-  if ! [[ "${DSMR_RELEASE}" =~ ^(latest|latest_tag|${version_rx})$ ]]; then
-    _error "The value for DSMR_RELEASE isn't valid - ${DSMR_RELEASE}. Please use latest, latest_tag or specify a version (without the v in front!). Exiting..."
-    exit 1
-  fi
-
   _info "Fixing /dev/ttyUSB* security..."
   [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
 
@@ -45,45 +38,140 @@ function _pre_reqs() {
   mkdir -p /var/log/supervisor/
 }
 
-function _update_on_startup() {
-  if [[ "${DSMR_RELEASE}" = latest ]]; then
-    _info "Using the latest release."
-    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
-  elif [[ "${DSMR_RELEASE}" = latest_tag ]]; then
-    _info "Using the latest TAG release."
-    dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
-  elif [[ "${DSMR_RELEASE}" =~ ^(${version_rx})$ ]]; then
-    _info "Using the release specified - v${DSMR_RELEASE}."
-    dsmr_release=v"${DSMR_RELEASE}"
-  fi
+# function _update_on_startup() {
+#   _info "Verifying if DSMR_RELEASE has been set correctly!"
+#   version_rx='^([0-9]+\.){0,2}(\*|[0-9]+)$'
+#   if ! [[ "${DSMR_RELEASE}" =~ ^(latest|latest_tag|${version_rx})$ ]]; then
+#     _error "The value for DSMR_RELEASE isn't valid - ${DSMR_RELEASE}. Please use latest, latest_tag or specify a version (without the v in front!). Exiting..."
+#     exit 1
+#   fi
 
-  if [[ -f "release.txt" ]]; then
-    if [[ "${dsmr_release}" != $(cat release.txt) ]]; then
-      __dsmr_installation
-    else
-      _info "DSMR already installed with the desired release. Continuing..."
-    fi
+#   if [[ "${DSMR_RELEASE}" = latest ]]; then
+#     _info "Using the latest release."
+#     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
+#   elif [[ "${DSMR_RELEASE}" = latest_tag ]]; then
+#     _info "Using the latest TAG release."
+#     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
+#   elif [[ "${DSMR_RELEASE}" =~ ^(${version_rx})$ ]]; then
+#     _info "Using the release specified - v${DSMR_RELEASE}."
+#     dsmr_release=v"${DSMR_RELEASE}"
+#   fi
+
+#   if [[ -f "release.txt" ]]; then
+#     if [[ "${dsmr_release}" != $(cat release.txt) ]]; then
+#       __dsmr_installation
+#     else
+#       _info "DSMR already installed with the desired release. Continuing..."
+#     fi
+#   else
+#     __dsmr_installation
+#   fi
+# }
+
+function _dsmr_datalogger_mode() {
+  if [[ "${DATALOGGER_MODE}" = standalone ]]; then
+    _info "Configuring DSMR in standlone datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=true
+    export SD_AUTORESTART_DATALOGGER=true
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=true
+  elif [[ "${DATALOGGER_MODE}" = sender ]]; then
+    _info "Configuring DSMR in sender datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_REMOTE_DATALOGGER=true
+    export SD_AUTORESTART_REMOTE_DATALOGGER=true
+    export SD_AUTOSTART_BACKEND=false
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=false
+    export SD_AUTORESTART_WEBINTERFACE=false
+    __dsmr_client_installation
+  elif [[ "${DATALOGGER_MODE}" = receiver ]]; then
+    _info "Configuring DSMR in receiver datalogger mode...."
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=true
   else
-    __dsmr_installation
+    _error "Invalid value of the DATALOGGER_MODE has been set. Exiting..."
+    exit 1
   fi
 }
 
-function __dsmr_installation() {
-  _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
-  echo "${dsmr_release}" > release.txt
-  mkdir -p /dsmr
-  find /dsmr/* ! -name backups -delete
-  find /dsmr/ -name ".*" ! -name "backups" -delete
-  pushd /dsmr || exit
-  wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
-  tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
-  rm -rf "${dsmr_release}".tar.gz
-  popd || exit
-  cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
-  pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
-  pip3 install psycopg2
-  cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
-  rm -rf /tmp/*
+# function __dsmr_installation() {
+#   _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
+#   echo "${dsmr_release}" > release.txt
+#   mkdir -p /dsmr
+#   find /dsmr/* ! -name backups -delete
+#   find /dsmr/ -name ".*" ! -name "backups" -delete
+#   pushd /dsmr || exit
+#   wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
+#   tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
+#   rm -rf "${dsmr_release}".tar.gz
+#   popd || exit
+#   cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
+#   pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
+#   pip3 install psycopg2
+#   cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+#   rm -rf /tmp/*
+# }
+
+function __dsmr_client_installation() {
+  _info "Installing the DSMR remote datalogger client..."
+  touch /dsmr/.env
+  if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
+      _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
+      exit 1
+  else
+    if [[ "${DATALOGGER_INPUT_METHOD}" = ipv4 ]]; then
+      _info "Using a network socket for the DSMR remote datalogger..."
+      if [[ -z "${DATALOGGER_NETWORK_HOST}" || -z "${DATALOGGER_NETWORK_PORT}" ]]; then
+        _error "DATALOGGER_NETWORK_HOST and/or DATALOGGER_NETWORK_PORT required values are not set. Exiting..."
+        exit 1
+      else
+        _info "Adding DATALOGGER_NETWORK_HOST and DATALOGGER_NETWORK_PORT to the DSMR remote datalogger configuration..."
+        { echo DATALOGGER_NETWORK_HOST="${DATALOGGER_NETWORK_HOST}"; echo DATALOGGER_NETWORK_PORT="${DATALOGGER_NETWORK_PORT}"; } >> /dsmr/.env
+      fi
+    elif [[ "${DATALOGGER_INPUT_METHOD}" = serial ]]; then
+      _info "Using a serial connection for the DSMR remote datalogger..."
+      if [[ -z "${DATALOGGER_SERIAL_PORT}" || -z "${DATALOGGER_SERIAL_BAUDRATE}" ]]; then
+        _error "DATALOGGER_SERIAL_PORT and/or DATALOGGER_SERIAL_BAUDRATE required values are not set. Exiting..."
+        exit 1
+      else
+        _info "Adding DATALOGGER_SERIAL_PORT and DATALOGGER_SERIAL_PORT to the DSMR remote datalogger configuration..."
+        { echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"; } >> /dsmr/.env
+      fi
+    else
+      _error "Incorrect configuration of the DATALOGGER_INPUT_METHOD value. Exiting..."
+      exit 1
+    fi
+    _info "Adding DATALOGGER_API_HOSTS, DATALOGGER_API_KEYS and DATALOGGER_INPUT_METHOD to the DSMR remote datalogger configuration..."
+    { echo DATALOGGER_API_HOSTS="${DATALOGGER_API_HOSTS}"; echo DATALOGGER_API_KEYS="${DATALOGGER_API_KEYS}"; echo DATALOGGER_INPUT_METHOD="${DATALOGGER_INPUT_METHOD}"; } >> /dsmr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_TIMEOUT}" ]]; then
+    _info "Adding DATALOGGER_TIMEOUT to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >> /dsmr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_SLEEP}" ]]; then
+    _info "Adding DATALOGGER_SLEEP to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >> /dsmr/.env
+  fi
+
+  if [[ -n "${DATALOGGER_DEBUG_LOGGING}" ]]; then
+    _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
+    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dsmr/.env
+  fi
+  # wget -N -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 }
 
 function _override_entrypoint() {
@@ -101,7 +189,7 @@ function _check_db_availability() {
     TIMER=$((TIMER-1))
     sleep 1
     if [[ "${TIMER}" -eq 0 ]]; then
-      _error "Could not connect to database server. Aborting..."
+      _error "Could not connect to database server. Exiting..."
       exit 1
     fi
     echo -n "."
@@ -140,10 +228,10 @@ function _generate_auth_configuration() {
       _info "Done! Enabling the configuration in NGINX..."
       sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-        echo "HTTP AUTHENTICATION configured and enabled"
+        _info "HTTP AUTHENTICATION configured and enabled"
         return
       else
-        echo "NGINX configuration error"
+        _error "NGINX configuration error"
         exit 1
       fi
     fi
@@ -164,9 +252,10 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
-_update_on_startup
 _override_entrypoint
 _check_db_availability
+_dsmr_datalogger_mode
+#_update_on_startup
 _run_post_config
 _generate_auth_configuration
 _start_supervisord

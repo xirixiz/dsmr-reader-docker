@@ -18,7 +18,7 @@ stages:
 
 - stage: arm32v6
   displayName: arm32v6 (Pi 1+, Zero and other armhf)
-  dependsOn: 
+  dependsOn:
     - amd64
   jobs:
   - template: .azure-pipelines-job.yml

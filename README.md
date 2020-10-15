@@ -4,18 +4,18 @@
 #### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-latest-arm32v6
-latest-arm64v8
-latest-amd64
-latest-arm32v7
+latest-<version>-arm32v6
+latest-<version>-arm64v8
+latest-<version>-amd64
+latest-<version>-arm32v7
 ```
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-arm32v6
-development-arm64v8
-development-amd64
-development-arm32v7
+development-<version>-arm32v6
+development-<version>-arm64v8
+development-<version>-amd64
+development-<version>-arm32v7
 ```
 
 #### DSMR Reader - Environment variables
@@ -25,6 +25,7 @@ development-arm32v7
 - Removed ``SD_AUTORESTART_MQTT``
 - Removed ``DSMR_BACKEND_SLEEP``
 - Removed ``DSMR_DATALOGGER_SLEEP``
+- Removed ``DSMR_RELEASE``
 - Changed ``DSMRREADER_PLUGINS`` is now a comma separated list without quotes. E.g.:
 ```
 dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
@@ -36,7 +37,6 @@ It's possible to set the following settings as environment variables, for exampl
 Required (defaults are shown as value):
 - TZ=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
-- DSMR_RELEASE=latest # Can be 'latest', 'latest_tag' or specific version like '4.1.1'
 ```
 
 ```
@@ -51,12 +51,23 @@ Supervisord related:
 - SD_LOGLEVEL=info
 - SD_USER=root
 - SD_GROUP=root
-- SD_AUTOSTART_DATALOGGER=true # Set to false if datalogger is running on another container
-- SD_AUTORESTART_DATALOGGER=true # Set to false if datalogger is running on another container
-- SD_AUTOSTART_BACKEND=true
-- SD_AUTORESTART_BACKEND=true
-- SD_AUTOSTART_CLIENT=true
-- SD_AUTORESTART_CLIENT=true
+- DATALOGGER_MODE=standalone          # Set the datalogger mode. Valid values are sender (datlogger sender only), receiver (local datalogger disabled, api container), standalone (a single container setup)
+
+Remote DSMR datalogger related (more info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html)
+- DATALOGGER_API_HOSTS=x              # Required. Destination(s) of the DSMR Reader (Docker) host(s)
+- DATALOGGER_API_KEYS=x               # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
+
+- DATALOGGER_INPUT_METHOD=x           # Required. Only serial or ipv4 (network) are valid values
+  ##################################################################################################################
+- DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 # Required if the input method is set to serial
+- DATALOGGER_SERIAL_BAUDRATE=115200   # Required if the input method is set to serial
+  ##################################################################################################################
+- DATALOGGER_NETWORK_HOST=x.x.x.x     # Required if the input method is set to ipv4
+- DATALOGGER_NETWORK_PORT=x           # Required if the input method is set to ipv4 (Docker port)
+  ##################################################################################################################
+- DATALOGGER_TIMEOUT=x                # Optional. In seconds
+- DATALOGGER_SLEEP=x                  # Optional. In seconds
+- DATALOGGER_DEBUG_LOGGING=false      # Optional.
 
 DSMR related (defaults are shown as value):
 - DSMR_USER=admin             # Webinterface user
@@ -97,8 +108,6 @@ If you ever need to set the loglevel to DEBUG you can do that by setting the `DS
 # DSMR Reader - Docker
 A docker-compose file in order to start the following application in Docker:
 dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
-
-ualex73 created a fork, but that's based on an old setup. Docker image sizes have been reduced drastically (old 380mb, new 70mb), both for dsmr and dsmrdb.
 
 The following architectures are available on the Docker Hub:
  - amd64 (default)
