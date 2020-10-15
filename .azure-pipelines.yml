@@ -1,6 +1,6 @@
 trigger:
-- master
-- development
+- none
+#- development
 
 variables:
   isMasterBranch: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]

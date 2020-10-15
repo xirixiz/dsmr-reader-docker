@@ -2,12 +2,13 @@ version: '3.6'
 
 services:
   dsmrdb:
-    image: postgres:10.5-alpine
+    image: postgres:12-alpine
     container_name: dsmrdb
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmrdb:/var/lib/postgresql/data
+      - ./dsmrdb/backups:/dsmrdb/backups
     environment:
       - TZ=Europe/Amsterdam
       - PG_TZ=Europe/Amsterdam
@@ -17,7 +18,7 @@ services:
 
   dsmr:
 #    build: .
-    image: xirixiz/dsmr-reader-docker:latest-amd64
+    image: xirixiz/dsmr-reader-docker:latest
     container_name: dsmr
     depends_on:
       - dsmrdb
@@ -32,8 +33,6 @@ services:
     environment:
       - TZ=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
-      - SD_AUTOSTART_MQTT=false
-      - SD_AUTORESTART_MQTT=false
     ports:
       - 7777:80
       - 7779:443
