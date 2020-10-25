@@ -3,7 +3,6 @@ version: '3.6'
 services:
   dsmrdb:
     image: postgres:12-alpine
-    container_name: dsmrdb
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -19,7 +18,6 @@ services:
   dsmr:
 #    build: .
     image: xirixiz/dsmr-reader-docker:latest
-    container_name: dsmr
     depends_on:
       - dsmrdb
     cap_add:
