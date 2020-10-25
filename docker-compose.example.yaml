@@ -22,8 +22,6 @@ services:
       - dsmrdb
     cap_add:
       - NET_ADMIN
-    links:
-      - dsmrdb
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
