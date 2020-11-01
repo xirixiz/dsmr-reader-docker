@@ -9,7 +9,7 @@
 : "${DEBUG:=false}"
 : "${COMMAND:=$@}"
 : "${TIMER:=60}"
-: "${DSMR_GIT_REPO:=dennissiemensma/dsmr-reader}"
+: "${DSMR_GIT_REPO:=dsmrreader/dsmr-reader}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS

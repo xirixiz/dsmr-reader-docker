@@ -89,7 +89,7 @@ DB related (defaults are shown as value):
 For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
 # DSMR Reader - Database cleanup/vacuum
-It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dennissiemensma/dsmr-reader/issues/1165.
+It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
 You can cleanup the Docker database by running the following command from the application container:
 
 ```
@@ -115,7 +115,7 @@ If you ever need to set the loglevel to DEBUG you can do that by setting the `DS
 
 # DSMR Reader - Docker
 A docker-compose file in order to start the following application in Docker:
-dsmr-reader (https://github.com/dennissiemensma/dsmr-reader)
+dsmr-reader (https://github.com/dsmrreader/dsmr-reader)
 
 The following architectures are available on the Docker Hub:
  - amd64 (default)

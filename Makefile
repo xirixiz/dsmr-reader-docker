@@ -1,6 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
-export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/releases/latest' | jq -r .tag_name`
-#export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dennissiemensma/dsmr-reader/tags' | jq -r '.[0].name'`
+export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
+#export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
@@ -32,8 +32,8 @@ dsmr:
 	-mkdir -p tmp/dsmr
 	-mkdir -p src/dsmr
 	cd tmp/dsmr && \
-	wget -N https://github.com/dennissiemensma/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
-	wget -N -O dsmr_datalogger_api_client.py https://raw.githubusercontent.com/dennissiemensma/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py && \
+	wget -N https://github.com/dsmrreader/dsmr-reader/archive/$(APP_VERSION).tar.gz && \
+	wget -N -O dsmr_datalogger_api_client.py https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py && \
 	tar -zxf $(APP_VERSION).tar.gz --strip-components=1 && \
 	rm -rf $(APP_VERSION).tar.gz && \
 	cp -R  * ../../src/dsmr/
