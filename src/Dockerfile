@@ -53,7 +53,7 @@ RUN chmod u+x /run.sh
 
 COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
-RUN PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}
+#RUN PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}
 
 EXPOSE 80 443
 
