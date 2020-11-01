@@ -14,7 +14,6 @@ ENV DB_PORT 5432
 ENV DSMR_USER admin
 ENV DSMR_PASSWORD admin
 
-#ENV DSMR_RELEASE latest
 ENV DATALOGGER_MODE standalone
 
 ENV SD_LOGLEVEL info
@@ -53,6 +52,8 @@ COPY ./app/run.sh /run.sh
 RUN chmod u+x /run.sh
 
 COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
+
+#RUN PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}
 
 EXPOSE 80 443
 

@@ -1,4 +1,4 @@
-ARG BASE 
+ARG BASE
 FROM ${BASE}
 ARG ARCH
 COPY qemu-${ARCH}-static /usr/bin/qemu-${ARCH}-static

@@ -38,36 +38,6 @@ function _pre_reqs() {
   mkdir -p /var/log/supervisor/
 }
 
-# function _update_on_startup() {
-#   _info "Verifying if DSMR_RELEASE has been set correctly!"
-#   version_rx='^([0-9]+\.){0,2}(\*|[0-9]+)$'
-#   if ! [[ "${DSMR_RELEASE}" =~ ^(latest|latest_tag|${version_rx})$ ]]; then
-#     _error "The value for DSMR_RELEASE isn't valid - ${DSMR_RELEASE}. Please use latest, latest_tag or specify a version (without the v in front!). Exiting..."
-#     exit 1
-#   fi
-
-#   if [[ "${DSMR_RELEASE}" = latest ]]; then
-#     _info "Using the latest release."
-#     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/releases/latest" | jq -r .tag_name)
-#   elif [[ "${DSMR_RELEASE}" = latest_tag ]]; then
-#     _info "Using the latest TAG release."
-#     dsmr_release=$(curl -Ssl "https://api.github.com/repos/${DSMR_GIT_REPO}/tags" | jq -r .[0].name)
-#   elif [[ "${DSMR_RELEASE}" =~ ^(${version_rx})$ ]]; then
-#     _info "Using the release specified - v${DSMR_RELEASE}."
-#     dsmr_release=v"${DSMR_RELEASE}"
-#   fi
-
-#   if [[ -f "release.txt" ]]; then
-#     if [[ "${dsmr_release}" != $(cat release.txt) ]]; then
-#       __dsmr_installation
-#     else
-#       _info "DSMR already installed with the desired release. Continuing..."
-#     fi
-#   else
-#     __dsmr_installation
-#   fi
-# }
-
 function _dsmr_datalogger_mode() {
   if [[ "${DATALOGGER_MODE}" = standalone ]]; then
     _info "Configuring DSMR in standlone datalogger mode...."
@@ -105,24 +75,6 @@ function _dsmr_datalogger_mode() {
     exit 1
   fi
 }
-
-# function __dsmr_installation() {
-#   _info "Either the current release is out of sync, or no version has been installed yet! Installing ${dsmr_release}..."
-#   echo "${dsmr_release}" > release.txt
-#   mkdir -p /dsmr
-#   find /dsmr/* ! -name backups -delete
-#   find /dsmr/ -name ".*" ! -name "backups" -delete
-#   pushd /dsmr || exit
-#   wget -N https://github.com/"${DSMR_GIT_REPO}"/archive/"${dsmr_release}".tar.gz
-#   tar -xf "${dsmr_release}".tar.gz --strip-components=1 --overwrite
-#   rm -rf "${dsmr_release}".tar.gz
-#   popd || exit
-#   cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
-#   pip3 install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir
-#   pip3 install psycopg2
-#   cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
-#   rm -rf /tmp/*
-# }
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
@@ -255,7 +207,6 @@ _pre_reqs
 _override_entrypoint
 _check_db_availability
 _dsmr_datalogger_mode
-#_update_on_startup
 _run_post_config
 _generate_auth_configuration
 _start_supervisord
