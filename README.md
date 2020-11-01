@@ -88,6 +88,14 @@ DB related (defaults are shown as value):
 
 For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
+# DSMR Reader - Database cleanup/vacuum
+It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dennissiemensma/dsmr-reader/issues/1165.
+You can cleanup the Docker database by running the following command from the application container:
+
+```
+docker exec -ti <container-name> bash -c 'PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}'
+```
+
 # DSMR Reader - Plugins
 DSMR Reader plugins (https://dsmr-reader.readthedocs.io/en/latest/plugins.html) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
 
