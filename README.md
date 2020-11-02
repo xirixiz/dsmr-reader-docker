@@ -170,6 +170,11 @@ docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
 docker-compose start dsmr
 ```
 
+It's also possible to gzip ofcourse:
+```
+docker exec -t dsmrdb pg_dumpall -c -U dsmrreader | /bin/gzip > dsmrreader.sql.gz
+```
+
 Or drop the database and restore a backup. Values depend on docker/docker-compose user and database variables:
 ```
 docker-compose stop dsmr
