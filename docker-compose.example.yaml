@@ -7,7 +7,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmrdb:/var/lib/postgresql/data
-      - ./dsmrdb_backups:/dsmrdb/backups
     environment:
       - TZ=Europe/Amsterdam
       - PG_TZ=Europe/Amsterdam
