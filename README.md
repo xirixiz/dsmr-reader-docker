@@ -20,6 +20,8 @@ development-<version>-arm32v7
 
 #### DSMR Reader - Environment variables
 
+For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
+
 It's possible to set the following settings as environment variables, for example:
 ```
 Required (defaults are shown as value):
@@ -58,11 +60,12 @@ Remote DSMR datalogger related (more info: https://dsmr-reader.readthedocs.io/nl
 - DATALOGGER_DEBUG_LOGGING=false      # Optional.
 
 DSMR related (defaults are shown as value):
-- DSMRREADER_ADMIN_USER=admin         # Webinterface user
-- DSMRREADER_ADMIN_PASSWORD=admin     # Webinterface user
-- DSMRREADER_LOGLEVEL=WARNING         # Valid values are WARNING, INFO, DEBUG
+- DSMRREADER_ADMIN_USER=admin                     # Webinterface user
+- DSMRREADER_ADMIN_PASSWORD=admin                 # Webinterface user password
+- DSMRREADER_LOGLEVEL=WARNING                     # Valid values are WARNING, INFO, DEBUG
+- DJANGO_SECRET_KEY=dsmrreader                    # Secret key for encryption
+- DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True  # Ignore database size notifications
 - DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
-- DJANGO_SECRET_KEY=dsmrreader
 
 DB related (defaults are shown as value):
 - DJANGO_DATABASE_ENGINE django.db.backends.postgresql
@@ -73,8 +76,6 @@ DB related (defaults are shown as value):
 - DJANGO_DATABASE_PORT=5432
 - DJANGO_DATABASE_CONN_MAX_AGE=60
 ```
-
-For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
 # DSMR Reader - Database cleanup/vacuum
 It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
