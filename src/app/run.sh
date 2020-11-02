@@ -23,7 +23,7 @@ function _pre_reqs() {
   alias cp="cp"
 
   _info "Verifying if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMR_USER}" ]] || [[ -z "${DSMR_PASSWORD}" ]]; then
+  if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
@@ -136,7 +136,7 @@ function _override_entrypoint() {
 function _check_db_availability() {
   _info "Verifying if Postgres in running..."
   cmd=$(command -v pg_isready)
-  cmd="${cmd} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
+  cmd="${cmd} -h ${DJANGO_DATABASE_HOST} -p ${DJANGO_DATABASE_PORT} -U ${DJANGO_DATABASE_USER} -d ${DJANGO_DATABASE_NAME} -t 1"
   while ! ${cmd} >/dev/null 2>&1; do
     TIMER=$((TIMER-1))
     sleep 1

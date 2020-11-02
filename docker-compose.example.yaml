@@ -1,4 +1,4 @@
-version: '3.6'
+version: '3.8'
 
 services:
   dsmrdb:
@@ -27,7 +27,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/dsmr/backups
     environment:
-      - TZ=Europe/Amsterdam
+      - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
     ports:
       - 7777:80
