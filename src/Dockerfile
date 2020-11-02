@@ -49,7 +49,7 @@ RUN mkdir -p /run/nginx/ \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
 COPY ./app-binaries /app-binaries
-RUN chmod u+x /app/*.sh
+RUN chmod u+x /app-binaries/*.sh
 
 COPY ./app-config/supervisord.ini /etc/supervisor.d/supervisord.ini
 
