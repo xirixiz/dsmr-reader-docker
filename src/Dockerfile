@@ -48,15 +48,13 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-COPY ./app/run.sh /run.sh
-RUN chmod u+x /run.sh
+COPY ./app /app
+RUN chmod u+x /app/*.sh
 
-COPY ./app/supervisord.ini /etc/supervisor.d/supervisord.ini
-
-#RUN PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}
+COPY ./config/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
 WORKDIR /dsmr
 
-CMD ["/bin/bash", "-c", "/run.sh"]
+CMD ["/bin/bash", "-c", "/app/run.sh"]

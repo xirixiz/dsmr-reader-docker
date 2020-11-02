@@ -93,7 +93,13 @@ It could be that you receive a notification that the database is growing, like i
 You can cleanup the Docker database by running the following command from the application container:
 
 ```
-docker exec -ti <container-name> bash -c 'PGPASSWORD=${DB_PASS} /usr/bin/vacuumdb -f -v -h ${DB_HOST} -d ${DB_NAME} -U ${DB_USER}'
+docker exec -ti dsmr bash -c '/app/cleandb.sh'
+```
+
+Or if you'd like to run verbose:
+
+```
+docker exec -ti dsmr bash -c '/app/cleandb.sh -v'
 ```
 
 # DSMR Reader - Plugins
