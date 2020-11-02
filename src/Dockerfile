@@ -48,14 +48,13 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-COPY ./app /app
+COPY ./app-binaries /app-binaries
 RUN chmod u+x /app/*.sh
 
-RUN mkdir -p /etc/supervisor.d/ \
-    && cp /app/supervisord.ini /etc/supervisor.d/supervisord.ini
+COPY ./app-config/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
 WORKDIR /dsmr
 
-CMD ["/bin/bash", "-c", "/app/run.sh"]
+CMD ["/bin/bash", "-c", "/app-binaries/run.sh"]
