@@ -51,7 +51,8 @@ RUN mkdir -p /run/nginx/ \
 COPY ./app /app
 RUN chmod u+x /app/*.sh
 
-RUN cp /app/supervisord.ini /etc/supervisor.d/supervisord.ini
+RUN mkdir -p /etc/supervisor.d/ \
+    && cp /app/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
