@@ -1,11 +1,17 @@
 trigger:
 - none
-#- development
+# - development
 
 variables:
-  isMasterBranch: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  # system.debug: true
+  isMasterBranch: $[eq(variables['Build.SourceBranchName'], 'master')]
 
 stages:
+# - task: CmdLine@2
+#   displayName: Checkout $(Build.SourceBranchName)
+#   inputs:
+#     script: 'git checkout $(Build.SourceBranchName)'
+
 - stage: amd64
   displayName: amd64 (Intel/AMD)
   dependsOn: []
@@ -29,7 +35,7 @@ stages:
 
 - stage: arm32v7
   displayName: arm32v7 (Pi 1+ and other armhf)
-  dependsOn: 
+  dependsOn:
     - amd64
   jobs:
   - template: .azure-pipelines-job.yml
@@ -52,7 +58,7 @@ stages:
 - stage: Manifest
   displayName: multi-arch manifest
   condition: and(succeeded(), eq(variables.isMasterBranch, true))
-  dependsOn: 
+  dependsOn:
     - amd64
     - arm32v6
     - arm32v7
@@ -61,7 +67,7 @@ stages:
     - name: DOCKER
       value: docker --config=/home/vsts/.docker
   jobs:
-  - job: Manifest 
+  - job: Manifest
     pool:
       vmImage: 'ubuntu-latest'
     steps:
