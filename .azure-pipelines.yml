@@ -7,10 +7,10 @@ variables:
   isMasterBranch: $[eq(variables['Build.SourceBranchName'], 'master')]
 
 stages:
-# - task: CmdLine@2
-#   displayName: Checkout $(Build.SourceBranchName)
-#   inputs:
-#     script: 'git checkout $(Build.SourceBranchName)'
+- task: CmdLine@2
+  displayName: Checkout $(Build.SourceBranchName)
+  inputs:
+    script: 'git checkout $(Build.SourceBranchName)'
 
 - stage: amd64
   displayName: amd64 (Intel/AMD)
