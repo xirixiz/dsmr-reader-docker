@@ -6,11 +6,7 @@ variables:
   system.debug: true
   isMasterBranch: $[eq(variables['Build.SourceBranchName'], 'master')]
 
-steps:
-- checkout: self
-  clean: true
-
-stages:
+  stages:
 - stage: amd64
   displayName: amd64 (Intel/AMD)
   dependsOn: []
