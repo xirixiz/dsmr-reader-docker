@@ -3,8 +3,12 @@ trigger:
 # - development
 
 variables:
-  # system.debug: true
+  system.debug: true
   isMasterBranch: $[eq(variables['Build.SourceBranchName'], 'master')]
+
+steps:
+- checkout: self
+  clean: true
 
 stages:
 - stage: amd64
