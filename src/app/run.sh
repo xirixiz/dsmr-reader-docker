@@ -156,6 +156,38 @@ function _run_post_config() {
   "${cmd}" /dsmr/manage.py dsmr_superuser
 }
 
+function _nginx_ssl_configuration() {
+  _info "Checking for NGINX SSL configuration..."
+  if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
+    if [[ "${ENABLE_NGINX_SSL}" = true ]] ; then
+      if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/fullchain.pem" ]] ; then
+        _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
+        exit 1
+      else
+        _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
+      fi
+      if grep -q "443" /etc/nginx/conf.d/dsmr-webinterface.conf; then
+        _info "SSL has already been enabled..."
+      else
+        sed -i '/listen\s*80/r '<(cat <<- END_HEREDOC
+        listen 443 ssl;
+        ssl_certificate /etc/ssl/private/fullchain.pem;
+        ssl_certificate_key /etc/ssl/private/privkey.pem;
+END_HEREDOC
+        ) /etc/nginx/conf.d/dsmr-webinterface.conf
+      fi
+      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+        _info "NGINX SSL configured and enabled"
+        return
+      else
+        _error "NGINX configuration error"
+        exit 1
+      fi
+    fi
+  fi
+  _info "ENABLE_NGINX_SSL is disabled, nothing to see here. Continuing..."
+}
+
 function _generate_auth_configuration() {
   _info "Checking for HTTP AUTHENTICATION configuration..."
   if [[ -n "${ENABLE_HTTP_AUTH}" ]]; then
@@ -208,5 +240,6 @@ _override_entrypoint
 _check_db_availability
 _dsmr_datalogger_mode
 _run_post_config
+_nginx_ssl_configuration
 _generate_auth_configuration
 _start_supervisord
