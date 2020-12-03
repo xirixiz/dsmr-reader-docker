@@ -32,7 +32,10 @@ Required (defaults are shown as value):
 ```
 Optional (defaults are shown as value):
 
-Nginx related (thanks @Caroga):
+Nginx related:
+- ENABLE_NGINX_SSL=false            # Enables port 443 for nginx (/etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!)
+
+Nginx .httpassword (thanks @Caroga):
 - ENABLE_HTTP_AUTH=false
 - HTTP_AUTH_USERNAME=
 - HTTP_AUTH_PASSWORD=
@@ -208,7 +211,7 @@ docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
 - stop and remove the dsmrdb container
 - rename the db folder that is mounted in the Docker container, containing the database data, to something else (.old, or whatever you like)
 - create a new db folder with the name used to mount the folder in the Docker container (so, the folder name just before you renamed it in the previous step)
-- update docker-compose or your docker run command with the new postgres version 
+- update docker-compose or your docker run command with the new postgres version
   - be aware the client package has to be compatible with the postgres version you're going to use. Check here which version is within the dsmr image: https://pkgs.alpinelinux.org/packages?name=postgresql-client&branch=v3.12, so currently postgres 12 is supported, not postgres 13!
 - start dsmrdb (it's an empty but valid postgres db now).
 - restore the database backup created in step 2 (see "Backup and restore mechanism" in the README.md)
