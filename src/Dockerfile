@@ -30,6 +30,7 @@ RUN apk --update add --no-cache \
     nginx \
     openssl \
     postgresql-client \
+    mariadb-client-libs \
     tzdata \
     jq \
     supervisor
