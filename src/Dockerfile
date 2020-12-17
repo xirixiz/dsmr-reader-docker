@@ -30,14 +30,14 @@ RUN apk --update add --no-cache \
     nginx \
     openssl \
     postgresql-client \
-    mariadb-client-libs \
+    mariadb-connector-c-dev \
     tzdata \
     jq \
     supervisor
 
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
-RUN apk add --virtual .build-deps gcc python3-dev musl-dev postgresql-dev mariadb-dev \
+RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev\
     && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python3 -m pip install psycopg2 --no-cache-dir \
     && python3 -m pip install mysqlclient --no-cache-dir \
