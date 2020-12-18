@@ -134,18 +134,13 @@ function _override_entrypoint() {
 }
 
 function _check_db_availability() {
-  _info "Verifying if Postgres in running..."
-  cmd=$(command -v pg_isready)
-  cmd="${cmd} -h ${DJANGO_DATABASE_HOST} -p ${DJANGO_DATABASE_PORT} -U ${DJANGO_DATABASE_USER} -d ${DJANGO_DATABASE_NAME} -t 1"
-  while ! ${cmd} >/dev/null 2>&1; do
-    TIMER=$((TIMER-1))
-    sleep 1
-    if [[ "${TIMER}" -eq 0 ]]; then
-      _error "Could not connect to database server. Exiting..."
-      exit 1
-    fi
-    echo -n "."
-  done
+  _info "Verifying Database connectivity..."
+  cmd=$(command -v python3)
+  "${cmd}" /dsmr/manage.py shell -c 'import django; print(django.db.connection.ensure_connection()); quit();'
+  if [[ "$?" -ne 0 ]]; then
+    _error "Could not connect to database server. Exiting..."
+    exit 1
+  fi
 }
 
 function _run_post_config() {
