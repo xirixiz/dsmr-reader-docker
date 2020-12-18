@@ -31,6 +31,7 @@ RUN apk --update add --no-cache \
     openssl \
     postgresql-client \
     mariadb-connector-c-dev \
+    mariadb-client \
     tzdata \
     jq \
     supervisor
