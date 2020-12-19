@@ -80,6 +80,12 @@ DB related (defaults are shown as value):
 - DJANGO_DATABASE_CONN_MAX_AGE=60
 ```
 
+# MySQL backend - issue with DSMR running on top of MySQL - configured timezone info tables.
+It manifests as "Data processing is lagging behind" message on the web-interface and with only leading information in the logs if they set to DEBUG "Missing consumption data for:"
+
+If you drill down from here then you can eventually find this issue: dsmrreader/dsmr-reader#909
+Which can be resolved by installing timezone info tables in MySQL: https://dev.mysql.com/doc/refman/8.0/en/mysql-tzinfo-to-sql.html
+
 # DSMR Reader - Database cleanup/vacuum
 It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
 You can cleanup the Docker database by running the following command from the application container:
