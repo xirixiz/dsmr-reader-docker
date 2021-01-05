@@ -2,7 +2,6 @@
 
 ### Stats
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
-[![CommitActivity](https://img.shields.io/github/commit-activity/y/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/github/commit-activity/y/xirixiz/dsmr-reader-docker.svg)
 
 #### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
