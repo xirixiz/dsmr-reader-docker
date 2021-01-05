@@ -1,5 +1,8 @@
-[![DockerPulls][dockerpullsbadge]][dockerpulls]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
+
+### Stats
+[![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![CommitActivity](https://img.shields.io/github/commit-activity/y/xirixiz/dsmr-reader-docker.svg)](https://github.com/xirixiz/dsmr-reader-docker/commits/master)
 
 #### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
@@ -234,5 +237,3 @@ For Synology users:
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
-[dockerpulls]: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags
-[dockerpullsbadge]: https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker
