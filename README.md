@@ -1,7 +1,5 @@
-[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
-
-### Stats
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 #### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
