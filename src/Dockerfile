@@ -15,7 +15,7 @@ ENV TERM="xterm" \
     DATALOGGER_MODE="standalone"
 
 COPY ./dsmr/ /dsmr
-COPY ./s6-overlay /
+COPY ./s6-overlay/ /
 COPY src/root/ /
 
 RUN \
