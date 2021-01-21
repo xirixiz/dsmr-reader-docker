@@ -1,0 +1,6 @@
+#!/usr/bin/with-contenv bash
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
+    echo "Starting DSMR Backend..."
+    exec /usr/local/bin/python3 -u /dsmr/manage.py dsmr_backend
+fi
