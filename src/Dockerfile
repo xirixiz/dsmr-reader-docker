@@ -1,19 +1,18 @@
 ARG BASE
 FROM ${BASE}
 
-ENV \
-    TERM=xterm \
-    DJANGO_SECRET_KEY dsmrreader \
-    DJANGO_DATABASE_ENGINE django.db.backends.postgresql \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS True \
-    DJANGO_DATABASE_NAME dsmrreader \
-    DJANGO_DATABASE_USER dsmrreader \
-    DJANGO_DATABASE_PASSWORD dsmrreader \
-    DJANGO_DATABASE_HOST dsmrdb \
-    DJANGO_DATABASE_PORT 5432 \
-    DSMRREADER_ADMIN_USER admin \
-    DSMRREADER_ADMIN_PASSWORD admin \
-    DATALOGGER_MODE standalone
+ENV TERM="xterm" \
+    DJANGO_SECRET_KEY="dsmrreader" \
+    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="True" \
+    DJANGO_DATABASE_NAME="dsmrreader" \
+    DJANGO_DATABASE_USER="dsmrreader" \
+    DJANGO_DATABASE_PASSWORD="dsmrreader" \
+    DJANGO_DATABASE_HOST="dsmrdb" \
+    DJANGO_DATABASE_PORT="5432" \
+    DSMRREADER_ADMIN_USER="admin" \
+    DSMRREADER_ADMIN_PASSWORD="admin" \
+    DATALOGGER_MODE="standalone"
 
 COPY ./dsmr/ /dsmr
 COPY ./s6-overlay /
