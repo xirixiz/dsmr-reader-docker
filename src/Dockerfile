@@ -21,7 +21,7 @@ COPY src/root/ /
 RUN \
 # Update and get dependencies
     apk --update add --no-cache \
-      apk upgrade
+      apk upgrade \
       bash \
       curl \
       nginx \
