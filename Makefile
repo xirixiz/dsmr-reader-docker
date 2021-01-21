@@ -71,8 +71,8 @@ fetch-s6-overlay-%:
 	@echo "--> Fetching S6 Overlay binary for $(ARCH)"
 	cd tmp/s6-overlay && \
 	wget -N https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-$(ARCH).tar.gz && \
-	tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz -C s6-overlay/ && \
-	cp -R s6-overlay/* ../../src/s6-overlay/
+	tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz && \
+	cp -R * ../../src/s6-overlay/
 	@echo "--> Done."
 
 wrap:
