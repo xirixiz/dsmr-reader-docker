@@ -1,7 +1,7 @@
   parameters:
     vmImage: 'ubuntu-latest'
     timeout: 60
- 
+
   jobs:
   - job: ${{ parameters.arch }}
     displayName: Build ${{ parameters.arch }}
@@ -9,11 +9,12 @@
     pool:
       vmImage: ${{ parameters.vmImage }}
     variables:
-      ARCH: ${{ parameters.arch }} 
+      ARCH: ${{ parameters.arch }}
       DOCKER: docker --config=~/.docker
     steps:
         - script: |
             make dsmr
+            make s6-overlay
             make qemu
             make wrap-$(ARCH)
           displayName: Setup ${{ parameters.arch }}
