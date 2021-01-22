@@ -16,7 +16,7 @@ ENV TERM="xterm" \
 
 COPY ./dsmr/ /dsmr
 COPY ./s6-overlay/ /
-COPY src/root/ /
+COPY ./root/ /
 
 RUN \
 # Update and get dependencies
