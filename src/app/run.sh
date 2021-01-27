@@ -22,15 +22,6 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 function _pre_reqs() {
   alias cp="cp"
 
-  _info "Verifying if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
-    _error "DSMR web credentials not set. Exiting..."
-    exit 1
-  fi
-
-  _info "Fixing /dev/ttyUSB* security..."
-  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
-
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
 
@@ -123,7 +114,6 @@ function __dsmr_client_installation() {
     _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
     echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dsmr/.env
   fi
-  # wget -N -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 }
 
 function _override_entrypoint() {
@@ -133,7 +123,18 @@ function _override_entrypoint() {
   fi
 }
 
+function _check_device() {
+  _info "Fixing /dev/ttyUSB* security..."
+  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+}
+
 function _check_db_availability() {
+  _info "Verifying if the DSMR web credential variables have been set..."
+  if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
+    _error "DSMR web credentials not set. Exiting..."
+    exit 1
+  fi
+
   _info "Verifying Database connectivity..."
   cmd=$(command -v python3)
   "${cmd}" /dsmr/manage.py shell -c 'import django; print(django.db.connection.ensure_connection()); quit();'
@@ -232,9 +233,17 @@ function _start_supervisord() {
 
 _pre_reqs
 _override_entrypoint
-_check_db_availability
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = sender ]]; then
+  _check_device
+fi
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
+  _check_db_availability
+  _run_post_config
+  _nginx_ssl_configuration
+  _generate_auth_configuration
+fi
+
 _dsmr_datalogger_mode
-_run_post_config
-_nginx_ssl_configuration
-_generate_auth_configuration
 _start_supervisord
