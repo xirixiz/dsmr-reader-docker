@@ -29,6 +29,7 @@ RUN apk --update add --no-cache \
     curl \
     nginx \
     openssl \
+    netcat-openbsd \
     postgresql-client \
     mariadb-connector-c-dev \
     mariadb-client \

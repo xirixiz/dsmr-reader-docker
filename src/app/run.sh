@@ -134,13 +134,22 @@ function _check_db_availability() {
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
-
-  _info "Verifying Database connectivity..."
-  cmd=$(command -v python3)
-  "${cmd}" /dsmr/manage.py shell -c 'import django; print(django.db.connection.ensure_connection()); quit();'
-  if [[ "$?" -ne 0 ]]; then
-    _error "Could not connect to database server. Exiting..."
-    exit 1
+  # if [[ "${DJANGO_DATABASE_ENGINE}" = "django.db.backends.postgresql" ]]
+  if [[ ! -z "${DJANGO_DATABASE_ENGINE}" ]]; then
+    _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
+    for i in {1..30}; do
+      if ! nc -z ${DJANGO_DATABASE_HOST} ${DJANGO_DATABASE_PORT}; then
+        sleep 1
+        printf "\\rTesting database connectivity: $i second(s) of 30 seconds..."
+        if [[ $i == 30 ]]; then
+          _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
+          exit 1
+        fi
+      else
+        _info "Database connectivity successfully verified!"
+        break
+      fi
+    done
   fi
 }
 
