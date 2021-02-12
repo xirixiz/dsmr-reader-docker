@@ -1,5 +1,5 @@
 ---
-name: Feature 💡
+name: 💡 Feature
 about: You have a suggestion for new functionality or an enhancement.
 title: ''
 labels: 'review'
