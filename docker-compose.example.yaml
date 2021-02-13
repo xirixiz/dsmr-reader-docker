@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   dsmrdb:
-    image: postgres:12-alpine
+    image: postgres:12
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
