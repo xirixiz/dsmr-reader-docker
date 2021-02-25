@@ -171,7 +171,7 @@ function _nginx_ssl_configuration() {
       else
         _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
       fi
-      if grep -q "443" /etc/nginx/conf.d/dsmr-webinterface.conf; then
+      if grep -q "443" /etc/nginx/sites-available/dsmr-webinterface; then
         _info "SSL has already been enabled..."
       else
         sed -i '/listen\s*80/r '<(cat <<- END_HEREDOC
@@ -179,7 +179,7 @@ function _nginx_ssl_configuration() {
         ssl_certificate /etc/ssl/private/fullchain.pem;
         ssl_certificate_key /etc/ssl/private/privkey.pem;
 END_HEREDOC
-        ) /etc/nginx/conf.d/dsmr-webinterface.conf
+        ) /etc/nginx/sites-available/dsmr-webinterface
       fi
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
         _info "NGINX SSL configured and enabled"
@@ -215,7 +215,7 @@ function _generate_auth_configuration() {
 	    HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
     	printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" > /etc/nginx/htpasswd
       _info "Done! Enabling the configuration in NGINX..."
-      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
+      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/sites-available/dsmr-webinterface
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
         _info "HTTP AUTHENTICATION configured and enabled"
         return
