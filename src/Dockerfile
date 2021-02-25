@@ -33,6 +33,8 @@ RUN apt-get update \
         openssl \
         netcat \
         postgresql-client \
+        python3-dev \
+        libpq-dev \
         default-libmysqlclient-dev \
         mariadb-client \
         jq \
@@ -44,13 +46,11 @@ RUN apt-get update \
         build-essential \
         make \
         gcc \
-        python3-dev \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install psycopg2 --no-cache-dir \
     && python -m pip install mysql-connector --no-cache-dir \
     && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge \
-        python3-dev \
         gcc \
         make \
         build-essential \
