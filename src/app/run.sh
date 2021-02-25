@@ -134,7 +134,6 @@ function _check_db_availability() {
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
-  # if [[ "${DJANGO_DATABASE_ENGINE}" = "django.db.backends.postgresql" ]]
   if [[ ! -z "${DJANGO_DATABASE_ENGINE}" ]]; then
     _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
     for i in {1..30}; do

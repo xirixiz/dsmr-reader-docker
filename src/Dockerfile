@@ -1,6 +1,8 @@
 ARG BASE
 FROM ${BASE}
 
+ENV LC_ALL C.UTF-8
+
 ENV DJANGO_SECRET_KEY dsmrreader
 ENV DJANGO_DATABASE_ENGINE django.db.backends.postgresql
 
@@ -24,28 +26,38 @@ ENV SD_GROUP root
 
 COPY ./dsmr/ /dsmr
 
-RUN apk --update add --no-cache \
-    bash \
-    curl \
-    nginx \
-    openssl \
-    netcat-openbsd \
-    postgresql-client \
-    mariadb-connector-c-dev \
-    mariadb-client \
-    tzdata \
-    jq \
-    supervisor
+RUN apt-get update \
+    && apt-get install -y \
+        curl \
+        nginx \
+        openssl \
+        netcat \
+        postgresql-client \
+        python3-dev \
+        default-libmysqlclient-dev \
+        mariadb-client \
+        python-psycopg2 \
+        jq \
+        supervisor
+
+RUN apt-get update \
+    && apt-get install -y \
+        build-essential \
+        make \
+        gcc \
+        locales \
+    && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
+    && python -m pip install mysqlclient --no-cache-dir \
+    && rm -r /root/.cache/pip \
+    && apt-get remove -y --purge make gcc build-essential \
+    && apt-get autoremove -y \
+    rm -rf /var/lib/apt/lists/*
+
+RUN dpkg-reconfigure locales \
+    && locale-gen C.UTF-8 \
+    && /usr/sbin/update-locale LANG=C.UTF-8
 
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
-
-RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev\
-    && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-    && python3 -m pip install psycopg2 --no-cache-dir \
-    && python3 -m pip install mysqlclient --no-cache-dir \
-    && apk --purge del .build-deps \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /tmp/*
 
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
