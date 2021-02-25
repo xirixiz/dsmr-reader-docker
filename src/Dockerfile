@@ -50,7 +50,7 @@ RUN apt-get update \
     && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge make gcc build-essential \
     && apt-get autoremove -y \
-    rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg-reconfigure locales \
     && locale-gen C.UTF-8 \
