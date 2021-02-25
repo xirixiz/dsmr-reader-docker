@@ -73,7 +73,7 @@ RUN mkdir -p /run/nginx/ \
 COPY ./app /app
 RUN chmod u+x /app/*.sh
 
-COPY ./config/supervisord.ini /etc/supervisor.d/supervisord.ini
+COPY ./config/supervisord.ini /etc/supervisor/conf.d/supervisord.ini
 
 EXPOSE 80 443
 
