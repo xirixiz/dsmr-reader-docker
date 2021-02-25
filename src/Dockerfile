@@ -33,7 +33,7 @@ RUN apt-get update \
         openssl \
         netcat \
         postgresql-client \
-        libmysqlclient-dev \
+        default-libmysqlclient-dev \
         mariadb-client \
         jq \
         locales \
