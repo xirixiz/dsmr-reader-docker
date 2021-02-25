@@ -48,7 +48,6 @@ RUN apt-get update \
         locales \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install mysqlclient --no-cache-dir \
-    && rm -r /root/.cache/pip \
     && apt-get remove -y --purge make gcc build-essential \
     && apt-get autoremove -y \
     rm -rf /var/lib/apt/lists/*
