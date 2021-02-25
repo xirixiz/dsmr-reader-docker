@@ -38,6 +38,7 @@ RUN apt-get update \
         default-libmysqlclient-dev \
         mariadb-client \
         jq \
+        vim \
         locales \
         supervisor
 
@@ -66,14 +67,15 @@ RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrre
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && rm -f /etc/nginx/conf.d/default.conf \
+    && rm -rf /etc/nginx/sites-enabled/default \
     && mkdir -p /var/www/dsmrreader/static \
-    && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+    && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-available/ \
+    && ln -s /etc/nginx/sites-available/dsmr-webinterface /etc/nginx/sites-enabled/
 
 COPY ./app /app
 RUN chmod u+x /app/*.sh
 
-COPY ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./config/supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 80 443
 

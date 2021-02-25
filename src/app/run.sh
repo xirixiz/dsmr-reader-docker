@@ -20,6 +20,7 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
+  alias ll="ls -al"
   alias cp="cp"
 
   _info "Removing existing PID files..."
