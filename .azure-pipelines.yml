@@ -17,16 +17,16 @@ stages:
       username: $(DOCKER_USERNAME)
       password: $(DOCKER_PASSWORD)
 
-- stage: arm32v6
-  displayName: arm32v6 (Pi 1+, Zero and other armhf)
-  dependsOn:
-    - amd64
-  jobs:
-  - template: .azure-pipelines-job.yml
-    parameters:
-      arch: arm32v6
-      username: $(DOCKER_USERNAME)
-      password: $(DOCKER_PASSWORD)
+# - stage: arm32v6
+#   displayName: arm32v6 (Pi 1+, Zero and other armhf)
+#   dependsOn:
+#     - amd64
+#   jobs:
+#   - template: .azure-pipelines-job.yml
+#     parameters:
+#       arch: arm32v6
+#       username: $(DOCKER_USERNAME)
+#       password: $(DOCKER_PASSWORD)
 
 - stage: arm32v7
   displayName: arm32v7 (Pi 1+ and other armhf)
@@ -55,7 +55,7 @@ stages:
   condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
-    - arm32v6
+    # - arm32v6
     - arm32v7
     - arm64v8
   variables:
