@@ -218,7 +218,7 @@ docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
 - rename the db folder that is mounted in the Docker container, containing the database data, to something else (.old, or whatever you like)
 - create a new db folder with the name used to mount the folder in the Docker container (so, the folder name just before you renamed it in the previous step)
 - update docker-compose or your docker run command with the new postgres version
-  - be aware the client package has to be compatible with the postgres version you're going to use. Check here which version is within the dsmr image: https://pkgs.alpinelinux.org/packages?name=postgresql-client&branch=v3.12, so currently postgres 12 is supported, not postgres 13!
+  - be aware the client package has to be compatible with the postgres version you're going to use. Check here which version is within the dsmr image. The Docker bas image is based on python:3-slim-buster.
 - start dsmrdb (it's an empty but valid postgres db now).
 - restore the database backup created in step 2 (see "Backup and restore mechanism" in the README.md)
 - restart the dsmrdb container
