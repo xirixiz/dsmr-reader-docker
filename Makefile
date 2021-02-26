@@ -1,5 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
+export CALVER_DOCKER_TAG=2021.02.01
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 #export GIT_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name HEAD`
 export GIT_BRANCH=master
@@ -18,9 +19,9 @@ export SHELL=/bin/bash
 
 # Set the Docker TAG value based on the branch name. If not master, then always development
 ifeq ($(GIT_BRANCH), master)
-  DOCKER_TAG=latest-${APP_VERSION}
+  DOCKER_TAG=latest-${CALVER_DOCKER_TAG}
 else
-  DOCKER_TAG=development-${APP_VERSION}
+  DOCKER_TAG=development-${CALVER_DOCKER_TAG}
 endif
 
 # Permanent local overrides
