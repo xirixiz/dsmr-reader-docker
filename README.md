@@ -1,22 +1,21 @@
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-#### DSMR Reader - Releases info
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-latest-<version>-arm32v6
+latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
-latest-<version>-arm32v7
 ```
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-<version>-arm32v6
+development-<version>-arm32v7
 development-<version>-arm64v8
 development-<version>-amd64
-development-<version>-arm32v7
 ```
+
+arm32v6/armhf is deprecated since the introduction of calver.
 
 #### DSMR Reader - Environment variables
 
