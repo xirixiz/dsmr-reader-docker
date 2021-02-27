@@ -20,8 +20,9 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  alias ll="ls -al"
   alias cp="cp"
+
+  _info "Docker image installed DSMR release: $(cat /dsmr/DSMR_RELEASE)"
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
@@ -138,9 +139,9 @@ function _check_db_availability() {
   if [[ ! -z "${DJANGO_DATABASE_ENGINE}" ]]; then
     _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
     for i in {1..30}; do
-      if ! nc -z ${DJANGO_DATABASE_HOST} ${DJANGO_DATABASE_PORT}; then
+      if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}"; then
         sleep 1
-        printf "\\rTesting database connectivity: $i second(s) of 30 seconds..."
+        printf "\\rTesting database connectivity: %s second(s) of 30 seconds..." "$i"
         if [[ $i == 30 ]]; then
           _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
           exit 1
