@@ -26,35 +26,37 @@ ENV SD_GROUP root
 
 COPY ./dsmr/ /dsmr
 
-RUN apt-get update \
-    && apt-get install -y \
-        curl \
-        nginx \
-        openssl \
-        netcat \
-        postgresql-client \
-        python3-dev \
-        libpq-dev \
-        default-libmysqlclient-dev \
-        mariadb-client \
-        jq \
-        vim \
-        locales \
-        supervisor
+RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /dsmr/DSMR_RELEASE
 
 RUN apt-get update \
     && apt-get install -y \
-        build-essential \
-        make \
-        gcc \
+    curl \
+    nginx \
+    openssl \
+    netcat \
+    postgresql-client \
+    python3-dev \
+    libpq-dev \
+    default-libmysqlclient-dev \
+    mariadb-client \
+    jq \
+    vim \
+    locales \
+    supervisor
+
+RUN apt-get update \
+    && apt-get install -y \
+    build-essential \
+    make \
+    gcc \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install psycopg2 --no-cache-dir \
     && python -m pip install mysql-connector --no-cache-dir \
     && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge \
-        gcc \
-        make \
-        build-essential \
+    gcc \
+    make \
+    build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -76,6 +78,7 @@ COPY ./app /app
 RUN chmod u+x /app/*.sh
 
 COPY ./config/supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
+COPY ./config/bashrc /root/.bashrc
 
 EXPOSE 80 443
 
