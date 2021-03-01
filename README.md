@@ -10,12 +10,11 @@ latest-<version>-amd64
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-<version>-arm32v7
 development-<version>-arm64v8
 development-<version>-amd64
 ```
 
-arm32v6/armhf is deprecated since the introduction of calver.
+arm32/armhf is deprecated since the introduction of calver. Reason is also that the Debian Postgresql client package isn't available for arm32/armhf
 
 #### DSMR Reader - Environment variables
 
@@ -121,8 +120,7 @@ A docker-compose file in order to start the following application in Docker:
 dsmr-reader (https://github.com/dsmrreader/dsmr-reader)
 
 The following architectures are available on the Docker Hub:
- - amd64 (default)
- - arm32
+ - amd64
  - arm64
 
 See https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags/ for the available images.
