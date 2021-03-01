@@ -42,7 +42,7 @@ RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-
     && apt-get install curl ca-certificates gnupg \
     && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update -y \
-    apt-get -y install postgresql-12
+    apt-get -y install postgresql-client-12
 
 RUN apt-get update \
     && apt-get install -y \
