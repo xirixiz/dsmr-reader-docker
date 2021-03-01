@@ -41,7 +41,7 @@ RUN apt-get update \
 RUN apt-get update \
     && sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
     && apt-get install -y curl ca-certificates gnupg \
-    && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && curl -Ssl https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && apt-get update -y \
     apt-get -y install postgresql-client-12
 
