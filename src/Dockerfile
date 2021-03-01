@@ -33,7 +33,6 @@ RUN apt-get update \
     openssl \
     netcat \
     mariadb-client \
-    python-mysqldb \
     jq \
     vim \
     locales \
@@ -55,6 +54,7 @@ RUN apt-get update \
     default-libmysqlclient-dev \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install psycopg2 --no-cache-dir \
+    && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge \
     build-essential \
     make \
