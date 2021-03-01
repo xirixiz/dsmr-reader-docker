@@ -3,7 +3,6 @@
 
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
 ```
