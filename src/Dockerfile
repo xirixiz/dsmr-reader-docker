@@ -31,7 +31,6 @@ RUN apt-get update \
     curl \
     ca-certificates \
     gnupg \
-    pgdg-keyring \
     nginx \
     openssl \
     netcat \
