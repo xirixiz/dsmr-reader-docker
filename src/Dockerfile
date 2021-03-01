@@ -38,8 +38,9 @@ RUN apt-get update \
     locales \
     supervisor
 
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
-    && apt-get install curl ca-certificates gnupg \
+RUN apt-get update \
+    && sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
+    && apt-get install -y curl ca-certificates gnupg \
     && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update -y \
     apt-get -y install postgresql-client-12
