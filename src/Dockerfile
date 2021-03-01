@@ -29,38 +29,46 @@ COPY ./dsmr/ /dsmr
 RUN apt-get update \
     && apt-get install -y \
     curl \
+    ca-certificates \
+    gnupg \
     nginx \
     openssl \
     netcat \
-    postgresql-client \
-    python3-dev \
-    libpq-dev \
-    default-libmysqlclient-dev \
     mariadb-client \
     jq \
     vim \
     locales \
     supervisor
 
+RUN dpkg-reconfigure locales \
+    && locale-gen C.UTF-8 \
+    && /usr/sbin/update-locale LANG=C.UTF-8
+
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && curl -Ssl https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
+    && apt-get update \
+    && apt-get -y install postgresql-client-12
+
 RUN apt-get update \
     && apt-get install -y \
     build-essential \
     make \
     gcc \
+    libpq-dev \
+    python3-dev \
+    default-libmysqlclient-dev \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install psycopg2 --no-cache-dir \
-    && python -m pip install mysql-connector --no-cache-dir \
     && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge \
-    gcc \
-    make \
     build-essential \
+    make \
+    gcc \
+    libpq-dev \
+    python3-dev \
+    default-libmysqlclient-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-
-RUN dpkg-reconfigure locales \
-    && locale-gen C.UTF-8 \
-    && /usr/sbin/update-locale LANG=C.UTF-8
 
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
