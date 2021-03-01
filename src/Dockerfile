@@ -32,29 +32,34 @@ RUN apt-get update \
     nginx \
     openssl \
     netcat \
-    postgresql-client \
-    python3-dev \
-    libpq-dev \
-    default-libmysqlclient-dev \
     mariadb-client \
     jq \
     vim \
     locales \
     supervisor
 
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
+    && apt-get install curl ca-certificates gnupg \
+    && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - \
+    && apt-get update -y \
+    apt-get -y install postgresql-12
+
 RUN apt-get update \
     && apt-get install -y \
     build-essential \
     make \
     gcc \
+    python3-dev \
+    default-libmysqlclient-dev \
     && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python -m pip install psycopg2 --no-cache-dir \
-    && python -m pip install mysql-connector --no-cache-dir \
     && python -m pip install mysqlclient --no-cache-dir \
     && apt-get remove -y --purge \
-    gcc \
-    make \
     build-essential \
+    make \
+    gcc \
+    python3-dev \
+    default-libmysqlclient-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
