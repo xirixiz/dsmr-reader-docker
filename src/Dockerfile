@@ -45,6 +45,7 @@ RUN dpkg-reconfigure locales \
     && /usr/sbin/update-locale LANG=C.UTF-8
 
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list \
     && curl -Ssl https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && apt-get update \
     && apt-get -y install postgresql-client-12
