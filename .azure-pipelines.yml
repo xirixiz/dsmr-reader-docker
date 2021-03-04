@@ -9,7 +9,9 @@ variables:
 stages:
 - stage: amd64
   displayName: amd64 (Intel/AMD)
-  dependsOn: []
+  dependsOn:
+    - arm32v7
+  # dependsOn: []
   jobs:
   - template: .azure-pipelines-job.yml
     parameters:
@@ -30,8 +32,9 @@ stages:
 
 - stage: arm32v7
   displayName: arm32v7 (Pi 1+ and other armhf)
-  dependsOn:
-    - amd64
+  # dependsOn:
+  #   - amd64
+  dependsOn: []
   jobs:
   - template: .azure-pipelines-job.yml
     parameters:
