@@ -44,7 +44,7 @@ RUN dpkg-reconfigure locales \
     && locale-gen C.UTF-8 \
     && /usr/sbin/update-locale LANG=C.UTF-8
 
-RUN if [[ $(dpkg --print-architecture) = "armhf" ]]; then \
+RUN if [ $(dpkg --print-architecture) = "armhf" ]; then \
     echo "deb http://ports.ubuntu.com/ubuntu-ports focal main" > /etc/apt/sources.list.d/ubuntu-main.list \
     && apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5; \
     fi; \
