@@ -6,12 +6,14 @@
 latest-<version>-arm64v8
 latest-<version>-amd64
 ```
+Postgres 12 support only!
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
 development-<version>-arm64v8
 development-<version>-amd64
 ```
+Postgres 12 support only!
 
 arm32/armhf is deprecated since the introduction of calver. Reason is also that the Debian Postgresql client package isn't available for arm32/armhf
 
