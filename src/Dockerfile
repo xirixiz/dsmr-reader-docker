@@ -58,7 +58,6 @@ RUN apt-get update \
     build-essential \
     make \
     gcc \
-    libffi-dev \
     libpq-dev \
     python3-dev \
     default-libmysqlclient-dev \
@@ -69,7 +68,6 @@ RUN apt-get update \
     build-essential \
     make \
     gcc \
-    libffi-dev \
     libpq-dev \
     python3-dev \
     default-libmysqlclient-dev \
