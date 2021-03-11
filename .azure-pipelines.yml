@@ -42,7 +42,7 @@ stages:
   condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
-    - arm32v7
+    #- arm32v7
     - arm64v8
   variables:
     - name: DOCKER
