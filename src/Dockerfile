@@ -1,8 +1,6 @@
 ARG BASE
 FROM ${BASE}
 
-ENV LC_ALL C.UTF-8
-
 ENV DJANGO_SECRET_KEY dsmrreader
 ENV DJANGO_DATABASE_ENGINE django.db.backends.postgresql
 
@@ -26,71 +24,40 @@ ENV SD_GROUP root
 
 COPY ./dsmr/ /dsmr
 
-RUN apt-get update \
-    && apt-get install -y \
+RUN apk --update add --no-cache \
+    bash \
     curl \
-    ca-certificates \
-    gnupg \
     nginx \
     openssl \
-    netcat \
+    netcat-openbsd \
+    postgresql-client \
+    mariadb-connector-c-dev \
     mariadb-client \
+    tzdata \
     jq \
-    vim \
-    locales \
     supervisor
 
-RUN dpkg-reconfigure locales \
-    && locale-gen C.UTF-8 \
-    && /usr/sbin/update-locale LANG=C.UTF-8
-
-RUN if [ $(dpkg --print-architecture) = "armhf" ]; then \
-    echo "deb http://ports.ubuntu.com/ubuntu-ports focal main" > /etc/apt/sources.list.d/ubuntu-main.list \
-    && apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5; \
-    fi; \
-    echo "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-    && curl -Ssl https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
-    && apt-get update \
-    && apt-get -y install postgresql-client-12
-
-RUN apt-get update \
-    && apt-get install -y \
-    build-essential \
-    make \
-    gcc \
-    libpq-dev \
-    python3-dev \
-    default-libmysqlclient-dev \
-    && python -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-    && python -m pip install psycopg2 --no-cache-dir \
-    && python -m pip install mysqlclient --no-cache-dir \
-    && apt-get remove -y --purge \
-    build-essential \
-    make \
-    gcc \
-    libpq-dev \
-    python3-dev \
-    default-libmysqlclient-dev \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
+
+RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev cargo rust \
+    && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
+    && python3 -m pip install psycopg2 --no-cache-dir \
+    && python3 -m pip install mysqlclient --no-cache-dir \
+    && apk --purge del .build-deps \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/*
 
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && rm -rf /etc/nginx/sites-enabled/default \
+    && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/www/dsmrreader/static \
-    && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/sites-available/ \
-    && ln -s /etc/nginx/sites-available/dsmr-webinterface /etc/nginx/sites-enabled/
-
-RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /dsmr/DSMR_RELEASE
+    && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
 COPY ./app /app
 RUN chmod u+x /app/*.sh
 
-COPY ./config/supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
-COPY ./config/bashrc /root/.bashrc
+COPY ./config/supervisord.ini /etc/supervisor.d/supervisord.ini
 
 EXPOSE 80 443
 
