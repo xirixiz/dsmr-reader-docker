@@ -3,8 +3,6 @@
 
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
-latest-<version>-arm32v6
-latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
 ```
@@ -12,8 +10,6 @@ Postgres 12 support only!
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-development-<version>-arm32v6
-development-<version>-arm32v7
 development-<version>-arm64v8
 development-<version>-amd64
 ```
