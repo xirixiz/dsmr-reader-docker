@@ -11,7 +11,7 @@ export TAG_DATE=`date -u +"%d%m%Y"`
 export BASE_VERSION=python:3-alpine3.12
 export QEMU_VERSION=5.2.0-2
 export BUILD_IMAGE_NAME=local/alpine-base
-export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7 arm32v6
+export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7
 export QEMU_ARCHITECTURES=arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
