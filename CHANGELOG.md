@@ -11,7 +11,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - N/A
 
 ### Changed
-- Removed the hassle of PG12 client (backup functionality broken)
+- Reverted to Alpine. Too many issues with Debian and Postgres 12.
 
 ## [2021.03.03]
 
