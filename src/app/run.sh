@@ -233,7 +233,7 @@ function _start_supervisord() {
   _info "Starting supervisord..."
   _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
   cmd=$(command -v supervisord)
-  "${cmd}" -n -c /etc/supervisor/conf.d/supervisord.conf
+  "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

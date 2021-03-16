@@ -3,6 +3,7 @@
 
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
+latest-<version>-arm32v6
 latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
@@ -11,14 +12,12 @@ Postgres 12 support only!
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
-latest-<version>-arm32v7
+development-<version>-arm32v6
+development-<version>-arm32v7
 development-<version>-arm64v8
 development-<version>-amd64
 ```
 Postgres 12 support only!
-
-arm32v6 is deprecated since the introduction of calver. Reason is also that the Debian Postgresql client package isn't available for arm32v6.
-With a hacky workaround I was able to fix it for arm32v7, which should be suitable for most of the people.
 
 #### DSMR Reader - Environment variables
 
