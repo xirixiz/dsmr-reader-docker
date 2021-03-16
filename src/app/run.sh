@@ -148,6 +148,7 @@ function _check_db_availability() {
         fi
       else
         _info "Database connectivity successfully verified!"
+        _cleandb
         break
       fi
     done
@@ -227,6 +228,10 @@ function _generate_auth_configuration() {
     fi
   fi
   _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
+}
+
+function _cleandb {
+  bash /app/cleandb.sh
 }
 
 function _start_supervisord() {
