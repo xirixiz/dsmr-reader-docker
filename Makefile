@@ -1,6 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
-export CALVER_DOCKER_TAG=2021.03.04
+export CALVER_DOCKER_TAG=2021.03.05
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 #export GIT_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name HEAD`
 export GIT_BRANCH=master
@@ -11,7 +11,7 @@ export TAG_DATE=`date -u +"%d%m%Y"`
 export BASE_VERSION=python:3-alpine3.12
 export QEMU_VERSION=5.2.0-2
 export BUILD_IMAGE_NAME=local/alpine-base
-export TARGET_ARCHITECTURES=amd64 arm64v8
+export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7
 export QEMU_ARCHITECTURES=arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
