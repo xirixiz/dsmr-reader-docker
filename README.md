@@ -3,6 +3,7 @@
 
 ##### STABLE releases. Download and install DSMR Reader release on container startup (See DSMR_RELEASE variable for more information)
 ```
+latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
 ```
@@ -10,10 +11,14 @@ Postgres 12 support only!
 
 ##### DEVELOPMENT releases, to be considered as unstable Docker images being tested.
 ```
+development-<version>-arm32v7
 development-<version>-arm64v8
 development-<version>-amd64
 ```
 Postgres 12 support only!
+
+### Common Issues
+- Mounting ```/etc/localtime:/etc/localtime``` results most of the times in an incorrect timestamp in DSMR Reader (+/- 1 hour). Removig the mount usually solves the problem.
 
 #### DSMR Reader - Environment variables
 

@@ -7,7 +7,6 @@ services:
     image: postgres:12
     restart: always
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - ./dsmrdb:/var/lib/postgresql/data
     environment:
       - TZ=Europe/Amsterdam
@@ -25,7 +24,6 @@ services:
       - NET_ADMIN
     restart: always
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/dsmr/backups
     environment:
       - DJANGO_TIME_ZONE=Europe/Amsterdam
