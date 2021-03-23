@@ -148,10 +148,8 @@ function _check_db_availability() {
         fi
       else
         _info "Database connectivity successfully verified!"
-        if [[ -n "${VACUUM_DB_ON_STARTUP}" ]]; then
-          if [[ "${VACUUM_DB_ON_STARTUP}" = true ]] ; then
-            _cleandb
-          fi
+        if [[ "${VACUUM_DB_ON_STARTUP}" = true ]] ; then
+          _cleandb
         fi
         break
       fi
