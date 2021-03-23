@@ -73,6 +73,7 @@ DSMR related (defaults are shown as value):
 - DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
 
 DB related (defaults are shown as value):
+- VACUUM_DB_ON_STARTUP = true          # Optional. Vacuum clean Postgres on startup.
 - DJANGO_DATABASE_ENGINE django.db.backends.postgresql
 - DJANGO_DATABASE_NAME=dsmrreader
 - DJANGO_DATABASE_USER=dsmrreader

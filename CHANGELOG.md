@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## [2021.03.06]
+
+### Fixed
+- N/A
+
+### Changed
+- Added support to disable vacuuming the database on startup (VACUUM_DB_ON_STARTUP)
+
 ## [2021.03.05]
 
 ### Fixed

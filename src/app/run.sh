@@ -148,7 +148,11 @@ function _check_db_availability() {
         fi
       else
         _info "Database connectivity successfully verified!"
-        _cleandb
+        if [[ -n "${VACUUM_DB_ON_STARTUP}" ]]; then
+          if [[ "${VACUUM_DB_ON_STARTUP}" = true ]] ; then
+            _cleandb
+          fi
+        fi
         break
       fi
     done
@@ -231,6 +235,7 @@ function _generate_auth_configuration() {
 }
 
 function _cleandb {
+  _info "Vacuum cleaning enabled. Vacuming database..."
   bash /app/cleandb.sh
 }
 
