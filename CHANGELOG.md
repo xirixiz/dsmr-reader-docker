@@ -11,7 +11,17 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - N/A
 
 ### Changed
+- Updated to DSMR Reader release v4.14.0
+
+
+## [2021.03.06]
+
+### Fixed
+- N/A
+
+### Changed
 - Added support to disable vacuuming the database on startup (VACUUM_DB_ON_STARTUP)
+
 
 ## [2021.03.05]
 
@@ -21,6 +31,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 ### Changed
 - N/A
 
+
 ## [2021.03.04]
 
 ### Fixed
@@ -28,6 +39,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 
 ### Changed
 - Reverted to Alpine. Too many issues with Debian and Postgres 12.
+
 
 ## [2021.03.03]
 
