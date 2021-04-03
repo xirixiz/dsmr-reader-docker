@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## [2021.04.01]
+
+### Fixed
+- N/A
+
+### Changed
+- Updated to DSMR Reader release v4.15.0
+
 ## [2021.03.06]
 
 ### Fixed
