@@ -1,4 +1,4 @@
-<sub>
+<font size="-1">
 
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
@@ -308,4 +308,3 @@ Project inspired by the hard work and effort of [@dennissiemensma](https://githu
 ***
 #### Contact
 Created by [@xirixiz](https://github.com/xirixiz) - feel free to contact me!
-</sub>
