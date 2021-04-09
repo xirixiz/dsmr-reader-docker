@@ -39,13 +39,17 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 ***
 #### Technologies
 ```text
-* Docker > 19.x
+* Docker >= 19.x
 * Python 3.x
-* Posgres 12.x / MySQL
+* Posgres 12.x
+* Posgres 13.x
+* MySQL ??.?? (untested by me)
 ```
 
 ***
 #### Releases
+
+Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
 
 ##### Stable releases
 ```text
