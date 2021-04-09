@@ -78,7 +78,8 @@ development-<version>-amd64
 
 * ##### Nginx related:
   ```properties
-  # Enables port 443 for nginx (/etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!)
+  # Enables port 443 for nginx
+  # /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!
   ENABLE_NGINX_SSL=false
   ```
 
@@ -128,7 +129,11 @@ development-<version>-amd64
 
 * ##### DSMR Datalogger related
   ```properties
-  # Set the datalogger mode. Valid values are sender (datlogger sender only), receiver (local datalogger disabled, api container), standalone (a single container setup)
+  # Set the datalogger mode.
+  # Valid values are:
+    # sender (datlogger sender only)
+    # receiver (local datalogger disabled, api container)
+    # standalone (a single container setup)
   DATALOGGER_MODE=standalone
   DATALOGGER_TIMEOUT=x
   DATALOGGER_SLEEP=x
@@ -251,20 +256,24 @@ development-<version>-amd64
     Backup:
     ```bash
     docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
-        tar -cjf /backup/dsmrdb.tar.bz2 -C /volume ./
+      tar -cjf /backup/dsmrdb.tar.bz2 -C /volume ./
     ```
 
     Restore:
     ```bash
     docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
-        sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
+      sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
     ```
 
 * ##### Backup mechanism 3
   Be aware this backup is done via the dsmr container, not via the dsmrdb container!
   Backup:
   ```bash
-  docker exec -ti dsmr bash -c 'PGPASSWORD=${DJANGO_DATABASE_PASSWORD} /usr/bin/pg_dump -h "${DJANGO_DATABASE_HOST}" -p "${DJANGO_DATABASE_PORT}" -d "${DJANGO_DATABASE_NAME}" -U "${DJANGO_DATABASE_USER}"'
+  docker exec -ti dsmr bash -c 'PGPASSWORD=${DJANGO_DATABASE_PASSWORD} /usr/bin/pg_dump \
+    -h "${DJANGO_DATABASE_HOST}" \
+    -p "${DJANGO_DATABASE_PORT}" \
+    -d "${DJANGO_DATABASE_NAME}" \
+    -U "${DJANGO_DATABASE_USER}"'
   ```
 
 * ##### Postgres upgrade (docker)
