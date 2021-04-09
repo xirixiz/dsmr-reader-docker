@@ -20,8 +20,8 @@ You will need a cable and hardware that can run Docker.
   - [Screenshots](#screenshots)
   - [Technologies](#technologies)
   - [Releases](#releases)
-    - [STABLE releases](#stable-releases)
-    - [DEVELOPMENT releases](#development-releases)
+    - [Stable releases](#stable-releases)
+    - [Development releases](#development-releases)
   - [Setup](#setup)
   - [Features](#features)
   - [Issues](#issues)
@@ -47,14 +47,14 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 ***
 #### Releases
 
-##### STABLE releases
+##### Stable releases
 ```text
 latest-<version>-arm32v7
 latest-<version>-arm64v8
 latest-<version>-amd64
 ```
 
-##### DEVELOPMENT releases
+##### Development releases
 ```text
 development-<version>-arm32v7
 development-<version>-arm64v8
