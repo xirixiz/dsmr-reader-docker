@@ -210,6 +210,14 @@ docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
     sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
  ```
 
+# Backup mechanism 3
+Be aware this backup is done via the dsmr container, not via the dsmrdb container!
+
+Backup:
+```
+docker exec -ti dsmr bash -c 'PGPASSWORD=${DJANGO_DATABASE_PASSWORD} /usr/bin/pg_dump -h "${DJANGO_DATABASE_HOST}" -p "${DJANGO_DATABASE_PORT}" -d "${DJANGO_DATABASE_NAME}" -U "${DJANGO_DATABASE_USER}"'
+```
+
 # Upgrade the Postgres container to a newer release
 ```
 - stop ONLY the dsmr reader container
