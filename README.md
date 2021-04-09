@@ -163,8 +163,7 @@ development-<version>-amd64
   ```
 
 * ##### Run with docker-compose
-  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml
-  \
+  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml.<br/>
   You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
   ```bash
   docker-compose up -d
