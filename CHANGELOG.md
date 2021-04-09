@@ -11,7 +11,7 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - N/A
 
 ### Changed
-- Updated to Alpine 3.13
+- Updated to Alpine 3.13 Docker base image
 - Update to Postgres 13 client
 
 ## [2021.04.01]
