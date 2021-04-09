@@ -1,4 +1,4 @@
-<font size="2">
+<sub>
 
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
@@ -115,9 +115,9 @@ development-<version>-amd64
 * ##### DB related (defaults are shown as value):
   ```properties
   # Optional. Vacuum clean Postgres on startup:
-  VACUUM_DB_ON_STARTUP = false
+  VACUUM_DB_ON_STARTUP=false
   # Required. Defaults are set to:
-  DJANGO_DATABASE_ENGINE django.db.backends.postgresql
+  DJANGO_DATABASE_ENGINE=django.db.backends.postgresql
   DJANGO_DATABASE_NAME=dsmrreader
   DJANGO_DATABASE_USER=dsmrreader
   DJANGO_DATABASE_PASSWORD=dsmrreader
@@ -308,3 +308,4 @@ Project inspired by the hard work and effort of [@dennissiemensma](https://githu
 ***
 #### Contact
 Created by [@xirixiz](https://github.com/xirixiz) - feel free to contact me!
+</sub>
