@@ -1,6 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
-export CALVER_DOCKER_TAG=2021.05.02
+export CALVER_DOCKER_TAG=2021.05.03
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 #export GIT_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name HEAD`
 export GIT_BRANCH=master
