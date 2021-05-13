@@ -21,6 +21,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
+  alias ll="ls -al"
 
   _info "DSMR release: $(cat /app/DSMR_RELEASE)"
 
