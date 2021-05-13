@@ -22,7 +22,7 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 function _pre_reqs() {
   alias cp="cp"
 
-  _info "DSMR release: $(cat /dsmr/DSMR_RELEASE)"
+  _info "DSMR release: $(cat /app/DSMR_RELEASE)"
 
   _info "Removing existing PID files..."
   rm -f /var/tmp/*.pid
