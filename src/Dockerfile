@@ -27,6 +27,7 @@ COPY ./dsmr/ /dsmr
 
 RUN apk --update add --no-cache \
     bash \
+    dpkg \
     curl \
     nginx \
     openssl \

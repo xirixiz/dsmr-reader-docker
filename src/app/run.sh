@@ -29,6 +29,39 @@ function _pre_reqs() {
 
   _info "Creating log directory..."
   mkdir -p /var/log/supervisor/
+
+  _info "Setting architecture requirements..."
+  _detect_architecture
+}
+
+function _detect_architecture() {
+    arch=$(uname -m)
+    # _info "uname -m output: ${arch}"
+    longbit=$(getconf LONG_BIT)
+    if [[ "$arch" == 'x86_64' ]]; then
+      if [[ "$longbit" = '32' ]]; then
+        arch="i386"
+        _info "X32 Architecture"
+      else
+        arch="amd64"
+        _info "X64 Architecture"
+      fi
+    fi
+    if [[ "$arch" == 'x86_32' ]]; then
+      arch="i386"
+      _info "X32 Architecture"
+    fi
+    if [[ "$arch" == 'armv7l' ]]; then
+      arch="ARM"
+      _info "ARM Architecture"
+      wget https://ftp.debian.org/debian/pool/main/libs/libseccomp/libseccomp2_2.5.1-1_armhf.deb -P /tmp
+      dpkg -i /tmp/libseccomp2_2.5.1-1_armhf.deb
+      rm -f /tmp/libseccomp2_2.5.1-1_armhf.deb
+    fi
+    if [[ "$arch" == 'aarch64' ]]; then
+      arch="ARM64"
+      _info "ARM Architecture"
+    fi
 }
 
 function _dsmr_datalogger_mode() {
