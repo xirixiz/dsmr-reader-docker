@@ -63,6 +63,11 @@ function _detect_architecture() {
       arch="ARM64"
       _info "ARM Architecture"
     fi
+    if [ "$arch" == 'unknown' ]; then
+      #Assuming amd64, need to address certain distros uname giving "unknown"
+      arch="amd64"
+      _info "X64 Architecture"
+    fi
 }
 
 function _dsmr_datalogger_mode() {
