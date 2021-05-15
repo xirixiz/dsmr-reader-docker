@@ -55,9 +55,6 @@ function _detect_architecture() {
     if [[ "$arch" == 'armv7l' ]]; then
       arch="ARM"
       _info "ARM Architecture"
-      wget https://ftp.debian.org/debian/pool/main/libs/libseccomp/libseccomp2_2.5.1-1_armhf.deb -P /tmp
-      dpkg -i /tmp/libseccomp2_2.5.1-1_armhf.deb
-      rm -f /tmp/libseccomp2_2.5.1-1_armhf.deb
     fi
     if [[ "$arch" == 'aarch64' ]]; then
       arch="ARM64"
