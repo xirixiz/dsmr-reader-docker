@@ -269,8 +269,10 @@ function _generate_auth_configuration() {
 }
 
 function _iframe {
-  _info "Enabling IFrame..."
-  sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
+  if [[ "${ENABLE_IFRAME}" = true ]]; then
+    _info "Enabling IFrame..."
+    sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
+  fi
 }
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
