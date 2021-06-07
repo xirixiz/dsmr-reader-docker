@@ -42,6 +42,6 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 
-#volumes:
-#   dsmrdb:
-#   dsmrdb_backups:
+volumes:
+  dsmrdb:
+  dsmrdb_backups:
