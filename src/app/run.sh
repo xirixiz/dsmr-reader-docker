@@ -268,6 +268,10 @@ function _generate_auth_configuration() {
   _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
+function _iframe {
+  _info "Enable IFrame."
+  sed '/^from dsmrreader.*/a X_FRAME_OPTIONS = "ALLOWALL"' /dsmr/dsmrreader/settings.py
+}
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
   bash /app/cleandb.sh
@@ -286,6 +290,7 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
+_iframe
 _override_entrypoint
 
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = sender ]]; then
