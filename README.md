@@ -111,6 +111,8 @@ development-<version>-amd64
   DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True
   # Plugins (custom) setup:
   DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+  # Enable IFrame support (f.e. for use in HASS).
+  ENABLE_IFRAME=false
   ```
 
 * ##### DB related (defaults are shown as value):
