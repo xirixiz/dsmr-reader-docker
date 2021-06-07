@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## [2021.06.02]
+
+### Fixed
+- N/A
+
+### Changed
+- Added ENABLE_IFRAME. Optional, whether to enable IFrame or not.
+
 ## [2021.06.01]
 
 ### Fixed
