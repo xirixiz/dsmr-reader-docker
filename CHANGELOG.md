@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Calendar Versioning](https://calver.org/).
 
+## [2021.06.01]
+
+### Fixed
+- N/A
+
+### Changed
+- Added IFrame support (https://github.com/dsmrreader/dsmr-reader/issues/344#issuecomment-315523564). In a future release I'll make it optional.
+
 ## [2021.05.06]
 
 ### Fixed
