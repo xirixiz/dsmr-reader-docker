@@ -269,7 +269,7 @@ function _generate_auth_configuration() {
 }
 
 function _iframe {
-  _info "Enable IFrame."
+  _info "Enabling IFrame..."
   sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
 }
 function _cleandb {
