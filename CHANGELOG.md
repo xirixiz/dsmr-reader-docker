@@ -11,6 +11,14 @@ and this project adheres to [Calendar Versioning](https://calver.org/).
 - N/A
 
 ### Changed
+- Updated to DSMR Reader release v4.18
+
+## [2021.09.01]
+
+### Fixed
+- N/A
+
+### Changed
 - Updated to DSMR Reader release v4.17
 
 ## [2021.06.02]
