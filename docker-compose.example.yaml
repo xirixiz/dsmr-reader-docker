@@ -4,7 +4,7 @@ services:
   dsmrdb:
     # When using Postgres, release 12.x is supported only
     # due to the limited availability of client packages, especially for arm32v7
-    image: postgres:13
+    image: postgres:13-alpine
     restart: always
     volumes:
       - ./dsmrdb:/var/lib/postgresql/data
