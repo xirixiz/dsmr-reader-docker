@@ -1,6 +1,7 @@
-#!/usr/bin/with-contenv bash
+#!/usr/bin/with-contenv sh
 
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
-    echo "Starting DSMR Nginx..."
+    echo "Starting DSMR Reader - nginx..."
+    cd /dsmr || exit
     exec /usr/sbin/nginx -g 'daemon off;'
 fi

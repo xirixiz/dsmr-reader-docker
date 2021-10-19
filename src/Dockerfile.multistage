@@ -47,7 +47,7 @@ ENV SD_GROUP root
 ENV PYTHONPATH=/usr/local/lib/python/site-packages
 
 RUN apk --update add --no-cache \
-    bash \
+    sh \
     curl \
     jq \
     nginx \
@@ -71,4 +71,4 @@ WORKDIR /dsmr
 
 EXPOSE 80 443
 
-CMD ["/bin/bash", "-c", "/app/run.sh"]
+CMD ["/bin/sh", "-c", "/app/run.sh"]

@@ -14,7 +14,7 @@ fi
 
 if [[ -d "./dsmr" ]]; then
     echo "==> Building Docker image."
-    export BASE_VERSION=python:3-alpine
+    export BASE_VERSION=python:3-alpine3.12
     docker build --build-arg BASE=${BASE_VERSION} . -t xirixiz/dsmr-reader-docker:local
 fi
 

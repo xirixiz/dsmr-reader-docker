@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 TARGET=localhost
 CURL_OPTS="--connect-timeout 15 --silent --show-error --fail"
 
-curl ${CURL_OPTS} "http://${TARGET}/about" >/dev/null
+curl "${CURL_OPTS}" "http://${TARGET}/about" >/dev/null

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 if [[ ${DJANGO_DATABASE_ENGINE} == *"postgres"* ]]; then
     if [[ $1 = "-v" ]]; then

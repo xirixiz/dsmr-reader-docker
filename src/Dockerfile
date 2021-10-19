@@ -1,28 +1,30 @@
 ARG BASE
 FROM ${BASE}
 
-ENV TERM="xterm" \
-    DJANGO_SECRET_KEY="dsmrreader" \
-    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="True" \
-    DJANGO_DATABASE_NAME="dsmrreader" \
-    DJANGO_DATABASE_USER="dsmrreader" \
-    DJANGO_DATABASE_PASSWORD="dsmrreader" \
-    DJANGO_DATABASE_HOST="dsmrdb" \
-    DJANGO_DATABASE_PORT="5432" \
-    DSMRREADER_ADMIN_USER="admin" \
-    DSMRREADER_ADMIN_PASSWORD="admin" \
-    DATALOGGER_MODE="standalone" \
-    VACUUM_DB_ON_STARTUP="false" \
-    SD_LOGLEVEL="info" \
-    SD_USER="root" \
-    SD_GROUP="root"
+ENV DJANGO_SECRET_KEY dsmrreader
+ENV DJANGO_DATABASE_ENGINE django.db.backends.postgresql
+
+ENV DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS True
+
+ENV DJANGO_DATABASE_NAME dsmrreader
+ENV DJANGO_DATABASE_USER dsmrreader
+ENV DJANGO_DATABASE_PASSWORD dsmrreader
+
+ENV DJANGO_DATABASE_HOST dsmrdb
+ENV DJANGO_DATABASE_PORT 5432
+
+ENV DSMRREADER_ADMIN_USER admin
+ENV DSMRREADER_ADMIN_PASSWORD admin
+
+ENV DATALOGGER_MODE standalone
+ENV VACUUM_DB_ON_STARTUP false
 
 COPY ./dsmr/ /dsmr
-COPY ./s6-overlay/ /
 COPY ./root/ /
 
-RUN apk --update add --no-cache \
+RUN apk update && \
+    apk upgrade --available && \
+    apk add --no-cache \
     bash \
     dpkg \
     curl \
@@ -34,6 +36,9 @@ RUN apk --update add --no-cache \
     mariadb-client \
     tzdata \
     jq
+
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
 
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
@@ -49,7 +54,6 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-# Cleanup
 RUN apk --purge del .build-deps && \
     apk --purge del && \
     rm -rf /var/cache/apk/* && \
@@ -57,16 +61,11 @@ RUN apk --purge del .build-deps && \
     rm -rf /usr/src/* && \
     rm -rf /tmp/*
 
-COPY ./app /app
-RUN chmod u+x /app/*.sh
-
-RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /app/DSMR_RELEASE
-
-EXPOSE 80/tcp 443/tcp
-
-VOLUME /dsmr/backups
+RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /DSMR_RELEASE
 
 WORKDIR /dsmr
+
+EXPOSE 80/tcp 443/tcp
 
 ENTRYPOINT ["/init"]
 
