@@ -1,3 +1,4 @@
+#!/usr/bin/with-contenv bash
 #!/usr/bin/env bash
 #set -o errexit
 #set -o pipefail
@@ -21,21 +22,44 @@ function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
   alias cp="cp"
+  alias ll="ls -al"
 
-  _info "Verifying if the DSMR web credential variables have been set..."
-  if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
-    _error "DSMR web credentials not set. Exiting..."
-    exit 1
-  fi
+  _info "DSMR release: $(cat /app/DSMR_RELEASE)"
 
-  _info "Fixing /dev/ttyUSB* security..."
-  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+  _info "Setting architecture requirements..."
+  _detect_architecture
+}
 
-  _info "Removing existing PID files..."
-  rm -f /var/tmp/*.pid
-
-  _info "Creating log directory..."
-  mkdir -p /var/log/supervisor/
+function _detect_architecture() {
+    arch=$(uname -m)
+    # _info "uname -m output: ${arch}"
+    longbit=$(getconf LONG_BIT)
+    if [[ "$arch" == 'x86_64' ]]; then
+      if [[ "$longbit" = '32' ]]; then
+        arch="i386"
+        _info "X32 Architecture"
+      else
+        arch="amd64"
+        _info "X64 Architecture"
+      fi
+    fi
+    if [[ "$arch" == 'x86_32' ]]; then
+      arch="i386"
+      _info "X32 Architecture"
+    fi
+    if [[ "$arch" == 'armv7l' ]]; then
+      arch="ARM"
+      _info "ARM Architecture"
+    fi
+    if [[ "$arch" == 'aarch64' ]]; then
+      arch="ARM64"
+      _info "ARM Architecture"
+    fi
+    if [ "$arch" == 'unknown' ]; then
+      #Assuming amd64, need to address certain distros uname giving "unknown"
+      arch="amd64"
+      _info "X64 Architecture"
+    fi
 }
 
 function _dsmr_datalogger_mode() {
@@ -123,7 +147,6 @@ function __dsmr_client_installation() {
     _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
     echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >> /dsmr/.env
   fi
-  # wget -N -O /dsmr/dsmr_datalogger_api_client.py https://raw.githubusercontent.com/"${DSMR_GIT_REPO}"/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 }
 
 function _override_entrypoint() {
@@ -133,13 +156,35 @@ function _override_entrypoint() {
   fi
 }
 
+function _check_device() {
+  _info "Fixing /dev/ttyUSB* security..."
+  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+}
+
 function _check_db_availability() {
-  _info "Verifying Database connectivity..."
-  cmd=$(command -v python3)
-  "${cmd}" /dsmr/manage.py shell -c 'import django; print(django.db.connection.ensure_connection()); quit();'
-  if [[ "$?" -ne 0 ]]; then
-    _error "Could not connect to database server. Exiting..."
+  _info "Verifying if the DSMR web credential variables have been set..."
+  if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
+    _error "DSMR web credentials not set. Exiting..."
     exit 1
+  fi
+  if [[ ! -z "${DJANGO_DATABASE_ENGINE}" ]]; then
+    _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
+    for i in {1..30}; do
+      if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}"; then
+        sleep 1
+        printf "\\rTesting database connectivity: %s second(s) of 30 seconds..." "$i"
+        if [[ $i == 30 ]]; then
+          _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
+          exit 1
+        fi
+      else
+        _info "Database connectivity successfully verified!"
+        if [[ "${VACUUM_DB_ON_STARTUP}" = true ]] ; then
+          _cleandb
+        fi
+        break
+      fi
+    done
   fi
 }
 
@@ -161,7 +206,7 @@ function _nginx_ssl_configuration() {
       else
         _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
       fi
-      if grep -q "443" /etc/nginx/conf.d/dsmr-webinterface.conf; then
+      if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
         _info "SSL has already been enabled..."
       else
         sed -i '/listen\s*80/r '<(cat <<- END_HEREDOC
@@ -169,7 +214,7 @@ function _nginx_ssl_configuration() {
         ssl_certificate /etc/ssl/private/fullchain.pem;
         ssl_certificate_key /etc/ssl/private/privkey.pem;
 END_HEREDOC
-        ) /etc/nginx/conf.d/dsmr-webinterface.conf
+        ) /etc/nginx/http.d/dsmr-webinterface.conf
       fi
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
         _info "NGINX SSL configured and enabled"
@@ -205,7 +250,7 @@ function _generate_auth_configuration() {
 	    HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
     	printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" > /etc/nginx/htpasswd
       _info "Done! Enabling the configuration in NGINX..."
-      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
+      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/http.d/dsmr-webinterface.conf
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
         _info "HTTP AUTHENTICATION configured and enabled"
         return
@@ -218,11 +263,15 @@ function _generate_auth_configuration() {
   _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
-function _start_supervisord() {
-  _info "Starting supervisord..."
-  _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
-  cmd=$(command -v supervisord)
-  "${cmd}" -n
+function _iframe {
+  if [[ "${ENABLE_IFRAME}" = true ]]; then
+    _info "Enabling IFrame..."
+    sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
+  fi
+}
+function _cleandb {
+  _info "Vacuum cleaning enabled. Vacuming database..."
+  bash /app/cleandb.sh
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -231,10 +280,18 @@ function _start_supervisord() {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
+_iframe
 _override_entrypoint
-_check_db_availability
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = sender ]]; then
+  _check_device
+fi
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
+  _check_db_availability
+  _run_post_config
+  _nginx_ssl_configuration
+  _generate_auth_configuration
+fi
+
 _dsmr_datalogger_mode
-_run_post_config
-_nginx_ssl_configuration
-_generate_auth_configuration
-_start_supervisord

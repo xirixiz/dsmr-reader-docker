@@ -1,34 +1,33 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
+export CALVER_DOCKER_TAG=2021.09.02
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 #export GIT_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name HEAD`
-export GIT_BRANCH=development
+export GIT_BRANCH=master
 export VCS_REF=`git rev-parse --short HEAD`
 export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`
 export TAG_DATE=`date -u +"%d%m%Y"`
-export BASE_VERSION=python:3-alpine
+export BASE_VERSION=python:3-alpine3.13
 export QEMU_VERSION=5.2.0-2
-export S6_OVERLAY_VERSION=v2.2.0.0
 export BUILD_IMAGE_NAME=local/alpine-base
-export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7 arm32v6
+export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7
 export QEMU_ARCHITECTURES=arm aarch64
-export S6_OVERLAY_ARCHITECTURES=arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
 export SHELL=/bin/bash
 
 # Set the Docker TAG value based on the branch name. If not master, then always development
 ifeq ($(GIT_BRANCH), master)
-  DOCKER_TAG=latest-${APP_VERSION}
+  DOCKER_TAG=latest-${CALVER_DOCKER_TAG}
 else
-  DOCKER_TAG=development-${APP_VERSION}
+  DOCKER_TAG=development-${CALVER_DOCKER_TAG}
 endif
 
 # Permanent local overrides
 -include .env
 
-.PHONY: build dsmr qemu s6-overlay wrap push manifest clean
+.PHONY: build dsmr qemu wrap push manifest clean
 
 dsmr:
 	@echo "==> Using Docker branch $(GIT_BRANCH)."
@@ -57,22 +56,6 @@ fetch-qemu-%:
 	wget -N https://github.com/multiarch/qemu-user-static/releases/download/v$(QEMU_VERSION)/qemu-$(ARCH)-static.tar.gz && \
 	tar -zxf qemu-$(ARCH)-static.tar.gz && \
 	cp qemu-$(ARCH)-static ../../qemu/
-	@echo "--> Done."
-
-s6-overlay:
-	@echo "==> Setting up S6 Overlay"
-	-mkdir -p tmp/s6-overlay
-	-mkdir -p src/s6-overlay
-	$(foreach ARCH, $(S6_OVERLAY_ARCHITECTURES), make fetch-s6-overlay-$(ARCH);)
-	@echo "==> Done setting up S6 Overlay"
-
-fetch-s6-overlay-%:
-	$(eval ARCH := $*)
-	@echo "--> Fetching S6 Overlay binary for $(ARCH)"
-	cd tmp/s6-overlay && \
-	wget -N https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-$(ARCH).tar.gz && \
-	tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz -C s6-overlay/ && \
-	cp -R s6-overlay/* ../../src/s6-overlay/
 	@echo "--> Done."
 
 wrap:
