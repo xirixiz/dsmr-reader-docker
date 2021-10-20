@@ -20,7 +20,7 @@ body:
     validations:
       required: true
     attributes:
-      label: What version has the issue?
+      label: Which version has the issue?
       placeholder: "xirixiz/dsmr-reader-docker:"
       description: >
         Can be found in the About section.
