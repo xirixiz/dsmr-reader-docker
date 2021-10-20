@@ -9,7 +9,7 @@ body:
     validations:
       required: true
     attributes:
-      label: Request
+      label: Issue
       description: >-
         Describe the issue you are experiencing here to communicate to the
         maintainers. Tell us what you were trying to do and what happened.
