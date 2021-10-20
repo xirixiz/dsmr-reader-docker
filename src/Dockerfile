@@ -49,6 +49,11 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
+RUN ln -sf /dev/stdout /var/log/supervisor/dsmr_datalogger.log \
+    && ln -sf /dev/stdout /var/log/supervisor/dsmr_remote_datalogger.log \
+    && ln -sf /dev/stdout /var/log/supervisor/dsmr_backend.log \
+    && ln -sf /dev/stdout /var/log/supervisor/dsmr_webinterface.log
+
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
