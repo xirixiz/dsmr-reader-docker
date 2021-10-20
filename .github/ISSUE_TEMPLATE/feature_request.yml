@@ -18,7 +18,7 @@ body:
           - The main focus is to run DSMR Reader in Docker. 
           - Requests related to DSMR itself cannot be processed here.
 
-        Provide a clear and concise description of what you like to request.
+        Provide a clear and concise description of what you would like to request.
   - type: textarea
     attributes:
       label: Additional information
