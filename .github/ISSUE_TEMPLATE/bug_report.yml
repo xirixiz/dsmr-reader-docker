@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        This issue form is for reporting bugs and feature or enhancement requests.
+        This issue form is for reporting bugs.
   - type: textarea
     validations:
       required: true
