@@ -25,13 +25,13 @@ body:
       required: true
     attributes:
       label: What version has the issue?
-      placeholder: xirixiz/dsmr-reader-docker:
+      placeholder: xirixiz/dsmr-reader-docker\:
       description: >
         Can be found in the About section.
   - type: input
     attributes:
       label: What was the last working version?
-      placeholder: xirixiz/dsmr-reader-docker:
+      placeholder: xirixiz/dsmr-reader-docker\:
       description: >
         If known, otherwise leave blank.
   - type: dropdown
