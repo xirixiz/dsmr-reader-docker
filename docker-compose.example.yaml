@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   dsmrdb:
-    # When using Postgres, release 12.x is supported only
+    # When using Postgres, release 13.x is supported only
     # due to the limited availability of client packages, especially for arm32v7
     image: postgres:13-alpine
     restart: always
@@ -29,8 +29,8 @@ services:
         condition: service_healthy
 #      dsmrdb:
 #        condition: service_started
-    links:
-      - dsmrdb:dsmrdb
+#    links:
+#      - dsmrdb:dsmrdb
     cap_add:
       - NET_ADMIN
     restart: always
