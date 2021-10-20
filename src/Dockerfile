@@ -13,9 +13,9 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
     DSMRREADER_ADMIN_PASSWORD=admin \
     DATALOGGER_MODE=standalone \
     VACUUM_DB_ON_STARTUP=false \ 
-    SD_LOGLEVEL info \
-    SD_USER root \
-    SD_GROUP root
+    SD_LOGLEVEL=info \
+    SD_USER=root \
+    SD_GROUP=root
 
 COPY ./dsmr/ /dsmr
 
