@@ -1,13 +1,10 @@
-name: Report an issue with Home Assistant Core
-description: Report an issue with Home Assistant Core.
+name: 💡 Report an issue
+description: Report an issue.
 body:
   - type: markdown
     attributes:
       value: |
-        This issue form is for reporting bugs only!
-
-        If you have a feature or enhancement request, please use the [feature request][fr] section of our [Community Forum][fr].
-
+        This issue form is for reporting bugs and feature or enhancement requests
         [fr]: https://community.home-assistant.io/c/feature-requests
   - type: textarea
     validations:
