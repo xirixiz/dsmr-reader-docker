@@ -43,7 +43,8 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
-RUN touch /var/log/supervisor/dsmr_datalogger.log \
+RUN mkdir -p /var/log/supervisor/ \
+    && touch /var/log/supervisor/dsmr_datalogger.log \
     && touch /var/log/supervisor/dsmr_remote_datalogger.log \
     && touch /var/log/supervisor/dsmr_backend.log \
     && touch /var/log/supervisor/dsmr_webinterface.log \
