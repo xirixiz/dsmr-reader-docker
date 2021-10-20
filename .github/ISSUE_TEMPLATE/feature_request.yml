@@ -19,10 +19,6 @@ body:
           - Requests related to DSMR itself cannot be processed here.
 
         Provide a clear and concise description of what you like to request.
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
   - type: textarea
     attributes:
       label: Additional information
