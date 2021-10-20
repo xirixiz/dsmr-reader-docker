@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: ❔ I have an issue related to DSMR Reader, not specifically DSMR Reader for Docker
+  - name: ❔ I have an issue related to DSMR Reader (non Docker related)
     url: https://github.com/dsmrreader/dsmr-reader/issues
     about: If you are unsure where to go, then contacting the DSMR Reader developer(s) is recommended; Just ask!
