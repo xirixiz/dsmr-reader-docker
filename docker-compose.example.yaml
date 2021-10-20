@@ -27,8 +27,10 @@ services:
     depends_on:
       dsmrdb:
         condition: service_healthy
+#      dsmrdb:
+#        condition: service_started
     links:
-      - dsmrdb:dsmrreader
+      - dsmrdb:dsmrdb
     cap_add:
       - NET_ADMIN
     restart: always
