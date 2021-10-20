@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 DOCKER_NETWORK_BRIDGE=proxy
 
 function docker_network() {

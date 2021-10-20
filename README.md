@@ -90,13 +90,6 @@ development-<version>-amd64
   HTTP_AUTH_PASSWORD=
   ```
 
-* ##### Supervisord related:
-  ```properties
-  SD_LOGLEVEL=info
-  SD_USER=root
-  SD_GROUP=root
-  ```
-
 * ##### DSMR related (defaults are shown as value):
   ```properties
   # Webinterface user:
@@ -312,15 +305,15 @@ development-<version>-amd64
   - libseccomp 2.4.2 or newer
   ```
   The libseccomp package hasn't been updated for Debian stable yet, Therefore, this image won't run on any Debian (or Raspbian) stable host.
-  
+
   Fix:
   ```bash
   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
   echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
   sudo apt update
-  sudo apt install libseccomp2 -t buster-backports  
+  sudo apt install libseccomp2 -t buster-backports
   ```
-  
+
 * ##### Incorrect timestamps
   Mounting ```/etc/localtime:/etc/localtime``` results most of the times in an incorrect timestamp in DSMR Reader (+/- 1 hour). Removig the mount usually solves the problem.
 

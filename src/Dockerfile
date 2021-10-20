@@ -1,26 +1,27 @@
 ARG BASE
 FROM ${BASE}
 
-ENV DJANGO_SECRET_KEY dsmrreader
-ENV DJANGO_DATABASE_ENGINE django.db.backends.postgresql
+ENV DJANGO_SECRET_KEY=dsmrreader \
+    DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True \
+    DJANGO_DATABASE_NAME=dsmrreader \
+    DJANGO_DATABASE_USER=dsmrreader \
+    DJANGO_DATABASE_PASSWORD=dsmrreader \
+    DJANGO_DATABASE_HOST=dsmrdb \
+    DJANGO_DATABASE_PORT=5432 \
+    DSMRREADER_ADMIN_USER=admin \
+    DSMRREADER_ADMIN_PASSWORD=admin \
+    DATALOGGER_MODE=standalone \
+    VACUUM_DB_ON_STARTUP=false
 
-ENV DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS True
+RUN echo 'TERM=xterm-256color' >>  /root/.bashrc \
+    && echo 'export PS1="[\u@dsmr] \W # "' >> /root/.bashrc \
+    && echo 'alias cp="cp"' >> /root/.bashrc \
+    && echo 'alias ll="ls -al"' >> /root/.bashrc
 
-ENV DJANGO_DATABASE_NAME dsmrreader
-ENV DJANGO_DATABASE_USER dsmrreader
-ENV DJANGO_DATABASE_PASSWORD dsmrreader
-
-ENV DJANGO_DATABASE_HOST dsmrdb
-ENV DJANGO_DATABASE_PORT 5432
-
-ENV DSMRREADER_ADMIN_USER admin
-ENV DSMRREADER_ADMIN_PASSWORD admin
-
-ENV DATALOGGER_MODE standalone
-ENV VACUUM_DB_ON_STARTUP false
-
-COPY ./dsmr/ /dsmr
-COPY ./root/ /
+COPY ./s6overlay/ / \
+    ./dsmr/ /dsmr \
+    ./root/ /
 
 RUN apk update && \
     apk upgrade --available && \
@@ -37,9 +38,6 @@ RUN apk update && \
     tzdata \
     jq
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
-
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 
 RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev cargo rust \
@@ -54,11 +52,11 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-RUN apk --purge del .build-deps && \
-    apk --purge del && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /usr/src/* && \
+RUN apk --purge del .build-deps \
+    && apk --purge del \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /var/tmp/* \
+    && rm -rf /usr/src/* \
     rm -rf /tmp/*
 
 RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /DSMR_RELEASE
@@ -67,6 +65,6 @@ WORKDIR /dsmr
 
 EXPOSE 80/tcp 443/tcp
 
-ENTRYPOINT ["/init"]
-
 HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1
+
+ENTRYPOINT ["/init"]

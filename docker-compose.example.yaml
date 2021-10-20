@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   dsmr:
 #    build: .
@@ -27,7 +28,7 @@ services:
       dsmrdb:
         condition: service_healthy
     links:
-      - dsmrdb:dsmrreader        
+      - dsmrdb:dsmrreader
     cap_add:
       - NET_ADMIN
     restart: always
@@ -41,6 +42,12 @@ services:
       - 7779:443
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   dsmrdb:

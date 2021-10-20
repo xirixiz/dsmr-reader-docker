@@ -9,7 +9,6 @@
 : "${DEBUG:=false}"
 : "${COMMAND:=$@}"
 : "${TIMER:=60}"
-: "${DSMR_GIT_REPO:=dsmrreader/dsmr-reader}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -249,7 +248,7 @@ function _iframe {
 }
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
-  sh /cleandb.sh
+  bash /cleandb.sh
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

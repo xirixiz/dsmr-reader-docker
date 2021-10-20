@@ -9,13 +9,16 @@ export VCS_URL=https://github.com/xirixiz/dsmr-reader-docker
 export BUILD_DATE=`date -u +"%d-%m-%YT%H:%M:%SZ"`
 export TAG_DATE=`date -u +"%d%m%Y"`
 export BASE_VERSION=python:3-alpine3.13
-export QEMU_VERSION=5.2.0-2
 export BUILD_IMAGE_NAME=local/alpine-base
 export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7
+export QEMU_VERSION=5.2.0-2
 export QEMU_ARCHITECTURES=arm aarch64
+export S6_OVERLAY_VERSION=2.2.0.3
+export S6_OVERLAY_ARCHITECTURES=amd64 arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
 export SHELL=/bin/bash
+
 
 # Set the Docker TAG value based on the branch name. If not master, then always development
 ifeq ($(GIT_BRANCH), master)
@@ -42,6 +45,22 @@ dsmr:
 	cp -R  * ../../src/dsmr/
 	@echo "==> Fetching DSMR done."
 
+s6-overlay:
+	@echo "==> Setting up s6-overlay"
+	-mkdir -p tmp/s6-overlay
+	-mkdir -p src/s6-overlay
+	$(foreach ARCH, $(S6_OVERLAY_ARCHITECTURES), make fetch-qemu-$(ARCH);)
+	@echo "==> Done setting up s6-overlay"
+
+fetch-s6-overlay%:
+	$(eval ARCH := $*)
+	@echo "--> Fetching s6-overlay for $(ARCH)"
+	cd tmp/s6-overlay && \
+	wget -N https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-$(ARCH).tar.gz && \
+    tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz && \
+	cp -R * ../../src/s6-overlay/
+	@echo "--> Done."
+
 qemu:
 	@echo "==> Setting up QEMU"
 	-$(DOCKER) run --rm --privileged multiarch/qemu-user-static:register --reset
@@ -51,7 +70,7 @@ qemu:
 
 fetch-qemu-%:
 	$(eval ARCH := $*)
-	@echo "--> Fetching QEMU binary for $(ARCH)"
+	@echo "--> Fetching QEMU for $(ARCH)"
 	cd tmp/qemu && \
 	wget -N https://github.com/multiarch/qemu-user-static/releases/download/v$(QEMU_VERSION)/qemu-$(ARCH)-static.tar.gz && \
 	tar -zxf qemu-$(ARCH)-static.tar.gz && \

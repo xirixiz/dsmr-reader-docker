@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/usr/bin/with-contenv bash
 
 if [[ "${DATALOGGER_MODE}" = standalone ]]; then
     echo "Starting DSMR Reader - datalogger..."
