@@ -1,4 +1,4 @@
-name: 🚨💡 Report an issue
+name: 🚨 Report an issue
 description: Report an issue.
 body:
   - type: markdown
