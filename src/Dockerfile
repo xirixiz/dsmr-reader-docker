@@ -51,7 +51,9 @@ RUN mkdir -p /var/log/supervisor/ \
     && ln -sf /dev/stdout /var/log/supervisor/dsmr_datalogger.log \
     && ln -sf /dev/stdout /var/log/supervisor/dsmr_remote_datalogger.log \
     && ln -sf /dev/stdout /var/log/supervisor/dsmr_backend.log \
-    && ln -sf /dev/stdout /var/log/supervisor/dsmr_webinterface.log
+    && ln -sf /dev/stdout /var/log/supervisor/dsmr_webinterface.log \
+    && touch /tmp/supervisord.log \
+    && ln -sf /dev/stdout /tmp/supervisord.log
 
 RUN mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
