@@ -15,10 +15,6 @@ body:
         maintainers. Tell us what you were trying to do and what happened.
 
         Provide a clear and concise description of what the problem is.
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
   - type: input
     id: version
     validations:
