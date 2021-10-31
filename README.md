@@ -202,8 +202,8 @@ development-<version>-amd64
 #### Features
 * ##### To-do list:
   ```text
-  * Upgrade to Docker Alpine base image 3.13
-  * Upgrade to Postgres 13 client and backend
+  * Upgrade to Docker Alpine base image 3.13 - Done
+  * Upgrade to Postgres 13 client and backend - Done
   ```
 
 * ##### DSMR Reader - Database cleanup/vacuum
