@@ -21,6 +21,7 @@ COPY ./dsmr/ /dsmr
 
 RUN apk --update add --no-cache \
     bash \
+    tini \
     dpkg \
     curl \
     nginx \
@@ -67,10 +68,11 @@ RUN chmod u+x /app/*.sh
 
 RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /app/DSMR_RELEASE
 
-COPY ./config/supervisord.ini /etc/supervisor.d/supervisord.ini
+COPY ./config/supervisord.conf /etc/supervisor/supervisord.conf
 
 EXPOSE 80 443
 
 WORKDIR /dsmr
 
-CMD ["/app/run.sh"]
+ENTRYPOINT ["tini", "--", "/app/entrypoint.sh"]
+CMD ["-c", "/etc/supervisor/supervisord.conf"]
