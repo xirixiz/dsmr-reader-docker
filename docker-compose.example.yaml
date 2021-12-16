@@ -1,10 +1,11 @@
-version: '3.8'
+version: '3'
 
 services:
   dsmrdb:
     # When using Postgres, release 13.x is supported only
     # due to the limited availability of client packages, especially for arm32v7
     image: postgres:13-alpine
+    container_name: dsmrdb
     restart: always
     volumes:
       - ./dsmrdb:/var/lib/postgresql/data
@@ -15,28 +16,27 @@ services:
       - POSTGRES_PASSWORD=dsmrreader
       - POSTGRES_DB=dsmrreader
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 10
-    restart: unless-stopped
 
   dsmr:
-#    build: .
     image: xirixiz/dsmr-reader-docker:latest
     depends_on:
       dsmrdb:
         condition: service_healthy
-#      dsmrdb:
-#        condition: service_started
-#    links:
-#      - dsmrdb:dsmrdb
+    container_name: dsmr
+    links:
+      - dsmrdb
     cap_add:
       - NET_ADMIN
     restart: always
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/dsmr/backups
     environment:
+      - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
     ports:
@@ -45,12 +45,11 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
 volumes:
-  dsmrdb:
-  dsmrdb_backups:
+  dsmrdb: null
+  dsmrdb_backups: null

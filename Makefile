@@ -1,6 +1,6 @@
 export IMAGE_NAME?=xirixiz/dsmr-reader-docker
 export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name`
-export CALVER_DOCKER_TAG=2021.10.02
+export CALVER_DOCKER_TAG=2021.12.01
 #export APP_VERSION=`curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/tags' | jq -r '.[0].name'`
 #export GIT_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name HEAD`
 export GIT_BRANCH=master
@@ -11,17 +11,17 @@ export TAG_DATE=`date -u +"%d%m%Y"`
 export BASE_VERSION=python:3-alpine3.13
 export QEMU_VERSION=5.2.0-2
 export BUILD_IMAGE_NAME=local/alpine-base
-export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7
+export TARGET_ARCHITECTURES=amd64 arm64v8 arm32v7 arm32v6
 export QEMU_ARCHITECTURES=arm aarch64
 export DOCKER?=docker --config=~/.docker
 export DOCKER_CLI_EXPERIMENTAL=enabled
 export SHELL=/bin/bash
 
-# Set the Docker TAG value based on the branch name. If not master, then always development
+# Set the Docker TAG value based on the branch name. If not master, then always develop
 ifeq ($(GIT_BRANCH), master)
-  DOCKER_TAG=latest-${CALVER_DOCKER_TAG}
+  DOCKER_TAG=${CALVER_DOCKER_TAG}
 else
-  DOCKER_TAG=development-${CALVER_DOCKER_TAG}
+  DOCKER_TAG=development
 endif
 
 # Permanent local overrides
@@ -108,8 +108,8 @@ push:
 
 push-%:
 	$(eval ARCH := $*)
-	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):${DOCKER_TAG}-$(ARCH)
-	$(DOCKER) push $(IMAGE_NAME):$(DOCKER_TAG)-$(ARCH)
+	$(DOCKER) tag $(IMAGE_NAME):$(ARCH) $(IMAGE_NAME):$(ARCH)-$(DOCKER_TAG)
+	$(DOCKER) push $(IMAGE_NAME):$(ARCH)-$(DOCKER_TAG)
 
 expand-%: # expand architecture variants for manifest
 	@if [ "$*" == "amd64" ] ; then \
@@ -129,11 +129,11 @@ build-manifest:
 	cat $(DOCKER_CONFIG) | grep -v auth
 	$(DOCKER) manifest create --amend \
 		$(IMAGE_NAME):latest \
-		$(foreach ARCH, $(TARGET_ARCHITECTURES), $(IMAGE_NAME):${DOCKER_TAG}-$(ARCH) )
+		$(foreach ARCH, $(TARGET_ARCHITECTURES), $(IMAGE_NAME):$(ARCH)-$(DOCKER_TAG))
 	$(foreach ARCH, $(TARGET_ARCHITECTURES), \
 		$(DOCKER) manifest annotate \
 			$(IMAGE_NAME):latest \
-			$(IMAGE_NAME):${DOCKER_TAG}-$(ARCH) $(shell make expand-$(ARCH));)
+			$(IMAGE_NAME):$(ARCH)-$(DOCKER_TAG) $(shell make expand-$(ARCH));)
 
 push-manifest:
 	@echo "--> Pushing manifest"

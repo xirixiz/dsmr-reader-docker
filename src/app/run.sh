@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-#set -o errexit
-#set -o pipefail
-#set -o nounset
-
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
@@ -20,13 +16,7 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  alias cp="cp"
-  alias ll="ls -al"
-
   _info "DSMR release: $(cat /app/DSMR_RELEASE)"
-
-  _info "Removing existing PID files..."
-  rm -f /var/tmp/*.pid
 
   _info "Creating log directory..."
   mkdir -p /var/log/supervisor/
@@ -281,9 +271,8 @@ function _cleandb {
 
 function _start_supervisord() {
   _info "Starting supervisord..."
-  _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
   cmd=$(command -v supervisord)
-  "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
+  exec "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
