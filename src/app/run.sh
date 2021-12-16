@@ -20,9 +20,6 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  alias cp="cp"
-  alias ll="ls -al"
-
   _info "DSMR release: $(cat /app/DSMR_RELEASE)"
 
   _info "Removing existing PID files..."
@@ -107,7 +104,7 @@ function _dsmr_datalogger_mode() {
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
-  touch /dsmr/.env
+  touch /dsmr/.env || true
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
       _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
       exit 1
@@ -276,14 +273,14 @@ function _iframe {
 }
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
-  bash /app/cleandb.sh
+  /bin/bash -c "source /app/cleandb.sh" || true
 }
 
 function _start_supervisord() {
   _info "Starting supervisord..."
   _info "Logfiles can be found at: /var/log/supervisor/*.log and /tmp/supervisord.log"
   cmd=$(command -v supervisord)
-  "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
+  exec "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
