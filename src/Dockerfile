@@ -20,7 +20,6 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
 COPY ./dsmr/ /dsmr
 
 RUN apk --update add --no-cache \
-    bash \
     dpkg \
     curl \
     nginx \
