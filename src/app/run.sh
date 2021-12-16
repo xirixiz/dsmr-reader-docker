@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-#set -o errexit
-#set -o pipefail
-#set -o nounset
-
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
@@ -20,9 +16,6 @@ function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@";
 function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  alias cp="cp"
-  alias ll="ls -al"
-
   _info "DSMR release: $(cat /app/DSMR_RELEASE)"
 
   _info "Creating log directory..."
