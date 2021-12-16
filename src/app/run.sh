@@ -269,11 +269,11 @@ function _cleandb {
   bash /app/cleandb.sh
 }
 
-# function _start_supervisord() {
-#   _info "Starting supervisord..."
-#   cmd=$(command -v supervisord)
-#   exec "${cmd}" -n -c /etc/supervisor.d/supervisord.conf
-# }
+function _start_supervisord() {
+  _info "Starting supervisord..."
+  cmd=$(command -v supervisord)
+  exec "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
+}
 
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN
@@ -296,4 +296,4 @@ if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; t
 fi
 
 _dsmr_datalogger_mode
-# _start_supervisord
+_start_supervisord
