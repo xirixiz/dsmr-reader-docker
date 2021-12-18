@@ -13,9 +13,7 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
     DSMRREADER_ADMIN_PASSWORD=admin \
     DATALOGGER_MODE=standalone \
     VACUUM_DB_ON_STARTUP=false \
-    SD_LOGLEVEL=info \
-    SD_USER=root \
-    SD_GROUP=root
+    SD_LOGLEVEL=info
 
 COPY ./dsmr/ /dsmr
 
@@ -43,21 +41,11 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
-RUN mkdir -p /var/log/supervisor/ \
-    && touch /var/log/supervisor/dsmr_datalogger.log \
-    && touch /var/log/supervisor/dsmr_remote_datalogger.log \
-    && touch /var/log/supervisor/dsmr_backend.log \
-    && touch /var/log/supervisor/dsmr_webinterface.log \
-    && ln -sf /dev/stdout /var/log/supervisor/dsmr_datalogger.log \
-    && ln -sf /dev/stdout /var/log/supervisor/dsmr_remote_datalogger.log \
-    && ln -sf /dev/stdout /var/log/supervisor/dsmr_backend.log \
-    && ln -sf /dev/stdout /var/log/supervisor/dsmr_webinterface.log \
-    && touch /tmp/supervisord.log \
-    && ln -sf /dev/stdout /tmp/supervisord.log
+RUN chmod 766 /proc/self/fd/1 \
+    && chmod 766 /dev/fd/1 \
+    && chmod 766 /dev/pts/1
 
 RUN mkdir -p /run/nginx/ \
-    && ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf

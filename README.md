@@ -95,8 +95,8 @@ amd64-development
 * ##### Supervisord related:
   ```properties
   SD_LOGLEVEL=info
-  SD_USER=root
-  SD_GROUP=root
+  <del>SD_USER=root</del> # CURRENTLY DISABLED ( >= 2021.12.04 )
+  <del>SD_GROUP=root</del> # CURRENTLY DISABLED ( >= 2021.12.04 )
   ```
 
 * ##### DSMR related (defaults are shown as value):
