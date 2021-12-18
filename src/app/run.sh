@@ -272,7 +272,7 @@ function _cleandb {
 function _start_supervisord() {
   _info "Starting supervisord..."
   cmd=$(command -v supervisord)
-  exec "${cmd}" -n -c /etc/supervisor.d/supervisord.ini
+  exec "${cmd}" -n -c /etc/supervisor.d/supervisord.ini && chmod 766 /dev/pts/1
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

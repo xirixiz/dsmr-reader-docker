@@ -42,8 +42,7 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && rm -rf /tmp/*
 
 RUN chmod 766 /proc/self/fd/1 \
-    && chmod 766 /dev/fd/1 \
-    && chmod 766 /dev/pts/1
+    && chmod 766 /dev/fd/1
 
 RUN mkdir -p /run/nginx/ \
     && rm -f /etc/nginx/conf.d/default.conf \
