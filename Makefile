@@ -30,7 +30,7 @@ endif
 # Permanent local overrides
 -include .env
 
-.PHONY: build dsmr qemu s6-overlay wrap push manifest clean
+.PHONY: build dsmr s6-overlay qemu wrap push manifest clean
 
 dsmr:
 	@echo "==> Using Docker branch $(GIT_BRANCH)."
@@ -49,10 +49,10 @@ s6-overlay:
 	@echo "==> Setting up s6-overlay"
 	-mkdir -p tmp/s6-overlay
 	-mkdir -p src/s6-overlay
-	$(foreach ARCH, $(S6_OVERLAY_ARCHITECTURES), make fetch-qemu-$(ARCH);)
+	$(foreach ARCH, $(S6_OVERLAY_ARCHITECTURES), make fetch-s6-overlay-$(ARCH);)
 	@echo "==> Done setting up s6-overlay"
 
-fetch-s6-overlay%:
+fetch-s6-overlay-%:
 	$(eval ARCH := $*)
 	@echo "--> Fetching s6-overlay for $(ARCH)"
 	cd tmp/s6-overlay && \
