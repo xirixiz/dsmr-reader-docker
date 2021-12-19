@@ -61,19 +61,19 @@ function _dsmr_datalogger_mode() {
   if [[ "${DATALOGGER_MODE}" = standalone ]]; then
     _info "Configuring DSMR in standlone datalogger mode...."
     export SD_AUTOSTART_DATALOGGER=true
-    export SD_AUTORESTART_DATALOGGER=true
+    export SD_AUTORESTART_DATALOGGER=false
     export SD_AUTOSTART_REMOTE_DATALOGGER=false
     export SD_AUTORESTART_REMOTE_DATALOGGER=false
     export SD_AUTOSTART_BACKEND=true
-    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=false
     export SD_AUTOSTART_WEBINTERFACE=true
-    export SD_AUTORESTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=false
   elif [[ "${DATALOGGER_MODE}" = sender ]]; then
     _info "Configuring DSMR in sender datalogger mode...."
     export SD_AUTOSTART_DATALOGGER=false
     export SD_AUTORESTART_DATALOGGER=false
     export SD_AUTOSTART_REMOTE_DATALOGGER=true
-    export SD_AUTORESTART_REMOTE_DATALOGGER=true
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
     export SD_AUTOSTART_BACKEND=false
     export SD_AUTORESTART_BACKEND=false
     export SD_AUTOSTART_WEBINTERFACE=false
@@ -86,9 +86,9 @@ function _dsmr_datalogger_mode() {
     export SD_AUTOSTART_REMOTE_DATALOGGER=false
     export SD_AUTORESTART_REMOTE_DATALOGGER=false
     export SD_AUTOSTART_BACKEND=true
-    export SD_AUTORESTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=false
     export SD_AUTOSTART_WEBINTERFACE=true
-    export SD_AUTORESTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=false
   else
     _error "Invalid value of the DATALOGGER_MODE has been set. Exiting..."
     exit 1
