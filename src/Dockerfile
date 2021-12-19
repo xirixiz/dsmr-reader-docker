@@ -41,13 +41,13 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
-RUN chmod 766 /proc/self/fd/1 \
-    && chmod 766 /dev/fd/1
-
 RUN mkdir -p /run/nginx/ \
     && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+
+RUN chmod 766 /proc/self/fd/1 \
+    && chmod 766 /dev/fd/1
 
 COPY ./app /app
 RUN chmod u+x /app/*.sh
