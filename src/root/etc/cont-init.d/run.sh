@@ -248,7 +248,7 @@ function _iframe {
 }
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
-  bash /cleandb.sh
+  exec /cleandb.sh
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

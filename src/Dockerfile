@@ -46,8 +46,6 @@ RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql
     && python3 -m pip install mysqlclient --no-cache-dir
 
 RUN mkdir -p /run/nginx/ \
-    && ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
@@ -58,6 +56,9 @@ RUN apk --purge del .build-deps \
     && rm -rf /var/tmp/* \
     && rm -rf /usr/src/* \
     rm -rf /tmp/*
+
+RUN chmod 766 /proc/self/fd/1 \
+    && chmod 766 /dev/fd/1
 
 RUN curl -Ssl 'https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest' | jq -r .tag_name > /DSMR_RELEASE
 

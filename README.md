@@ -53,16 +53,18 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ##### Stable releases
 ```text
-latest-<version>-arm32v7
-latest-<version>-arm64v8
-latest-<version>-amd64
+arm32v6-<version>
+arm32v7-<version>
+arm64v8-<version>
+amd64-<version>
 ```
 
 ##### Development releases
 ```text
-development-<version>-arm32v7
-development-<version>-arm64v8
-development-<version>-amd64
+arm32v6-development
+arm32v7-development
+arm64v8-development
+amd64-development
 ```
 
 ***
@@ -88,6 +90,13 @@ development-<version>-amd64
   ENABLE_HTTP_AUTH=false
   HTTP_AUTH_USERNAME=
   HTTP_AUTH_PASSWORD=
+  ```
+
+* ##### Supervisord related:
+  ```properties
+  SD_LOGLEVEL=info
+  SD_USER=root  # CURRENTLY DISABLED ( > 2021.12.xx )
+  SD_GROUP=root # CURRENTLY DISABLED ( > 2021.12.xx )
   ```
 
 * ##### DSMR related (defaults are shown as value):
@@ -195,8 +204,8 @@ development-<version>-amd64
 #### Features
 * ##### To-do list:
   ```text
-  * Upgrade to Docker Alpine base image 3.13
-  * Upgrade to Postgres 13 client and backend
+  * Upgrade to Docker Alpine base image 3.13 - Done
+  * Upgrade to Postgres 13 client and backend - Done
   ```
 
 * ##### DSMR Reader - Database cleanup/vacuum
