@@ -19,7 +19,7 @@ RUN echo 'TERM=xterm-256color' >>  /root/.bashrc \
     && echo 'alias cp="cp"' >> /root/.bashrc \
     && echo 'alias ll="ls -al"' >> /root/.bashrc
 
-COPY ./s6overlay/ / \
+COPY ./s6-overlay/ / \
     ./dsmr/ /dsmr \
     ./root/ /
 
