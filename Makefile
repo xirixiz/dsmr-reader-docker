@@ -47,7 +47,6 @@ dsmr:
 
 s6-overlay:
 	@echo "==> Setting up s6-overlay"
-	-mkdir -p tmp/s6-overlay
 	-mkdir -p src/s6-overlay
 	$(foreach ARCH, $(S6_OVERLAY_ARCHITECTURES), make fetch-s6-overlay-$(ARCH);)
 	@echo "==> Done setting up s6-overlay"
@@ -55,9 +54,10 @@ s6-overlay:
 fetch-s6-overlay-%:
 	$(eval ARCH := $*)
 	@echo "--> Fetching s6-overlay for $(ARCH)"
-	cd tmp/s6-overlay && \
+	-mkdir -p tmp/s6-overlay-$(ARCH)
+	cd tmp/s6-overlay-$(ARCH) && \
 	wget -N https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-$(ARCH).tar.gz && \
-    tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz && \
+    tar -zxf /tmp/s6-overlay-$(ARCH).tar.gz -C ./$(ARCH) && \
 	cp -R * ../../src/s6-overlay/
 	@echo "--> Done."
 
