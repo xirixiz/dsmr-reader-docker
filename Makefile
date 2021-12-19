@@ -30,7 +30,7 @@ endif
 # Permanent local overrides
 -include .env
 
-.PHONY: build dsmr qemu wrap push manifest clean
+.PHONY: build dsmr qemu s6-overlay wrap push manifest clean
 
 dsmr:
 	@echo "==> Using Docker branch $(GIT_BRANCH)."
