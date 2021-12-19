@@ -19,7 +19,7 @@ stages:
 
 - stage: arm32v6
   displayName: arm32v6
-  # condition: and(succeeded(), eq(variables.isMasterBranch, true))
+  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
   jobs:
@@ -31,7 +31,7 @@ stages:
 
 - stage: arm32v7
   displayName: arm32v7
-  # condition: and(succeeded(), eq(variables.isMasterBranch, true))
+  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
   jobs:
@@ -43,7 +43,7 @@ stages:
 
 - stage: arm64v8
   displayName: arm64v8
-  # condition: and(succeeded(), eq(variables.isMasterBranch, true))
+  condition: and(succeeded(), eq(variables.isMasterBranch, true))
   dependsOn:
     - amd64
   jobs:
