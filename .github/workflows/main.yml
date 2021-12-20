@@ -30,6 +30,7 @@ jobs:
             BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
             BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
+            DOCKERFILE: Dockerfile
             QEMU_ARCH: x86_64
             S6_ARCH: amd64
             TAG_SUFFIX: amd64
@@ -39,6 +40,7 @@ jobs:
             BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
             BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
+            DOCKERFILE: Dockerfile
             QEMU_ARCH: arm
             S6_ARCH: armhf
             TAG_SUFFIX: arm32v6
@@ -48,6 +50,7 @@ jobs:
             BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
             BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
+            DOCKERFILE: Dockerfile
             QEMU_ARCH: arm
             S6_ARCH: armhf
             TAG_SUFFIX: arm32v7
@@ -57,6 +60,7 @@ jobs:
             BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
             BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
+            DOCKERFILE: Dockerfile
             QEMU_ARCH: aarch64
             S6_ARCH: aarch64
             TAG_SUFFIX: arm64v8
@@ -114,9 +118,9 @@ jobs:
     # build the image
     - name: Build Image
       run: |
-        echo "Build ${DOCKER_TARGET_REPO}:${{ matrix.TAG_SUFFIX }}"
+        echo "Build ${{ matrix.TAG_SUFFIX }}"
         # docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
-        docker build -f ${DOCKERFILE} \
+        docker build -f ${{ matrix.DOCKERFILE }} \
         --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
         --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
         --build-arg QEMU_VERSION=${QEMU_VERSION} \
