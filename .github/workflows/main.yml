@@ -29,25 +29,25 @@ jobs:
           - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: x86_64
             S6_ARCH: amd64
-            TAG_SUFFIX: amd64
+            DOCKER_TAG_SUFFIX: amd64
 
           # arm32v6 builds (Alpine)
           - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: arm
             S6_ARCH: armhf
-            TAG_SUFFIX: arm32v6
+            DOCKER_TAG_SUFFIX: arm32v6
 
           # # arm32v7 builds (Alpine)
           # - BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
           #   QEMU_ARCH: arm
           #   S6_ARCH: armhf
-          #   TAG_SUFFIX: arm32v7
+          #   DOCKER_TAG_SUFFIX: arm32v7
 
           # # arm64v8 builds (Alpine)
           # - BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
           #   QEMU_ARCH: aarch64
           #   S6_ARCH: aarch64
-          #   TAG_SUFFIX: arm64v8
+          #   DOCKER_TAG_SUFFIX: arm64v8
 
     steps:
     # login to docker hub
@@ -83,8 +83,8 @@ jobs:
       id: get_tag
       run: |
         export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; \
-          then echo "${{ matrix.TAG_SUFFIX }}"; \
-          else echo "${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}"; \
+          then echo "${{ matrix.DOCKER_TAG_SUFFIX }}"; \
+          else echo "${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}"; \
           fi;)
         echo $TARGET_IMAGE_TAG
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
@@ -102,10 +102,9 @@ jobs:
     # build the image
     - name: Build Image
       run: |
-        echo "Build ${{ matrix.TAG_SUFFIX }}"
+        echo "Build ${{ matrix.DOCKER_TAG_SUFFIX }}"
         # docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
         docker build -f ${DOCKERFILE} \
-        --platform linux/${{ matrix.NAME }} \
         --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
         --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
         --build-arg QEMU_VERSION=${QEMU_VERSION} \
@@ -140,7 +139,7 @@ jobs:
     #       done
     #     fi
 
-    # ${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}
+    # ${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}
 
 
     # # latest / main (write this last so it appears a the top of the list)
