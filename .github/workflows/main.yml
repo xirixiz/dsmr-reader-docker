@@ -17,8 +17,6 @@ jobs:
     env:
       DOCKER_BUILDKIT: 0
       DOCKER_CLI_EXPERIMENTAL: disabled
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     strategy:
       matrix:
         include:
