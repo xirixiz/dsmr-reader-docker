@@ -13,53 +13,45 @@ on:
 jobs:
   # build all the image variants
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.BUILD_OS }}
     env:
       DOCKER_BUILDKIT: 0
       DOCKER_CLI_EXPERIMENTAL: disabled
+      DOCKER_BASE_IMAGE: python:3-alpine3.13
+      DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
+      DOCKERFILE: Dockerfile
+      DSMR_VERSION: 4.19.0
+      QEMU_VERSION: 5.2.0-2
+      S6_VERSION: 2.2.0.3
     strategy:
       matrix:
         include:
           # amd64 builds (Alpine)
-          - name: amd64
-            os: ubuntu-latest
+          - NAME: amd64
+            BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
-            BASE_IMAGE: python:3-alpine3.13
-            DOCKERFILE: Dockerfile
-            DSMR_VERSION: 4.19.0
+            BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: x86_64
-            QEMU_VERSION: 5.2.0-2
             S6_ARCH: amd64
-            S6_VERSION: 2.2.0.3
             TAG_SUFFIX: amd64
 
           # arm32v6 builds (Alpine)
-          - name: arm32v6
-            os: ubuntu-latest
+          - NAME: arm32v6
+            BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
-            BASE_IMAGE: python:3-alpine3.13
-            DOCKERFILE: Dockerfile
-            DSMR_VERSION: 4.19.0
+            BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: arm
-            QEMU_VERSION: 5.2.0-2
             S6_ARCH: armhf
-            S6_VERSION: 2.2.0.3
             TAG_SUFFIX: arm32v6
-            ALT_SUFFIX: armhf
 
-          # arm64v8 builds (Alpine)
-          - name: arm64v8
-            os: ubuntu-latest
+          # arm64v7 builds (Alpine)
+          - NAME: arm32v7
+            BUILD_OS: ubuntu-latest
             TARGET_IMAGE: xirixiz/dsmr-reader-docker
-            BASE_IMAGE: python:3-alpine3.13
-            DOCKERFILE: Dockerfile
-            DSMR_VERSION: 4.19.0
-            QEMU_ARCH: aarch64
-            QEMU_VERSION: 5.2.0-2
-            S6_ARCH: aarch64
-            S6_VERSION: 2.2.0.3
-            TAG_SUFFIX: arm64v8
-            ALT_SUFFIX: aarch64
+            BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
+            QEMU_ARCH: arm
+            S6_ARCH: armhf
+            TAG_SUFFIX: arm32v7
 
     steps:
     # login to docker hub
@@ -84,7 +76,9 @@ jobs:
     - name: Get Branch / Tag Name
       id: get_branch
       run: |
-        export RELEASE_NAME=$(if [[ ${GITHUB_REF} =~ "refs/tags/" ]]; then echo ${GITHUB_REF/refs\/tags\//}; else echo ${GITHUB_REF/refs\/heads\//}; fi)
+        export RELEASE_NAME=$(if [[ ${GITHUB_REF} =~ "refs/tags/" ]]; \
+          then echo ${GITHUB_REF/refs\/tags\//}; \
+          else echo ${GITHUB_REF/refs\/heads\//}; fi)
         echo $RELEASE_NAME
         echo ::set-output name=NAME::${RELEASE_NAME}
 
@@ -92,22 +86,35 @@ jobs:
     - name: Get Image Tag
       id: get_tag
       run: |
-        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "latest"; else echo "${{ matrix.TAG_SUFFIX }}"; fi; else if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "${{ steps.get_branch.outputs.NAME }}"; else echo "${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}"; fi; fi)
+        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; \
+          then echo "${{ matrix.TAG_SUFFIX }}"; \
+          else echo "${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}"; \
+          fi;)
         echo $TARGET_IMAGE_TAG
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
 
-    # # pull the existing image from the registry, if it exists, to use as a build cache
-    # - name: Pull Image Cache
-    #   id: get_image_cache
-    #   run: |
-    #     docker pull ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} && export IMAGE_CACHE="--cache-from ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }}" || export IMAGE_CACHE=""
-    #     echo $IMAGE_CACHE
-    #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
+    # pull the existing image from the registry, if it exists, to use as a build cache
+    - name: Pull Image Cache
+      id: get_image_cache
+      run: |
+        docker pull ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} \
+          && export IMAGE_CACHE="--cache-from ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }}" \
+          || export IMAGE_CACHE=""
+        echo $IMAGE_CACHE
+        echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
     # build the image
     - name: Build Image
       run: |
-        docker build -f ${{ matrix.DOCKERFILE }} --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} --build-arg QEMU_VERSION=${{ matrix.QEMU_VERSION }} --build-arg S6_ARCH=${{ matrix.S6_ARCH }} --build-arg S6_VERSION=${{ matrix.S6_VERSION }} --build-arg DSMR_VERSION=${{ matrix.DSMR_VERSION }} -t ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} .
+        echo "Build ${DOCKER_TARGET_REPO}:${{ matrix.TAG_SUFFIX }}"
+        docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
+        --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
+        --build-arg QEMU_VERSION=${QEMU_VERSION} \
+        --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \
+        --build-arg S6_VERSION=${S6_VERSION} \
+        --build-arg DSMR_VERSION=${DSMR_VERSION} \
+        -t ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} \
+        .
 
     # push the image to docker hub
     - name: Push Image to Docker Hub
@@ -120,19 +127,22 @@ jobs:
     #     docker tag ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} ghcr.io/${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }}
     #     docker push ghcr.io/${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }}
 
-    # push alternate tags
-    - name: Push Alternate Tags
-      run: |
-        if [ -z "${{ matrix.ALT_SUFFIX }}" ]; then
-          echo "No alternate tags set for this build.";
-        else
-          for ALT_SUFFIX_ENTRY in $(echo "${{ matrix.ALT_SUFFIX }}" | sed "s/,/ /g"); do
-            echo "Tagging with alternate tag '$ALT_SUFFIX_ENTRY'";
-            export ALT_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then if [ "$ALT_SUFFIX_ENTRY" = "" ]; then echo "error"; else echo "$ALT_SUFFIX_ENTRY"; fi; else if [ "$ALT_SUFFIX_ENTRY" = "" ]; then echo "${{ steps.get_branch.outputs.NAME }}"; else echo "${{ steps.get_branch.outputs.NAME }}-$ALT_SUFFIX_ENTRY"; fi; fi);
-            docker tag ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} ${{ matrix.TARGET_IMAGE }}:$ALT_IMAGE_TAG;
-            docker push ${{ matrix.TARGET_IMAGE }}:$ALT_IMAGE_TAG;
-          done
-        fi
+    # # push alternate tags
+    # - name: Push Alternate Tags
+    #   run: |
+    #     if [ -z "${{ matrix.ALT_SUFFIX }}" ]; then
+    #       echo "No alternate tags set for this build.";
+    #     else
+    #       for ALT_SUFFIX_ENTRY in $(echo "${{ matrix.ALT_SUFFIX }}" | sed "s/,/ /g"); do
+    #         echo "Tagging with alternate tag '$ALT_SUFFIX_ENTRY'";
+    #         export ALT_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then if [ "$ALT_SUFFIX_ENTRY" = "" ]; then echo "error"; else echo "$ALT_SUFFIX_ENTRY"; fi; else if [ "$ALT_SUFFIX_ENTRY" = "" ]; then echo "${{ steps.get_branch.outputs.NAME }}"; else echo "${{ steps.get_branch.outputs.NAME }}-$ALT_SUFFIX_ENTRY"; fi; fi);
+    #         docker tag ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} ${{ matrix.TARGET_IMAGE }}:$ALT_IMAGE_TAG;
+    #         docker push ${{ matrix.TARGET_IMAGE }}:$ALT_IMAGE_TAG;
+    #       done
+    #     fi
+
+    # ${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}
+
 
     # # latest / main (write this last so it appears a the top of the list)
     # - name: latest
