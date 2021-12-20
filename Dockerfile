@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-python:3-alpine3.13}
+FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 
 ARG QEMU_ARCH
 ARG QEMU_VERSION
@@ -36,8 +36,7 @@ RUN apk --update add --no-cache \
     postgresql-client \
     mariadb-connector-c-dev \
     mariadb-client \
-    tzdata \
-    jq
+    tzdata
 
 RUN curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz" | tar xvzf - -C /usr/bin
 RUN	curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" | tar xvzf - -C /
