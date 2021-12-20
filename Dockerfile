@@ -27,6 +27,12 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
     DATALOGGER_MODE=standalone \
     VACUUM_DB_ON_STARTUP=false
 
+RUN curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz" | tar xvzf - -C /usr/bin
+RUN	curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" | tar xvzf - -C /
+RUN mkdir -p /dsmr \
+    && curl -k -L -s "https://github.com/dsmrreader/dsmr-reader/archive/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /dsmr \
+    && curl -k -L -s "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /dsmr/dsmr_datalogger_api_client.py
+
 RUN apk --update add --no-cache \
     bash \
     dpkg \
@@ -38,12 +44,6 @@ RUN apk --update add --no-cache \
     mariadb-connector-c-dev \
     mariadb-client \
     tzdata
-
-RUN curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz" | tar xvzf - -C /usr/bin
-RUN	curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" | tar xvzf - -C /
-RUN mkdir -p /dsmr \
-    && curl -k -L -s "https://github.com/dsmrreader/dsmr-reader/archive/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /dsmr \
-    && curl -k -L -s "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /dsmr/dsmr_datalogger_api_client.py
 
 RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
 

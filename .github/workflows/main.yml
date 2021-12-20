@@ -89,15 +89,15 @@ jobs:
         echo $TARGET_IMAGE_TAG
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
 
-    # pull the existing image from the registry, if it exists, to use as a build cache
-    - name: Pull Image Cache
-      id: get_image_cache
-      run: |
-        docker pull ${DOCKER_TARGET_REPO}:${{ steps.get_tag.outputs.NAME }} \
-          && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ steps.get_tag.outputs.NAME }}" \
-          || export IMAGE_CACHE=""
-        echo $IMAGE_CACHE
-        echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
+    # # pull the existing image from the registry, if it exists, to use as a build cache
+    # - name: Pull Image Cache
+    #   id: get_image_cache
+    #   run: |
+    #     docker pull ${DOCKER_TARGET_REPO}:${{ steps.get_tag.outputs.NAME }} \
+    #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ steps.get_tag.outputs.NAME }}" \
+    #       || export IMAGE_CACHE=""
+    #     echo $IMAGE_CACHE
+    #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
     # build the image
     - name: Build Image
