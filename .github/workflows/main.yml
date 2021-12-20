@@ -11,7 +11,7 @@ on:
       - '**.md'
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: 1
