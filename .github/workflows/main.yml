@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches:
-      - 'development-s6'
+      - 's6_init'
   pull_request:
     branches:
       - 'master'
