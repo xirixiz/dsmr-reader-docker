@@ -64,6 +64,13 @@ jobs:
             ALT_SUFFIX: aarch64
 
     steps:
+    # login to docker hub
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${DOCKERHUB_USERNAME}
+        password: ${DOCKERHUB_PASSWORD}
+
     # checkout repo
     - name: Checkout
       uses: actions/checkout@v2
@@ -99,12 +106,7 @@ jobs:
     #     echo $IMAGE_CACHE
     #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
-    # login to docker hub
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${DOCKERHUB_USERNAME}
-        password: ${DOCKERHUB_PASSWORD}
+
 
     # build the image
     - name: Build Image
