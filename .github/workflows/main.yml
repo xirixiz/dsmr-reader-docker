@@ -85,7 +85,7 @@ jobs:
     - name: Get Image Tag
       id: get_tag
       run: |
-        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "latest"; else echo "${{ matrix.TAG_SUFFIX }}"; fi; else if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "${{ steps.get_branch.outputs.NAME }}"; else echo "${{ steps.get_branch.outputs.NAME }}-${{ matrix.TAG_SUFFIX }}"; fi; fi)
+        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "latest"; else echo "${{ matrix.TAG_SUFFIX }}"; fi; else if [ "${{ matrix.TAG_SUFFIX }}" = "" ]; then echo "${{ steps.get_branch.outputs.NAME }}"; else echo "${{ matrix.TAG_SUFFIX }}-${{ steps.get_branch.outputs.NAME }}"; fi; fi)
         echo $TARGET_IMAGE_TAG
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
 
