@@ -123,7 +123,6 @@ jobs:
         docker build -f ${{ matrix.DOCKERFILE }} \
         --platform linux/${{ matrix.NAME }} \
         --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
-        --build-arg ARCH=${{ matrix.QEMU_ARCH }} \
         --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
         --build-arg QEMU_VERSION=${QEMU_VERSION} \
         --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \

@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-python:3-alpine3.13}
+FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 
 ARG QEMU_ARCH
 ARG QEMU_VERSION
@@ -13,8 +13,6 @@ ENV S6_ARCH=${S6_ARCH:-amd64}
 ENV S6_KEEP_ENV=1
 ENV S6_VERSION=${S6_VERSION:-2.2.0.3}
 ENV DSMR_VERSION=${DSMR_VERSION:-4.19.0}
-
-RUN echo "Arch: ${S6_ARCH} - qemu: ${QEMU_ARCH}"
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
@@ -75,4 +73,4 @@ HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /app/healthcheck.sh || e
 
 WORKDIR /dsmr
 
-ENTRYPOINT [ "/init" ]
+ENTRYPOINT ["/init"]
