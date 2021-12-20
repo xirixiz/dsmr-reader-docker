@@ -1,76 +1,91 @@
-#!/usr/bin/with-contenv bash
-#set -o errexit
-#set -o pipefail
-#set -o nounset
-
+#!/usr/bin/env bash
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
 : "${DEBUG:=false}"
-: "${COMMAND:=$@}"
-: "${TIMER:=60}"
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
-function _info() { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
-function _warn() { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
-function _error() { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
-function _debug() { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
+function _info  () { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
+function _warn  () { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
+function _error () { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
+function _debug () { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  alias cp="cp"
-  alias ll="ls -al"
+  _info "DSMR release: ${DSMR_VERSION}"
 
-  _info "DSMR release: $(cat /DSMR_RELEASE)"
+  _info "Creating log directory..."
+  mkdir -p /var/log/supervisor/
 
   _info "Setting architecture requirements..."
   _detect_architecture
 }
 
 function _detect_architecture() {
-  arch=$(uname -m)
-  # _info "uname -m output: ${arch}"
-  longbit=$(getconf LONG_BIT)
-  if [[ "$arch" == 'x86_64' ]]; then
-    if [[ "$longbit" = '32' ]]; then
+    arch=$(uname -m)
+    # _info "uname -m output: ${arch}"
+    longbit=$(getconf LONG_BIT)
+    if [[ "$arch" == 'x86_64' ]]; then
+      if [[ "$longbit" = '32' ]]; then
+        arch="i386"
+        _info "X32 Architecture"
+      else
+        arch="amd64"
+        _info "X64 Architecture"
+      fi
+    fi
+    if [[ "$arch" == 'x86_32' ]]; then
       arch="i386"
       _info "X32 Architecture"
-    else
+    fi
+    if [[ "$arch" == 'armv7l' ]]; then
+      arch="ARM"
+      _info "ARM Architecture"
+    fi
+    if [[ "$arch" == 'aarch64' ]]; then
+      arch="ARM64"
+      _info "ARM Architecture"
+    fi
+    if [ "$arch" == 'unknown' ]; then
+      #Assuming amd64, need to address certain distros uname giving "unknown"
       arch="amd64"
       _info "X64 Architecture"
     fi
-  fi
-  if [[ "$arch" == 'x86_32' ]]; then
-    arch="i386"
-    _info "X32 Architecture"
-  fi
-  if [[ "$arch" == 'armv7l' ]]; then
-    arch="ARM"
-    _info "ARM Architecture"
-  fi
-  if [[ "$arch" == 'aarch64' ]]; then
-    arch="ARM64"
-    _info "ARM Architecture"
-  fi
-  if [ "$arch" == 'unknown' ]; then
-    #Assuming amd64, need to address certain distros uname giving "unknown"
-    arch="amd64"
-    _info "X64 Architecture"
-  fi
 }
 
 function _dsmr_datalogger_mode() {
   if [[ "${DATALOGGER_MODE}" = standalone ]]; then
     _info "Configuring DSMR in standlone datalogger mode...."
-    printf "standalone" >/var/run/s6/container_environment/DATALOGGER_MODE
+    export SD_AUTOSTART_DATALOGGER=true
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=false
   elif [[ "${DATALOGGER_MODE}" = sender ]]; then
     _info "Configuring DSMR in sender datalogger mode...."
-    printf "sender" >/var/run/s6/container_environment/DATALOGGER_MODE
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_REMOTE_DATALOGGER=true
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=false
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=false
+    export SD_AUTORESTART_WEBINTERFACE=false
     __dsmr_client_installation
   elif [[ "${DATALOGGER_MODE}" = receiver ]]; then
     _info "Configuring DSMR in receiver datalogger mode...."
-    printf "receiver" >/var/run/s6/container_environment/DATALOGGER_MODE
+    export SD_AUTOSTART_DATALOGGER=false
+    export SD_AUTORESTART_DATALOGGER=false
+    export SD_AUTOSTART_REMOTE_DATALOGGER=false
+    export SD_AUTORESTART_REMOTE_DATALOGGER=false
+    export SD_AUTOSTART_BACKEND=true
+    export SD_AUTORESTART_BACKEND=false
+    export SD_AUTOSTART_WEBINTERFACE=true
+    export SD_AUTORESTART_WEBINTERFACE=false
   else
     _error "Invalid value of the DATALOGGER_MODE has been set. Exiting..."
     exit 1
@@ -126,13 +141,6 @@ function __dsmr_client_installation() {
   fi
 }
 
-function _override_entrypoint() {
-  if [[ -n "${COMMAND}" ]]; then
-    _info "ENTRYPOINT: Executing override command..."
-    exec "${COMMAND}"
-  fi
-}
-
 function _check_device() {
   _info "Fixing /dev/ttyUSB* security..."
   [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
@@ -167,10 +175,9 @@ function _check_db_availability() {
 
 function _run_post_config() {
   _info "Running post configuration..."
-  cmd=$(command -v python3)
-  "${cmd}" /dsmr/manage.py migrate --noinput
-  "${cmd}" /dsmr/manage.py collectstatic --noinput
-  "${cmd}" /dsmr/manage.py dsmr_superuser
+  /usr/local/bin/python3 /dsmr/manage.py migrate --noinput
+  /usr/local/bin/python3 /dsmr/manage.py collectstatic --noinput
+  /usr/local/bin/python3 /dsmr/manage.py dsmr_superuser
 }
 
 function _nginx_ssl_configuration() {
@@ -246,9 +253,10 @@ function _iframe {
     sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
   fi
 }
+
 function _cleandb {
   _info "Vacuum cleaning enabled. Vacuming database..."
-  exec /cleandb.sh
+  /app/cleandb.sh
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -258,8 +266,6 @@ function _cleandb {
 
 _pre_reqs
 _iframe
-_override_entrypoint
-_dsmr_datalogger_mode
 
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = sender ]]; then
   _check_device
@@ -271,3 +277,5 @@ if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; t
   _nginx_ssl_configuration
   _generate_auth_configuration
 fi
+
+_dsmr_datalogger_mode

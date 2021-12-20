@@ -1,54 +1,92 @@
-name: 🚨 Report an issue
-description: Report an issue.
-body:
-  - type: markdown
-    attributes:
-      value: |
-        This issue form is for reporting bugs.
-  - type: textarea
-    validations:
-      required: true
-    attributes:
-      label: Issue
-      description: >-
-        Describe the issue you are experiencing here to communicate to the
-        maintainers. Tell us what you were trying to do and what happened.
+name: 🚨 Issue Report
+description: Report an issue
 
-        Provide a clear and concise description of what the problem is.
-  - type: input
-    id: version
+body:
+
+  - type: checkboxes
+    attributes:
+      label: Support guidelines
+      description: Please read the support guidelines before proceeding.
+      options:
+        - label: I've read the [support guidelines](https://github.com/xirixiz/dsmr-reader-docker/blob/master/.github/SUPPORT.md)
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: I've found an issue and checked that ...
+      description: Make sure that your request fulfills all of the following requirements. If one requirement cannot be satisfied, explain in detail why.
+      options:
+        - label: ... the documentation does not mention anything about my problem
+        - label: ... there are no open or closed issues that are related to my problem
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: Please provide a brief description of the issue in 1-2 sentences.
     validations:
       required: true
-    attributes:
-      label: Which version has the issue?
-      placeholder: "xirixiz/dsmr-reader-docker:"
-      description: >
-        Can be found in the About section.
-  - type: input
-    attributes:
-      label: What was the last working version?
-      placeholder: "xirixiz/dsmr-reader-docker:"
-      description: >
-        If known, otherwise leave blank.
-  - type: dropdown
-    attributes:
-      label: What type of installation are you running (architecture)?
-      description: >
-        If known, otherwise leave blank.
-      options:
-        - AMD64
-        - ARM64
-        - ARM
-        - Other
+
   - type: textarea
     attributes:
-      label: Anything in the logs that might be useful?
-      description: For example, error message, or stack traces.
-      render: txt
+      label: Expected behaviour
+      description: Please describe precisely what you'd expect to happen.
+    validations:
+      required: true
+
   - type: textarea
     attributes:
-      label: Additional information
-      description: >
-        If you have any additional information, use the field below.
-        Please note, you can attach screenshots or screen recordings here, by
-        dragging and dropping files in the field below.
+      label: Actual behaviour
+      description: Please describe precisely what is actually happening.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: Please describe the steps to reproduce the issue.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Docker info
+      description: Please provide the Docker system-wide information.
+      placeholder: Output of `docker info` command
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Version
+      description: Please provide operating system version and system information.
+      value: |
+        * Docker compose version (type `docker-compose --version`):
+        * System info (type `uname -a`):
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Docker compose
+      description: Please provide your compose config if applicable.
+      placeholder: Output of `docker-compose config` command
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Container logs
+      description: Please provide the container logs.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional info
+      description: Please provide any additional information that seem useful.
