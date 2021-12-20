@@ -17,6 +17,8 @@ jobs:
     env:
       DOCKER_BUILDKIT: 0
       DOCKER_CLI_EXPERIMENTAL: disabled
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     strategy:
       matrix:
         include:
@@ -97,6 +99,11 @@ jobs:
     #     echo $IMAGE_CACHE
     #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
+    # login to docker hub
+    - name: Login to Docker Hub
+      run: |
+        echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
@@ -108,10 +115,10 @@ jobs:
       run: |
         docker build -f ${{ matrix.DOCKERFILE }} --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} --build-arg QEMU_VERSION=${{ matrix.QEMU_VERSION }} --build-arg S6_ARCH=${{ matrix.S6_ARCH }} --build-arg S6_VERSION=${{ matrix.S6_VERSION }} --build-arg DSMR_VERSION=${{ matrix.DSMR_VERSION }} -t ${{ matrix.TARGET_IMAGE }}:${{ steps.get_tag.outputs.NAME }} .
 
-    # login to docker hub
-    # - name: Login to Docker Hub
-    #   run: |
-    #     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+    login to docker hub
+    - name: Login to Docker Hub
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     # push the image to docker hub
     - name: Push Image to Docker Hub
