@@ -125,7 +125,7 @@ jobs:
         echo "Build ${{ matrix.TAG_SUFFIX }}"
         # docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
         docker build -f ${{ matrix.DOCKERFILE }} \
-        --platform linux/${{ matrix.PLATFORM }} \
+        --platform ${{ matrix.PLATFORM }} \
         --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
         --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
         --build-arg QEMU_VERSION=${QEMU_VERSION} \
