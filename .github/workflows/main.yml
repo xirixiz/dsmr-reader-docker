@@ -12,10 +12,10 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.BUILD_OS }}
+    runs-on: ubuntu-latest
     env:
-      DOCKER_BUILDKIT: 1
-      DOCKER_CLI_EXPERIMENTAL: enabled
+      # DOCKER_BUILDKIT: 1
+      # DOCKER_CLI_EXPERIMENTAL: enabled
       DOCKER_BASE_IMAGE: python:3-alpine3.13
       DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
       DOCKERFILE: Dockerfile
@@ -26,33 +26,25 @@ jobs:
       matrix:
         include:
           # amd64 builds (Alpine)
-          - name: amd64
-            BUILD_OS: ubuntu-latest
-            BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
+          - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: x86_64
             S6_ARCH: amd64
             TAG_SUFFIX: amd64
 
           # arm32v6 builds (Alpine)
-          - name: arm32v6
-            BUILD_OS: ubuntu-latest
-            BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
+          - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: arm
             S6_ARCH: armhf
             TAG_SUFFIX: arm32v6
 
           # # arm32v7 builds (Alpine)
-          # - name: arm32v7
-          #   BUILD_OS: ubuntu-latest
-          #   BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
+          # - BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
           #   QEMU_ARCH: arm
           #   S6_ARCH: armhf
           #   TAG_SUFFIX: arm32v7
 
           # # arm64v8 builds (Alpine)
-          # - name: arm64v8
-          #   BUILD_OS: ubuntu-latest
-          #   BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
+          # - BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
           #   QEMU_ARCH: aarch64
           #   S6_ARCH: aarch64
           #   TAG_SUFFIX: arm64v8
