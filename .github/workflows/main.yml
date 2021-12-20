@@ -62,11 +62,34 @@ jobs:
       uses: actions/checkout@v2
 
     # setup multi-arch build support (qemu)
-    - name: Install Dependencies
+    # - name: Install Dependencies
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
+    #     docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+    - name: Register binfmt_misc entry for qemu-user-static
+      env:
+        DOCKER_ARCH: ${{ matrix.DOCKER_TAG_SUFFIX }}
       run: |
-        sudo apt-get update
-        sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
-        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+        case ${DOCKER_ARCH} in
+        	amd64)
+        		QEMU_ARCH=
+        		;;
+        	arm32*)
+        		QEMU_ARCH=arm
+        		;;
+        	arm64*)
+        		QEMU_ARCH=aarch64
+        		;;
+        	*)
+        		QEMU_ARCH=${DOCKER_ARCH}
+        		;;
+        esac
+        if [ -n "${QEMU_ARCH}" ]; then
+        	docker rm $(docker create --volume qemu-user-static:/usr/bin multiarch/qemu-user-static:${QEMU_ARCH} dummy)
+        	docker run --rm --privileged --volume qemu-user-static:/usr/bin:ro multiarch/qemu-user-static:register --persistent yes
+        fi
 
     # get branch / tag name
     - name: Get Branch / Tag Name
