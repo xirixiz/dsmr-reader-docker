@@ -13,9 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_BUILDKIT: 1
-      DOCKER_CLI_EXPERIMENTAL: enabled
 
     steps:
     # login to docker hub
