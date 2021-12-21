@@ -52,7 +52,7 @@ jobs:
       shell: bash
       run: |
         URL='https://api.github.com/repos/multiarch/qemu-user-static/releases/latest'
-        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
         VERSION=${VERSION#"v"}
         echo "::set-output name=version::${VERSION}"
 
@@ -72,7 +72,7 @@ jobs:
       shell: bash
       run: |
         URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest"
-        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
         VERSION=${VERSION#"v"}
         echo "::set-output name=version::${VERSION}"
 
@@ -91,7 +91,7 @@ jobs:
       shell: bash
       run: |
         URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
         VERSION=${VERSION#"v"}
         echo "::set-output name=version::${VERSION}"
 
