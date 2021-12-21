@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+if [[ "${DATALOGGER_MODE}" = standalone ]]; then
+    echo "Starting DSMR Reader - datalogger..."
+    cd /dsmr || exit
+    exec /usr/local/bin/python3 -u /dsmr/manage.py dsmr_datalogger
+fi

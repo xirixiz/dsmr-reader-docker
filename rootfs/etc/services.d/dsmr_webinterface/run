@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
+    echo "Starting DSMR Reader - webinterface..."
+    cd /dsmr || exit
+    exec /usr/local/bin/gunicorn dsmrreader.wsgi --timeout 60 --max-requests 500 --bind unix:/var/tmp/gunicorn--dsmr_webinterface.socket
+fi

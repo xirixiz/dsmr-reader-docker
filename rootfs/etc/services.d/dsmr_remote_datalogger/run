@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+if [[ "${DATALOGGER_MODE}" = sender ]]; then
+    echo "Starting DSMR Reader - remote datalogger..."
+    cd /dsmr || exit
+    exec /usr/local/bin/python3 -u /dsmr/dsmr_datalogger_api_client.py
+fi
