@@ -49,6 +49,7 @@ jobs:
     ################################################
     - name: '⚙️ QEMU - Determine version'
       id: qemu_version
+      shell: bash
       run: |
         URL='https://api.github.com/repos/qemu-user-static/releases/releases/latest'
         VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
@@ -56,8 +57,8 @@ jobs:
         echo "::set-output name=version::${VERSION}"
 
     - name: '🚀 QEMU - Get package'
-        env:
-          qemu_version: ${{ steps.qemu_version.outputs.version }}
+      env:
+        qemu_version: ${{ steps.qemu_version.outputs.version }}
       run: |
         docker run --rm --privileged multiarch/qemu-user-static:register --reset
         mkdir -p tmp/qemu
@@ -68,6 +69,7 @@ jobs:
     ################################################
     - name: '⚙️ S6 - Determine version'
       id: s6_version
+      shell: bash
       run: |
         URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest"
         VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
@@ -86,6 +88,7 @@ jobs:
     ################################################
     - name: '⚙️ DSMR - Determine version'
       id: dsmr_version
+      shell: bash
       run: |
         URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
         VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
