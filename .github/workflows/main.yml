@@ -41,7 +41,7 @@ jobs:
     ################################################
     ## GENERAL
     ################################################
-    - name: '🚧 GitHub - Checkout repository'
+    - name: '🚀 GitHub - Checkout repository'
       uses: actions/checkout@v2
 
     ################################################
