@@ -10,17 +10,18 @@ on:
     paths-ignore:
       - '**.md'
 
+env:
+  DOCKER_BASE_IMAGE: python:3-alpine3.13
+  DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
+  BUILD_IMAGE_NAME: local/alpine-base
+  DOCKERFILE: Dockerfile
+
 jobs:
   ################################################
   ## JOB: BUILD_RELEASE
   ################################################
   build_release:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_BASE_IMAGE: python:3-alpine3.13
-      DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
-      BUILD_IMAGE_NAME: local/alpine-base
-      DOCKERFILE: Dockerfile
     strategy:
       matrix:
         include:
@@ -188,7 +189,6 @@ jobs:
     ################################################
     outputs:
       get_branch: ${{ steps.get_branch.outputs.name }}
-      docker_target_repo: ${DOCKER_TARGET_REPO}
 
   ################################################
   ## JOB: MANIFEST_RELEASE
@@ -206,7 +206,6 @@ jobs:
       - name: '🛰️ Docker - Publish Manifest'
         run: |
           export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
-          export DOCKER_TARGET_REPO=${{ needs.build_release.outputs.docker_target_repo }}
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo ""; else echo "-${GET_BRANCH}"; fi)
 
