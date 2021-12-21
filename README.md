@@ -92,13 +92,6 @@ amd64-development
   HTTP_AUTH_PASSWORD=
   ```
 
-* ##### Supervisord related:
-  ```properties
-  SD_LOGLEVEL=info
-  SD_USER=root  # CURRENTLY DISABLED ( > 2021.12.xx )
-  SD_GROUP=root # CURRENTLY DISABLED ( > 2021.12.xx )
-  ```
-
 * ##### DSMR related (defaults are shown as value):
   ```properties
   # Webinterface user:
