@@ -66,9 +66,9 @@ jobs:
     - name: '🚀 GitHub - Get Tag'
       id: get_tag
       run: |
-        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; \
+        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; \
           then echo "${{ matrix.docker_tag_suffix }}"; \
-          else echo "${{ matrix.docker_tag_suffix }}-${{ steps.get_branch.outputs.NAME }}"; \
+          else echo "${{ matrix.docker_tag_suffix }}-${{ steps.get_branch.outputs.name }}"; \
           fi;)
         echo "${TARGET_IMAGE_TAG}"
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
@@ -147,7 +147,17 @@ jobs:
       env:
         TARGET_IMAGE: ${docker_target_repo}
       run: |
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+
+        echo "DOCKER BUILD: Build Docker image."
+        echo "DOCKER BUILD: arch - ${{matrix.base_image}}."
+        echo "DOCKER BUILD: s6 -> ${{matrix.s6_arch}}."
+        echo "DOCKER BUILD: s6 version -> ${{ steps.s6_version.outputs.version }}."
+        echo "DOCKER BUILD: qemu version -> ${{ steps.qemu_version.outputs.version }}."
+        echo "DOCKER BUILD: qemu arch - ${{matrix.qemu_arch}}."
+        echo "DOCKER BUILD: dsmr version -> ${{ steps.dsmr_version.outputs.version }}."
+        echo "DOCKER BUILD: docker file - ${dockerfile}."
+        echo "DOCKER BUILD: tag prefix - ${TAG_PREFIX}."
 
         docker build -f ${dockerfile} \
         --build-arg BASE_IMAGE=${{ matrix.base_image }} \
@@ -159,15 +169,15 @@ jobs:
       env:
         TARGET_IMAGE: ${docker_target_repo}
       run: |
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
         docker push ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX}
 
     - name: '🛰️ Docker - Publish Manifest'
       env:
         TARGET_IMAGE: ${docker_target_repo}
       run: |
-        export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.NAME }}"; fi)
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
+        export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.name }}"; fi)
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
 
         docker manifest create "${TARGET_IMAGE}:${MANIFEST_SUFFIX} \
           ${TARGET_IMAGE}:amd64${TAG_PREFIX} \
