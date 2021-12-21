@@ -171,6 +171,9 @@ jobs:
         export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
         docker push ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}
 
+  manifest:
+    needs: build
+    runs-on: ubuntu-latest
     - name: '🛰️ Docker - Publish Manifest'
       run: |
         export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.name }}"; fi)
