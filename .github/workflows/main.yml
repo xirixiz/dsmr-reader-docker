@@ -16,36 +16,36 @@ jobs:
     env:
       # DOCKER_BUILDKIT: 1
       # DOCKER_CLI_EXPERIMENTAL: enabled
-      docker_base_image: python:3-alpine3.13
-      docker_target_repo: xirixiz/dsmr-reader-docker
-      build_image_name: local/alpine-base
-      dockerfile: Dockerfile
+      DOCKER_BASE_IMAGE: python:3-alpine3.13
+      DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
+      BUILD_IMAGE_NAME: local/alpine-base
+      DOCKERFILE: Dockerfile
     strategy:
       matrix:
         include:
           # AMD64
-          - base_image: amd64/${docker_base_image}
-            qemu_arch: x86_64
-            s6_arch: amd64
-            docker_tag_suffix: amd64
+          - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
+            QEMU_ARCH: x86_64
+            S6_ARCH: amd64
+            DOCKER_TAG_SUFFIX: amd64
 
           # ARM32V6
-          - base_image: arm32v6/${docker_base_image}
-            qemu_arch: arm
-            s6_arch: armhf
-            docker_tag_suffix: arm32v6
+          - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
+            QEMU_ARCH: arm
+            S6_ARCH: armhf
+            DOCKER_TAG_SUFFIX: arm32v6
 
           # ARM32V7
-          - base_image: arm32v6/${docker_base_image}
-            qemu_arch: arm
-            s6_arch: armhf
-            docker_tag_suffix: arm32v7
+          - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
+            QEMU_ARCH: arm
+            S6_ARCH: armhf
+            DOCKER_TAG_SUFFIX: arm32v7
 
           # ARM64V8
-          - base_image: arm64v8/${docker_base_image}
-            qemu_arch: aarch64
-            s6_arch: aarch64
-            docker_tag_suffix: arm64v8
+          - BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
+            QEMU_ARCH: aarch64
+            S6_ARCH: aarch64
+            DOCKER_TAG_SUFFIX: arm64v8
 
     steps:
     ################################################
@@ -67,8 +67,8 @@ jobs:
       id: get_tag
       run: |
         export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; \
-          then echo "${{ matrix.docker_tag_suffix }}"; \
-          else echo "${{ matrix.docker_tag_suffix }}-${{ steps.get_branch.outputs.name }}"; \
+          then echo "${{ matrix.DOCKER_TAG_SUFFIX }}"; \
+          else echo "${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.name }}"; \
           fi;)
         echo "${TARGET_IMAGE_TAG}"
         echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
@@ -91,7 +91,7 @@ jobs:
       run: |
         docker run --rm --privileged multiarch/qemu-user-static:register --reset
         mkdir -p tmp/qemu
-        curl -SskLf "https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${{ matrix.qemu_arch }}-static.tar.gz" | tar xvzf - -C tmp/qemu
+        curl -SskLf "https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${{ matrix.QEMU_ARCH }}-static.tar.gz" | tar xvzf - -C tmp/qemu
 
     ################################################
     ## S6
@@ -109,8 +109,8 @@ jobs:
       env:
         s6_version: ${{ steps.s6_version.outputs.version }}
       run: |
-        mkdir -p tmp/s6-${{ matrix.s6_arch }}
-        curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.s6_arch }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.s6_arch }}
+        mkdir -p tmp/s6-${{ matrix.S6_ARCH }}
+        curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.S6_ARCH }}
 
     ################################################
     ## DSMR
@@ -145,47 +145,50 @@ jobs:
 
     - name: '🚀 Docker - Build'
       env:
-        TARGET_IMAGE: ${docker_target_repo}
+        TARGET_IMAGE: ${DOCKER_TARGET_REPO}
       run: |
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+        export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
 
         echo "DOCKER BUILD: Build Docker image."
-        echo "DOCKER BUILD: arch - ${{matrix.base_image}}."
-        echo "DOCKER BUILD: s6 -> ${{matrix.s6_arch}}."
+        echo "DOCKER BUILD: base image - ${{matrix.BASE_IMAGE}}."
+        echo "DOCKER BUILD: s6 -> ${{matrix.S6_ARCH}}."
         echo "DOCKER BUILD: s6 version -> ${{ steps.s6_version.outputs.version }}."
         echo "DOCKER BUILD: qemu version -> ${{ steps.qemu_version.outputs.version }}."
-        echo "DOCKER BUILD: qemu arch - ${{matrix.qemu_arch}}."
+        echo "DOCKER BUILD: qemu arch - ${{matrix.QEMU_ARCH}}."
         echo "DOCKER BUILD: dsmr version -> ${{ steps.dsmr_version.outputs.version }}."
-        echo "DOCKER BUILD: docker file - ${dockerfile}."
-        echo "DOCKER BUILD: tag prefix - ${TAG_PREFIX}."
+        echo "DOCKER BUILD: docker file - ${DOCKERFILE}."
+        echo "DOCKER BUILD: tag suffix - ${{ matrix.DOCKER_TAG_SUFFIX }}."
+        echo "DOCKER BUILD: target image - ${TARGET_IMAGE}."
+        echo "DOCKER BUILD: tag suffix branch - ${DOCKER_TAG_SUFFIX_BRANCH}."
 
-        docker build -f ${dockerfile} \
-        --build-arg BASE_IMAGE=${{ matrix.base_image }} \
-        --build-arg QEMU_ARCH=${{ matrix.qemu_arch }} \
-        --build-arg S6_ARCH=${{ matrix.s6_arch }} \
-        -t ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX} .
+        docker build -f ${DOCKERFILE} \
+          --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
+          --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
+          --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \
+          -t ${TARGET_IMAGE}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
+          .
 
     - name: '🚀 Docker - Push'
       env:
-        TARGET_IMAGE: ${docker_target_repo}
+        TARGET_IMAGE: ${DOCKER_TARGET_REPO}
       run: |
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
-        docker push ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX}
+        export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+        docker push ${TARGET_IMAGE}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}
 
     - name: '🛰️ Docker - Publish Manifest'
       env:
-        TARGET_IMAGE: ${docker_target_repo}
+        TARGET_IMAGE: ${DOCKER_TARGET_REPO}
       run: |
         export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.name }}"; fi)
-        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+        export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
 
-        docker manifest create "${TARGET_IMAGE}:${MANIFEST_SUFFIX} \
-          ${TARGET_IMAGE}:amd64${TAG_PREFIX} \
-          ${TARGET_IMAGE}:arm32v6${TAG_PREFIX} \
-          ${TARGET_IMAGE}:arm32v7${TAG_PREFIX} \
-          ${TARGET_IMAGE}:arm64v8${TAG_PREFIX}"
+        docker manifest create "${TARGET_IMAGE}:${MANIFEST_SUFFIX}" \
+          "${TARGET_IMAGE}:amd64${DOCKER_TAG_SUFFIX_BRANCH}" \
+          "${TARGET_IMAGE}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" \
+          "${TARGET_IMAGE}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" \
+          "${TARGET_IMAGE}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}"
 
-        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm32v6${TAG_PREFIX} --os=linux --arch=arm --variant=v6"
-        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm32v7${TAG_PREFIX} --os=linux --arch=arm --variant=v7"
-        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm64v8${TAG_PREFIX} --os=linux --arch=arm64 --variant=v8"
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX}" "${TARGET_IMAGE}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v6
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX}" "${TARGET_IMAGE}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v7
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX}" "${TARGET_IMAGE}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm64 --variant=v8
         docker manifest push "${TARGET_IMAGE}:${MANIFEST_SUFFIX}"
