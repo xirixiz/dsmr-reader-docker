@@ -1,4 +1,4 @@
-name: 'build multi arch images for DSMR Reader'
+name: 'DSMR: Build Docker images'
 
 on:
   push:
