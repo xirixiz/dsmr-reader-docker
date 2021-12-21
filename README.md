@@ -53,6 +53,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ##### Stable releases
 ```text
+latest
 arm32v6-<version>
 arm32v7-<version>
 arm64v8-<version>
@@ -61,6 +62,7 @@ amd64-<version>
 
 ##### Development releases
 ```text
+development
 arm32v6-development
 arm32v7-development
 arm64v8-development
