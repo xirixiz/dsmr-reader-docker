@@ -41,7 +41,7 @@ jobs:
             DOCKER_TAG_SUFFIX: arm32v6
 
           # ARM32V7
-          - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
+          - BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: arm
             S6_ARCH: armhf
             DOCKER_TAG_SUFFIX: arm32v7
