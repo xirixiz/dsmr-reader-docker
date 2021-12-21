@@ -27,11 +27,8 @@ COPY /tmp/qemu/qemu-${QEMU_ARCH}-static /usr/bin/qemu-${QEMU_ARCH}-static
 COPY /tmp/s6-${S6_ARCH}/ /
 COPY /tmp/dsmr/ /dsmr
 
-# RUN curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz" | tar xvzf - -C /usr/bin
-# RUN	curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" | tar xvzf - -C /
-# RUN mkdir -p /dsmr \
-#     && curl -k -L -s "https://github.com/dsmrreader/dsmr-reader/archive/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /dsmr \
-#     && curl -k -L -s "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /dsmr/dsmr_datalogger_api_client.py
+COPY app /app
+COPY rootfs /
 
 RUN apk --update add --no-cache \
     bash \
@@ -66,10 +63,7 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-COPY app /app
-COPY rootfs /
-
-HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /app/healthcheck.sh || exit 1
+HEALTHCHECK --interval=10s --timeout=3s --retries=30 CMD /app/healthcheck.sh || exit 1
 
 WORKDIR /dsmr
 
