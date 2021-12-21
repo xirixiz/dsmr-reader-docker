@@ -1,0 +1,19 @@
+name: 'DSMR: Cancelling duplicate workflow'
+
+on:
+  workflow_run:
+    workflows:
+      - 'DSMR: Build Docker images'
+    types: ['requested']
+
+jobs:
+  cancel-duplicate-workflow-runs:
+    name: "Cancel duplicate workflow runs"
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: potiuk/cancel-workflow-runs@master
+        name: "Cancel duplicate workflow runs"
+        with:
+          cancelMode: allDuplicates
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sourceRunId: ${{ github.event.workflow_run.id }}
