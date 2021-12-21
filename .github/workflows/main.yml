@@ -153,7 +153,7 @@ jobs:
         --build-arg BASE_IMAGE=${{ matrix.base_image }} \
         --build-arg QEMU_ARCH=${{ matrix.qemu_arch }} \
         --build-arg S6_ARCH=${{ matrix.s6_arch }} \
-        -t ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX}
+        -t ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX} .
 
     - name: '🚀 Docker - Push'
       env:
