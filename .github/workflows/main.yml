@@ -20,9 +20,6 @@ jobs:
       docker_target_repo: xirixiz/dsmr-reader-docker
       build_image_name: local/alpine-base
       dockerfile: Dockerfile
-      dsmr_version: ${{steps.dsmr_version.outputs.version}}
-      qemu_version: ${{steps.qemu_version.outputs.version}}
-      s6_version: ${{steps.s6_version.outputs.version}}
     strategy:
       matrix:
         include:
@@ -59,6 +56,8 @@ jobs:
         echo "::set-output name=version::${VERSION}"
 
     - name: '🚀 QEMU - Get package'
+        env:
+          qemu_version: ${{ steps.qemu_version.outputs.version }}
       run: |
         docker run --rm --privileged multiarch/qemu-user-static:register --reset
         mkdir -p tmp/qemu
@@ -76,6 +75,8 @@ jobs:
         echo "::set-output name=version::${VERSION}"
 
     - name: '🚀 S6 - Get package'
+      env:
+        s6_version: ${{ steps.s6_version.outputs.version }}
       run: |
         mkdir -p tmp/s6-${{ matrix.s6_arch }}
         curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.s6_arch }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.s6_arch }}
@@ -92,6 +93,8 @@ jobs:
         echo "::set-output name=version::${VERSION}"
 
     - name: '🚀 DSMR - Get package'
+      env:
+        dsmr_version: ${{ steps.dsmr_version.outputs.version }}
       run: |
         mkdir -p tmp/dsmr
         curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/dsmr
