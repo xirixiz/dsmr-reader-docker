@@ -25,17 +25,27 @@ jobs:
         include:
           # AMD64
           - base_image: amd64/${docker_base_image}
-            build_image: ${build_image_name}:amd64
             qemu_arch: x86_64
             s6_arch: amd64
             docker_tag_suffix: amd64
 
           # ARM32V6
           - base_image: arm32v6/${docker_base_image}
-            build_image: ${build_image_name}:arm
             qemu_arch: arm
             s6_arch: armhf
             docker_tag_suffix: arm32v6
+
+          # ARM32V7
+          - base_image: arm32v6/${docker_base_image}
+            qemu_arch: arm
+            s6_arch: armhf
+            docker_tag_suffix: arm32v7
+
+          # ARM64V8
+          - base_image: arm64v8/${docker_base_image}
+            qemu_arch: aarch64
+            s6_arch: aarch64
+            docker_tag_suffix: arm64v8
 
     steps:
     ################################################
@@ -43,6 +53,25 @@ jobs:
     ################################################
     - name: '🚀 GitHub - Checkout repository'
       uses: actions/checkout@v2
+
+    - name: '🚀 GitHub - Get Branch / Tag Name'
+      id: get_branch
+      run: |
+        export RELEASE_NAME=$(if [[ "${GITHUB_REF}" =~ "refs/tags/" ]]; \
+          then echo ${GITHUB_REF/refs\/tags\//}; \
+          else echo ${GITHUB_REF/refs\/heads\//}; fi)
+        echo "${RELEASE_NAME}"
+        echo ::set-output name=NAME::${RELEASE_NAME}
+
+    - name: '🚀 GitHub - Get Tag'
+      id: get_tag
+      run: |
+        export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; \
+          then echo "${{ matrix.docker_tag_suffix }}"; \
+          else echo "${{ matrix.docker_tag_suffix }}-${{ steps.get_branch.outputs.NAME }}"; \
+          fi;)
+        echo "${TARGET_IMAGE_TAG}"
+        echo ::set-output name=NAME::${TARGET_IMAGE_TAG}
 
     ################################################
     ## QEMU
@@ -115,40 +144,38 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: '🚀 Docker - Build'
+      env:
+        TARGET_IMAGE: ${docker_target_repo}
       run: |
-        echo "Build ${{ matrix.DOCKER_TAG_SUFFIX }}"
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
+
         docker build -f ${dockerfile} \
         --build-arg BASE_IMAGE=${{ matrix.base_image }} \
         --build-arg QEMU_ARCH=${{ matrix.qemu_arch }} \
         --build-arg S6_ARCH=${{ matrix.s6_arch }} \
-        -t ${docker_target_repo}:${{ matrix.docker_tag_suffix }}-s6 \
-        .
+        -t ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX}
 
     - name: '🚀 Docker - Push'
+      env:
+        TARGET_IMAGE: ${docker_target_repo}
       run: |
-        docker push ${docker_target_repo}:${{ matrix.docker_tag_suffix }}-s6
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
+        docker push ${TARGET_IMAGE}:${{ matrix.docker_tag_suffix }}${TAG_PREFIX}
 
+    - name: '🛰️ Docker - Publish Manifest'
+      env:
+        TARGET_IMAGE: ${docker_target_repo}
+      run: |
+        export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.NAME }}"; fi)
+        export TAG_PREFIX=$(if [ "${{ steps.get_branch.outputs.NAME }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.NAME }}"; fi)
 
-    # - name: '🛰️ Docker - Publish Manifest'
-    #   run: |
-    #     BUILD_VERSION=${{ needs.build_release.outputs.build_version }}
-    #     docker manifest create ${DOCKER_IMAGE}:${BUILD_VERSION} \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-amd64 \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8
-    #     docker manifest annotate ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 --os=linux --arch=arm --variant=v7
-    #     docker manifest annotate ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8 --os=linux --arch=arm64 --variant=v8
-    #     docker manifest push ${DOCKER_IMAGE}:${BUILD_VERSION}
-    #     TAG=beta
-    #     if [[ ${BUILD_VERSION} != *"beta"* ]]; then
-    #       TAG=latest
-    #     fi
-    #     docker manifest create ${DOCKER_IMAGE}:${TAG} \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-amd64 \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 \
-    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8
-    #     docker manifest annotate ${DOCKER_IMAGE}:${TAG} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 --os=linux --arch=arm --variant=v7
-    #     docker manifest annotate ${DOCKER_IMAGE}:${TAG} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8 --os=linux --arch=arm64 --variant=v8
-    #     docker manifest push ${DOCKER_IMAGE}:${TAG}
+        docker manifest create "${TARGET_IMAGE}:${MANIFEST_SUFFIX} \
+          ${TARGET_IMAGE}:amd64${TAG_PREFIX} \
+          ${TARGET_IMAGE}:arm32v6${TAG_PREFIX} \
+          ${TARGET_IMAGE}:arm32v7${TAG_PREFIX} \
+          ${TARGET_IMAGE}:arm64v8${TAG_PREFIX}"
 
-    # - name: '🛰️ Update manifests'
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm32v6${TAG_PREFIX} --os=linux --arch=arm --variant=v6"
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm32v7${TAG_PREFIX} --os=linux --arch=arm --variant=v7"
+        docker manifest annotate "${TARGET_IMAGE}:${MANIFEST_SUFFIX} ${TARGET_IMAGE}:arm64v8${TAG_PREFIX} --os=linux --arch=arm64 --variant=v8"
+        docker manifest push "${TARGET_IMAGE}:${MANIFEST_SUFFIX}"
