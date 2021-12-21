@@ -14,12 +14,13 @@ jobs:
   build_release:
     runs-on: ubuntu-latest
     env:
-      # DOCKER_BUILDKIT: 1
-      # DOCKER_CLI_EXPERIMENTAL: enabled
       DOCKER_BASE_IMAGE: python:3-alpine3.13
       DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
       BUILD_IMAGE_NAME: local/alpine-base
       DOCKERFILE: Dockerfile
+    outputs:
+      output1: ${{ steps.get_branch.outputs.name }}
+      output2: ${{ steps.get_tag.outputs.name }}
     strategy:
       matrix:
         include:
@@ -177,14 +178,17 @@ jobs:
     steps:
       - name: '🛰️ Docker - Publish Manifest'
         run: |
-          export MANIFEST_SUFFIX=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "latest"; else echo "${{ steps.get_branch.outputs.name }}"; fi)
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+          export MANIFEST_SUFFIX=$(if [ "${{ needs.job1.outputs.output1 }}" = "master" ]; then echo "latest"; else echo "${{ needs.job1.outputs.output1 }}"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ needs.job1.outputs.output1 }}" = "master" ]; then echo ""; else echo "-${{ needs.job1.outputs.output1 }}"; fi)
+
           docker manifest create "${DOCKER_TARGET_REPO}:${MANIFEST_SUFFIX}" \
             "${DOCKER_TARGET_REPO}:amd64${DOCKER_TAG_SUFFIX_BRANCH}" \
             "${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" \
             "${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" \
             "${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}"
+
           docker manifest annotate "${DOCKER_TARGET_REPO}:${MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v6
           docker manifest annotate "${DOCKER_TARGET_REPO}:${MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v7
           docker manifest annotate "${DOCKER_TARGET_REPO}:${MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm64 --variant=v8
+
           docker manifest push "${DOCKER_TARGET_REPO}:${MANIFEST_SUFFIX}"
