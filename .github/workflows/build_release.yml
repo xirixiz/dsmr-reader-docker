@@ -188,6 +188,7 @@ jobs:
     ################################################
     outputs:
       get_branch: ${{ steps.get_branch.outputs.name }}
+      docker_target_repo: ${DOCKER_TARGET_REPO}
 
   ################################################
   ## JOB: MANIFEST_RELEASE
@@ -205,6 +206,7 @@ jobs:
       - name: '🛰️ Docker - Publish Manifest'
         run: |
           GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
+          DOCKER_TARGET_REPO=${{ needs.build_release.outputs.docker_target_repo }}
 
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo ""; else echo "-${GET_BRANCH}"; fi)
