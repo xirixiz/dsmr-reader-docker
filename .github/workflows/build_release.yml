@@ -158,7 +158,7 @@ jobs:
         run: |
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
 
-          echo "DOCKER BUILD: Build Docker image."
+          echo "DOCKER BUILD: Build Docker image ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}."
           echo "DOCKER BUILD: BASE_IMAGE - ${{matrix.BASE_IMAGE}}."
           echo "DOCKER BUILD: S6_ARCH -> ${{matrix.S6_ARCH}}."
           echo "DOCKER BUILD: S6_VERSION -> ${{ steps.s6_version.outputs.version }}."
@@ -205,16 +205,19 @@ jobs:
 
       - name: '🛰️ Docker - Publish Manifest'
         run: |
-          GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
-          DOCKER_TARGET_REPO=${{ needs.build_release.outputs.docker_target_repo }}
-
+          export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
+          export DOCKER_TARGET_REPO=${{ needs.build_release.outputs.docker_target_repo }}
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo ""; else echo "-${GET_BRANCH}"; fi)
 
-          echo "DOCKER BUILD: Build Docker manifest."
+          echo "DOCKER BUILD: Build Docker manifest ${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
           echo "DOCKER BUILD: DOCKER_MANIFEST_SUFFIX - ${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TAG_SUFFIX_BRANCH - ${DOCKER_TAG_SUFFIX_BRANCH}."
+          echo "DOCKER BUILD: MANIFEST AMD64 - ${DOCKER_TARGET_REPO}:amd64${DOCKER_TAG_SUFFIX_BRANCH}."
+          echo "DOCKER BUILD: MANIFEST ARM32V6 - ${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}."
+          echo "DOCKER BUILD: MANIFEST ARM32V7 - ${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}."
+          echo "DOCKER BUILD: MANIFEST ARM64V8 - ${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}."
 
           docker manifest create "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}" \
             "${DOCKER_TARGET_REPO}:amd64${DOCKER_TAG_SUFFIX_BRANCH}" \
