@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'development'
+      - 'master'
   pull_request:
     branches:
       - 'master'
@@ -13,8 +14,8 @@ on:
 env:
   DOCKER_BASE_IMAGE: python:3-alpine3.13
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
-  BUILD_IMAGE_NAME: local/alpine-base
   DOCKERFILE: Dockerfile
+  DOCKER_TARGET_RELEASE: 2021.12.05
 
 jobs:
   ################################################
@@ -145,19 +146,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: '🚀 Docker Pull image cache'
-        id: get_image_cache
-        run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
-          docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
-            && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
-            || export IMAGE_CACHE=""
-          echo $IMAGE_CACHE
-          echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
+      # - name: '🚀 Docker Pull image cache'
+      #   id: get_image_cache
+      #   run: |
+      #     export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+      #     docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
+      #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
+      #       || export IMAGE_CACHE=""
+      #     echo $IMAGE_CACHE
+      #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
       - name: '🚀 Docker - Build'
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo ""; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
 
           echo "DOCKER BUILD: Build Docker image ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}."
           echo "DOCKER BUILD: BASE_IMAGE - ${{matrix.BASE_IMAGE}}."
@@ -172,7 +173,7 @@ jobs:
           echo "DOCKER BUILD: DOCKER_TAG_SUFFIX_BRANCH - ${DOCKER_TAG_SUFFIX_BRANCH}."
 
           # docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
-          docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
+          docker build -f ${DOCKERFILE} \
             --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
             --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
             --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \
@@ -207,7 +208,7 @@ jobs:
         run: |
           export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo ""; else echo "-${GET_BRANCH}"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${GET_BRANCH}"; fi)
 
           echo "DOCKER BUILD: Build Docker manifest ${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
