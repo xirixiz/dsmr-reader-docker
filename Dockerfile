@@ -1,17 +1,13 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 
-# ARG QEMU_ARCH
-# ARG QEMU_VERSION
-# ARG S6_ARCH
-# ARG S6_VERSION
+ARG QEMU_ARCH
+ARG S6_ARCH
 ARG DSMR_VERSION
 
-# ENV QEMU_ARCH=${QEMU_ARCH:-x86_64}
-# ENV QEMU_VERSION=${QEMU_VERSION:-5.2.0-2}
-# ENV S6_ARCH=${S6_ARCH:-amd64}
+ENV QEMU_ARCH=${QEMU_ARCH:-x86_64}
+ENV S6_ARCH=${S6_ARCH:-amd64}
 ENV S6_KEEP_ENV=1
-# ENV S6_VERSION=${S6_VERSION:-2.2.0.3}
 ENV DSMR_VERSION=${DSMR_VERSION:-4.19.0}
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
@@ -27,11 +23,15 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
     DATALOGGER_MODE=standalone \
     VACUUM_DB_ON_STARTUP=false
 
+COPY /tmp/qemu/qemu-${QEMU_ARCH}-static /usr/bin/qemu-${QEMU_ARCH}-static
+COPY /tmp/s6-${S6_ARCH}/ /
+COPY /tmp/dsmr/ /dsmr
+
 # RUN curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz" | tar xvzf - -C /usr/bin
 # RUN	curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" | tar xvzf - -C /
-RUN mkdir -p /dsmr \
-    && curl -k -L -s "https://github.com/dsmrreader/dsmr-reader/archive/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /dsmr \
-    && curl -k -L -s "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /dsmr/dsmr_datalogger_api_client.py
+# RUN mkdir -p /dsmr \
+#     && curl -k -L -s "https://github.com/dsmrreader/dsmr-reader/archive/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /dsmr \
+#     && curl -k -L -s "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /dsmr/dsmr_datalogger_api_client.py
 
 RUN apk --update add --no-cache \
     bash \

@@ -20,20 +20,20 @@ jobs:
       docker_target_repo: xirixiz/dsmr-reader-docker
       build_image_name: local/alpine-base
       dockerfile: Dockerfile
-      dsmr_version: 4.19.0
-      qemu_version: 5.2.0-2
-      s6_version: 2.2.0.3
+      dsmr_version: ${{steps.dsmr_version.outputs.version}}
+      qemu_version: ${{steps.qemu_version.outputs.version}}
+      s6_version: ${{steps.s6_version.outputs.version}}
     strategy:
       matrix:
         include:
-          # amd64 builds (Alpine)
+          # AMD64
           - base_image: amd64/${docker_base_image}
             build_image: ${build_image_name}:amd64
             qemu_arch: x86_64
             s6_arch: amd64
             docker_tag_suffix: amd64
 
-          # arm32v6 builds (Alpine)
+          # ARM32V6
           - base_image: arm32v6/${docker_base_image}
             build_image: ${build_image_name}:arm
             qemu_arch: arm
@@ -41,47 +41,108 @@ jobs:
             docker_tag_suffix: arm32v6
 
     steps:
-    - name: '⛴️ Login to DockerHub'
+    ################################################
+    ## GENERAL
+    ################################################
+    - name: '🚧 GitHub - Checkout repository'
+      uses: actions/checkout@v2
+
+    ################################################
+    ## QEMU
+    ################################################
+    - name: '⚙️ QEMU - Determine version'
+      id: qemu_version
+      run: |
+        URL='https://api.github.com/repos/qemu-user-static/releases/releases/latest'
+        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=${VERSION#"v"}
+        echo "::set-output name=version::${VERSION}"
+
+    - name: '🚀 QEMU - Get package'
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+        mkdir -p tmp/qemu
+        curl -SskLf "https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${{ matrix.qemu_arch }}-static.tar.gz" | tar xvzf - -C tmp/qemu
+
+    ################################################
+    ## S6
+    ################################################
+    - name: '⚙️ S6 - Determine version'
+      id: s6_version
+      run: |
+        URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest"
+        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=${VERSION#"v"}
+        echo "::set-output name=version::${VERSION}"
+
+    - name: '🚀 S6 - Get package'
+      run: |
+        mkdir -p tmp/s6-${{ matrix.s6_arch }}
+        curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.s6_arch }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.s6_arch }}
+
+    ################################################
+    ## DSMR
+    ################################################
+    - name: '⚙️ DSMR - Determine version'
+      id: dsmr_version
+      run: |
+        URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
+        VERSION=$(curl -SskLf "${URL}" | jq -r .tag_name)
+        VERSION=${VERSION#"v"}
+        echo "::set-output name=version::${VERSION}"
+
+    - name: '🚀 DSMR - Get package'
+      run: |
+        mkdir -p tmp/dsmr
+        curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/dsmr
+        pushd tmp/dsmr &&
+        curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
+        popd
+
+    ################################################
+    ## Docker
+    ################################################
+    - name: '🔓 Docker - Login'
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    - name: '🧰 Checkout GitHub repository'
-      uses: actions/checkout@v2
-
-    - name: 'Setup QEMU'
+    - name: '🚀 Docker - Build'
       run: |
-        docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        mkdir -p tmp/qemu-${{ matrix.qemu_arch }}
-        curl -k -L -s "https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${{ matrix.qemu_arch }}-static.tar.gz" | tar xvzf - -C tmp/qemu-${{ matrix.qemu_arch }}
-        cp tmp/qemu-${{ matrix.qemu_arch }}/qemu-${{ matrix.qemu_arch }}-static ../../qemu/
+        echo "Build ${{ matrix.DOCKER_TAG_SUFFIX }}"
+        docker build -f ${dockerfile} \
+        --build-arg BASE_IMAGE=${{ matrix.base_image }} \
+        --build-arg QEMU_ARCH=${{ matrix.qemu_arch }} \
+        --build-arg S6_ARCH=${{ matrix.s6_arch }} \
+        -t ${docker_target_repo}:${{ matrix.docker_tag_suffix }}-s6 \
+        .
 
-    - name: 'Setup S6'
+    - name: '🚀 Docker - Push'
       run: |
-        mkdir -p tmp/s6-${{ matrix.s6_arch }}
-        curl -k -L -s "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.s6_arch }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.s6_arch }}
+        docker push ${docker_target_repo}:${{ matrix.docker_tag_suffix }}-s6
 
-    - name: 'Build QEMU'
-      run: |
-        docker build --build-arg ARCH=${{ matrix.qemu_arch }} \
-          --build-arg BASE=${{ matrix.base_image }} \
-          -t ${{ matrix.build_image }} qemu
 
-    # - name: Determine version
-    #   id: s6-overlay
-    #   shell: bash
+    # - name: '🛰️ Docker - Publish Manifest'
     #   run: |
-    #     URL='https://api.github.com/repos/just-containers/s6-overlay/releases'
-    #     URL="$URL/latest"
-    #     VERSION=$(curl -sSf $URL | jq -r .tag_name)
-    #     VERSION=${VERSION#"v"}
-    #     echo "::set-output name=version::$VERSION"
+    #     BUILD_VERSION=${{ needs.build_release.outputs.build_version }}
+    #     docker manifest create ${DOCKER_IMAGE}:${BUILD_VERSION} \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-amd64 \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8
+    #     docker manifest annotate ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 --os=linux --arch=arm --variant=v7
+    #     docker manifest annotate ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8 --os=linux --arch=arm64 --variant=v8
+    #     docker manifest push ${DOCKER_IMAGE}:${BUILD_VERSION}
+    #     TAG=beta
+    #     if [[ ${BUILD_VERSION} != *"beta"* ]]; then
+    #       TAG=latest
+    #     fi
+    #     docker manifest create ${DOCKER_IMAGE}:${TAG} \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-amd64 \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 \
+    #         ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8
+    #     docker manifest annotate ${DOCKER_IMAGE}:${TAG} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm32v7 --os=linux --arch=arm --variant=v7
+    #     docker manifest annotate ${DOCKER_IMAGE}:${TAG} ${DOCKER_IMAGE}:${BUILD_VERSION}-arm64v8 --os=linux --arch=arm64 --variant=v8
+    #     docker manifest push ${DOCKER_IMAGE}:${TAG}
 
-
-
-    # - name: '🚀 Push'
-    # - name: '🚧 Run job'
-    # - name: '⚙️ Setup qus'
-    # - name: '⛴️ Login to docker.io'
     # - name: '🛰️ Update manifests'
