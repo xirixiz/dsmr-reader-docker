@@ -205,11 +205,12 @@ jobs:
       - name: '🛰️ Docker - Publish Manifest'
         run: |
           GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
+
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo ""; else echo "-${GET_BRANCH}"; fi)
 
           echo "DOCKER BUILD: Build Docker manifest."
-          echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${{matrix.BASE_IMAGE}}."
+          echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
           echo "DOCKER BUILD: DOCKER_MANIFEST_SUFFIX - ${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TAG_SUFFIX_BRANCH - ${DOCKER_TAG_SUFFIX_BRANCH}."
 
