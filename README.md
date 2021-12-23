@@ -1,8 +1,8 @@
 <font size="-1">
 
-[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
 [![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/xirixiz/dsmr-reader-docker/actions)
+[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
