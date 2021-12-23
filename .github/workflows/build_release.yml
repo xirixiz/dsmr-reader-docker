@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 'development'
-      - 'master'
+        # - 'master'
     paths-ignore:
       - '**.md'
   pull_request:
@@ -151,7 +151,7 @@ jobs:
       # - name: '🚀 Docker Pull image cache'
       #   id: get_image_cache
       #   run: |
-      #     export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+      #     export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
       #     docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
       #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
       #       || export IMAGE_CACHE=""
@@ -160,7 +160,7 @@ jobs:
 
       - name: '🚀 Docker - Build'
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
 
           echo "DOCKER BUILD: Build Docker image ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}."
           echo "DOCKER BUILD: BASE_IMAGE - ${{matrix.BASE_IMAGE}}."
@@ -184,7 +184,7 @@ jobs:
 
       - name: '🚀 Docker - Push'
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${{ steps.get_branch.outputs.name }}"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
           docker push ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}
 
     ################################################
@@ -209,8 +209,8 @@ jobs:
       - name: '🛰️ Docker - Publish Manifest'
         run: |
           export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
-          export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "${GET_BRANCH}"; fi)
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-${GET_BRANCH}"; fi)
+          export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "development"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
 
           echo "DOCKER BUILD: Build Docker manifest ${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."

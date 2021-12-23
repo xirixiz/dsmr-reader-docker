@@ -1,6 +1,8 @@
 <font size="-1">
 
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/xirixiz/dsmr-reader-docker/actions)
+[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
@@ -20,9 +22,7 @@ You will need a cable and hardware that can run Docker.
   - [Screenshots](#screenshots)
   - [Technologies](#technologies)
   - [Releases](#releases)
-    - [Stable releases](#stable-releases)
-    - [Development releases](#development-releases)
-  - [Setup](#setup)
+  - [Setup / parameters](#setup--parameters)
   - [Features](#features)
   - [Issues](#issues)
   - [Inspiration](#inspiration)
@@ -49,28 +49,17 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 ***
 #### Releases
 
+This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices.
+
+| Image Tag   | Architectures                    | Image OS          |
+| :---------- | :------------------------------- | :---------------- |
+| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
+| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
+
 Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
 
-##### Stable releases
-```text
-latest
-arm32v6-<version>
-arm32v7-<version>
-arm64v8-<version>
-amd64-<version>
-```
-
-##### Development releases
-```text
-development
-arm32v6-development
-arm32v7-development
-arm64v8-development
-amd64-development
-```
-
 ***
-#### Setup
+#### Setup / parameters
   For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
   It's possible to set the following settings as environment variables, for example:
