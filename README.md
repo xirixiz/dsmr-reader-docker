@@ -1,10 +1,18 @@
 <font size="-1">
 
 [![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/xirixiz/dsmr-reader-docker/actions)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
 [buymecoffeebadge]: https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667
+
+
+[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEW8TFQCU2MSJ&source=url)
+[![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/oznu/docker-homebridge/actions)
+[![Docker Pulls](https://img.shields.io/docker/pulls/oznu/homebridge.svg)](https://hub.docker.com/r/oznu/homebridge/)
+[![Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/Cmq8a44)
+
 
 ### DSMR-reader - Docker
 *DSMR-protocol reader, telegram data storage and energy consumption visualizer.
@@ -20,9 +28,7 @@ You will need a cable and hardware that can run Docker.
   - [Screenshots](#screenshots)
   - [Technologies](#technologies)
   - [Releases](#releases)
-    - [Stable releases](#stable-releases)
-    - [Development releases](#development-releases)
-  - [Setup](#setup)
+  - [Setup / parameters](#setup--parameters)
   - [Features](#features)
   - [Issues](#issues)
   - [Inspiration](#inspiration)
@@ -49,28 +55,17 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 ***
 #### Releases
 
+This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices.
+
+| Image Tag   | Architectures                    | Image OS          |
+| :---------- | :------------------------------- | :---------------- |
+| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
+| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
+
 Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
 
-##### Stable releases
-```text
-latest
-arm32v6-<version>
-arm32v7-<version>
-arm64v8-<version>
-amd64-<version>
-```
-
-##### Development releases
-```text
-development
-arm32v6-development
-arm32v7-development
-arm64v8-development
-amd64-development
-```
-
 ***
-#### Setup
+#### Setup / parameters
   For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
 
   It's possible to set the following settings as environment variables, for example:
