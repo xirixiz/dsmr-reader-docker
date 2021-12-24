@@ -63,7 +63,7 @@ RUN mkdir -p /run/nginx/ \
     && mkdir -p /var/www/dsmrreader/static \
     && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
-HEALTHCHECK --interval=5s --timeout=3s --retries=10 CMD curl -sf http://localhost/about -o /dev/null -w "%{http_code}\n" || exit 1
+HEALTHCHECK --interval=5s --timeout=3s --retries=10 CMD curl -sf http://localhost/about -o /dev/null -w "%{http_code}" || exit 1
 
 WORKDIR /dsmr
 
