@@ -3,16 +3,16 @@
 PUID=${PUID:-911}
 PGID=${PGID:-911}
 
-groupmod -o -g "$PGID" default_user
-usermod -o -u "$PUID" default_user
+groupmod -o -g "$PGID" app
+usermod -o -u "$PUID" app
 
 echo '
 -------------------------------------
 GID/UID
 -------------------------------------'
 echo "
-User uid:    $(id -u default_user)
-User gid:    $(id -g default_user)
+User uid:    $(id -u app)
+User gid:    $(id -g app)
 -------------------------------------
 "
 
@@ -33,6 +33,6 @@ Apps will not behave correctly without this
 sleep infinity
 fi
 
-chown -R default_user:default_user /app
-chown -R default_user:default_user /config
-chown -R default_user:default_user /defaults
+chown -R app:app /app
+chown -R app:app /config
+chown -R app:app /defaults

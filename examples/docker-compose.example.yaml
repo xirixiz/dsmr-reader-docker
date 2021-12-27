@@ -34,7 +34,7 @@ services:
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./dsmr_backups:/dsmr/backups
+      - ./dsmr_backups:/app/backups
     environment:
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam

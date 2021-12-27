@@ -4,6 +4,7 @@ FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 ARG QEMU_ARCH
 ARG S6_ARCH
 ARG DSMR_VERSION
+ARG DOCKER_TARGET_RELEASE
 
 # environment variables
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
@@ -12,7 +13,8 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
     S6_ARCH=${S6_ARCH:-amd64} \
     S6_KEEP_ENV=1 \
-    DSMR_VERSION=${DSMR_VERSION:-4.19.0}
+    DSMR_VERSION=${DSMR_VERSION:-4.19.0} \
+    DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
@@ -57,9 +59,10 @@ RUN echo "**** install build packages ****" \
     && python3 -m pip install psycopg2 --no-cache-dir \
     && python3 -m pip install mysqlclient --no-cache-dir \
     && python3 -m pip install tzupdate --no-cache-dir \
+    && echo "**** create app user and make base folders ****" \
     && groupmod -g 1000 users \
-    && useradd -u 911 -U -d /config -s /bin/false default_user \
-    && usermod -G users default_user \
+    && useradd -u 911 -U -d /config -s /bin/false app \
+    && usermod -G users app \
     && mkdir -p /app /config /defaults \
     && echo "**** copy default settings dsmr reader ****" \
     && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \

@@ -2,6 +2,6 @@
 
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
     echo "Starting DSMR Reader - backend..."
-    cd /dsmr || exit
-    exec /usr/local/bin/python3 -u /dsmr/manage.py dsmr_backend
+    cd /app || exit
+    exec /usr/local/bin/python3 -u /app/manage.py dsmr_backend
 fi

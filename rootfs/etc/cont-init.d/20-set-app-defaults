@@ -13,12 +13,13 @@ function _error() { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; 
 function _debug() { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
 function _pre_reqs() {
-  _info "DSMR release: ${DSMR_VERSION}"
+  _info "DSMR Reader release: ${DSMR_VERSION}"
+  _info "DSMR Reader Docker release: ${DOCKER_TARGET_RELEASE}"
 
   _info "Ensure permissions..."
-  chown -R default_user:default_user /app
-  chown -R default_user:default_user /config
-  chown -R default_user:default_user /defaults
+  chown -R app:app /app
+  chown -R app:app /config
+  chown -R app:app /defaults
 
   _info "Setting architecture requirements..."
   _detect_architecture
