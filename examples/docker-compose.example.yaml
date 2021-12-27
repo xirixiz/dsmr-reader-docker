@@ -45,10 +45,20 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80" ]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-Lsf",
+          "http://127.0.0.1/about",
+          "-o",
+          "/dev/null",
+          "-w",
+          "HTTP_%{http_code}"
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
 volumes:
   dsmrdb: null

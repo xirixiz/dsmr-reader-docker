@@ -1,10 +1,10 @@
 #!/usr/bin/with-contenv bash
 
-PUID=${PUID:-911}
-PGID=${PGID:-911}
+PUID=${PUID:-803}
+PGID=${PGID:-803}
 
-groupmod -o -g "$PGID" app
-usermod -o -u "$PUID" app
+groupmod -o -g "${PGID}" app
+usermod -o -u "${PUID}" app
 
 echo "
 -------------------------------------
@@ -18,18 +18,8 @@ User gid:    $(id -g app)
 time32="$(date +%Y)"
 
 if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [ "$(uname -m)" == "armv7l" ]; then
-  echo '
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-Your DockerHost is running an outdated version of libseccomp
-
-To fix this, please visit https://docs.linuxserver.io/faq#libseccomp
-
-Apps will not behave correctly without this
-
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-'
-sleep infinity
+  echo 'Your DockerHost is running an outdated version of libseccomp. Search internet to fix this!'
+  sleep infinity
 fi
 
 chown -R app:app /app
