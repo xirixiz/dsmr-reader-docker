@@ -211,7 +211,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
   ```yaml
   volumes:
-    - ./modules/forward_telegram_to_api.py:/dsmr/dsmr_plugins/modules/forward_telegram_to_api.py
+    - ./modules/forward_telegram_to_api.py:/app/dsmr_plugins/modules/forward_telegram_to_api.py
   environment:
     - DSMRREADER_PLUGINS=dsmr_plugins.modules.forward_telegram_to_api
   ```

@@ -135,9 +135,9 @@ jobs:
         env:
           dsmr_version: ${{ steps.dsmr_version.outputs.version }}
         run: |
-          mkdir -p tmp/dsmr
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/dsmr
-          pushd tmp/dsmr &&
+          mkdir -p tmp/app
+          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          pushd tmp/app &&
           curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
 

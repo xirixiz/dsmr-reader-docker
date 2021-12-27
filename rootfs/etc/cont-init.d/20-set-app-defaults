@@ -15,8 +15,10 @@ function _debug() { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 function _pre_reqs() {
   _info "DSMR release: ${DSMR_VERSION}"
 
-  _info "Creating log directory..."
-  mkdir -p /var/log/supervisor/
+  _info "Ensure permissions..."
+  chown -R default_user:default_user /app
+  chown -R default_user:default_user /config
+  chown -R default_user:default_user /defaults
 
   _info "Setting architecture requirements..."
   _detect_architecture
@@ -70,7 +72,7 @@ function _dsmr_datalogger_mode() {
 
 function __dsmr_client_installation() {
   _info "Installing the DSMR remote datalogger client..."
-  touch /dsmr/.env
+  touch /app/.env
   if [[ -z "${DATALOGGER_API_HOSTS}" || -z "${DATALOGGER_API_KEYS}" || -z "${DATALOGGER_INPUT_METHOD}" ]]; then
     _error "DATALOGGER_API_HOSTS and/or DATALOGGER_API_KEYS and/or DATALOGGER_INPUT_METHOD required values are not set. Exiting..."
     exit 1
@@ -85,7 +87,7 @@ function __dsmr_client_installation() {
         {
           echo DATALOGGER_NETWORK_HOST="${DATALOGGER_NETWORK_HOST}"
           echo DATALOGGER_NETWORK_PORT="${DATALOGGER_NETWORK_PORT}"
-        } >>/dsmr/.env
+        } >>/app/.env
       fi
     elif [[ "${DATALOGGER_INPUT_METHOD}" = serial ]]; then
       _info "Using a serial connection for the DSMR remote datalogger..."
@@ -97,7 +99,7 @@ function __dsmr_client_installation() {
         {
           echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"
           echo DATALOGGER_SERIAL_PORT="${DATALOGGER_SERIAL_PORT}"
-        } >>/dsmr/.env
+        } >>/app/.env
       fi
     else
       _error "Incorrect configuration of the DATALOGGER_INPUT_METHOD value. Exiting..."
@@ -108,22 +110,22 @@ function __dsmr_client_installation() {
       echo DATALOGGER_API_HOSTS="${DATALOGGER_API_HOSTS}"
       echo DATALOGGER_API_KEYS="${DATALOGGER_API_KEYS}"
       echo DATALOGGER_INPUT_METHOD="${DATALOGGER_INPUT_METHOD}"
-    } >>/dsmr/.env
+    } >>/app/.env
   fi
 
   if [[ -n "${DATALOGGER_TIMEOUT}" ]]; then
     _info "Adding DATALOGGER_TIMEOUT to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >>/dsmr/.env
+    echo DATALOGGER_TIMEOUT="${DATALOGGER_TIMEOUT}" >>/app/.env
   fi
 
   if [[ -n "${DATALOGGER_SLEEP}" ]]; then
     _info "Adding DATALOGGER_SLEEP to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >>/dsmr/.env
+    echo DATALOGGER_SLEEP="${DATALOGGER_SLEEP}" >>/app/.env
   fi
 
   if [[ -n "${DATALOGGER_DEBUG_LOGGING}" ]]; then
     _info "Adding DATALOGGER_DEBUG_LOGGING to the DSMR remote datalogger configuration..."
-    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >>/dsmr/.env
+    echo DATALOGGER_DEBUG_LOGGING="${DATALOGGER_DEBUG_LOGGING}" >>/app/.env
   fi
 }
 
@@ -161,9 +163,9 @@ function _check_db_availability() {
 
 function _run_post_config() {
   _info "Running post configuration..."
-  /usr/local/bin/python3 /dsmr/manage.py migrate --noinput
-  /usr/local/bin/python3 /dsmr/manage.py collectstatic --noinput
-  /usr/local/bin/python3 /dsmr/manage.py dsmr_superuser
+  /usr/local/bin/python3 /app/manage.py migrate --noinput
+  /usr/local/bin/python3 /app/manage.py collectstatic --noinput
+  /usr/local/bin/python3 /app/manage.py dsmr_superuser
 }
 
 function _nginx_ssl_configuration() {
@@ -237,7 +239,7 @@ function _generate_auth_configuration() {
 function _iframe {
   if [[ "${ENABLE_IFRAME}" = true ]]; then
     _info "Enabling IFrame..."
-    sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /dsmr/dsmrreader/settings.py
+    sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /app/dsmrreader/settings.py
   fi
 }
 

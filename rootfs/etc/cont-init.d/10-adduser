@@ -1,0 +1,38 @@
+#!/usr/bin/with-contenv bash
+
+PUID=${PUID:-911}
+PGID=${PGID:-911}
+
+groupmod -o -g "$PGID" default_user
+usermod -o -u "$PUID" default_user
+
+echo '
+-------------------------------------
+GID/UID
+-------------------------------------'
+echo "
+User uid:    $(id -u default_user)
+User gid:    $(id -g default_user)
+-------------------------------------
+"
+
+time32="$(date +%Y)"
+
+if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [ "$(uname -m)" == "armv7l" ]; then
+  echo '
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+Your DockerHost is running an outdated version of libseccomp
+
+To fix this, please visit https://docs.linuxserver.io/faq#libseccomp
+
+Apps will not behave correctly without this
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'
+sleep infinity
+fi
+
+chown -R default_user:default_user /app
+chown -R default_user:default_user /config
+chown -R default_user:default_user /defaults
