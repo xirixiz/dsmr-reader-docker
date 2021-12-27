@@ -1,8 +1,10 @@
 <font size="-1">
 
-[![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
-[![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/xirixiz/dsmr-reader-docker/actions)
-[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
+[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Stars](https://img.shields.io/docker/stars/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker)
+[![GitHub Build Status](https://github.com/xirixiz/dsmr-reader-docker/workflows/DSMR:%20Build%20Docker%20images/badge.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/actions)
+[![GitHub Stars](https://img.shields.io/github/stars/xirixiz/dsmr-reader-docker.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/)
+[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg?logo=paypal)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
@@ -318,6 +320,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   sudo insmod /lib/modules/usbserial.ko
   sudo insmod /lib/modules/ftdi_sio.ko
   ```
+  http://www.jadahl.com/iperf-arp-scan/DSM_7.0/
   * The docker-compose file must be set to version 3.2 or lower.
 
 ***
