@@ -3,5 +3,5 @@
 if [[ "${DATALOGGER_MODE}" = sender ]]; then
     echo "Starting DSMR Reader - remote datalogger..."
     cd /app || exit
-    exec /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py
+    exec s6-setuidgid app /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py
 fi
