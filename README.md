@@ -322,12 +322,11 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 * ##### Synology
   For Synology, or maybe other NAS appliances, an additional driver is required:
   * Drivers are required for DSM < 7.0: http://www.jadahl.com/drivers_6.1 or http://www.jadahl.com/drivers_6.2
-  * Drivers to enable USB for DSM > 7.0:
+  * Drivers to enable USB for DSM > 7.0: http://www.jadahl.com/iperf-arp-scan/DSM_7.0/
   ```sh
   sudo insmod /lib/modules/usbserial.ko
   sudo insmod /lib/modules/ftdi_sio.ko
   ```
-  http://www.jadahl.com/iperf-arp-scan/DSM_7.0/
   * The docker-compose file must be set to version 3.2 or lower.
 
 ***
