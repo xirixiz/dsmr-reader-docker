@@ -71,8 +71,8 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   - VIRTUAL_HOST=localhost
   # It's possible to map a UID/GID with a user/group from you local system.
   # This will not change the username, onbly match ID's to prevent issues with access rights!
-  - PUID=803
-  - PGID=803
+  - DUID=803
+  - DGID=803
   ```
 
 * ##### Nginx related:
@@ -192,12 +192,6 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ***
 #### Features
-* ##### To-do list:
-  ```text
-  * Upgrade to Docker Alpine base image 3.13 - Done
-  * Upgrade to Postgres 13 client and backend - Done
-  ```
-
 * ##### DSMR Reader - Database cleanup/vacuum
   It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
 
@@ -285,6 +279,15 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   - restore the database backup created in step 2 (see "Backup and restore mechanism" in the README.md)
   - restart the dsmrdb container
   - start the dsmr container
+  ```
+* ##### UID/GID
+  When using volumes (`-v` or `--volume` flags) permissions issues can occur between the host OS and the container, to avoid this you can specify a user id `DUID` and group id `DGID` from the local system in the Docker container. Make sure the owner of the directory has all permissions on the volume you'd like to mount into the Docker container.
+
+  You can identify a UID or GID by executing the following command
+
+  ```bash
+    id xirixiz
+    uid=1000(xirixiz) gid=1000(xirixiz) groups=1000(xirixiz) 1001(docker)
   ```
 
 ***

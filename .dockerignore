@@ -1,3 +1,6 @@
 .git
-LICENSE
+.gitignore
+.github
+.gitkeep
+.gitattributes
 README.md

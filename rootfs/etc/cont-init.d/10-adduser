@@ -1,18 +1,16 @@
 #!/usr/bin/with-contenv bash
 
-PUID=${PUID:-803}
-PGID=${PGID:-803}
+DUID=${DUID:-803}
+DGID=${DGID:-803}
 
-groupmod -o -g "${PGID}" app
-usermod -o -u "${PUID}" app
+groupmod -o -g "${DGID}" app
+usermod -o -u "${DUID}" app
 
 echo "
--------------------------------------
-GID/UID
--------------------------------------
-User uid:    $(id -u app)
-User gid:    $(id -g app)
--------------------------------------
+-------------------------
+User UID: $(id -u app)
+User GID: $(id -g app)
+-------------------------
 "
 
 time32="$(date +%Y)"
