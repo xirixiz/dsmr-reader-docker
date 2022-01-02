@@ -151,7 +151,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   ```
 
 * ##### Run with docker-compose
-  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/docker-compose.example.yaml.<br/>
+  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/examples/docker-compose.example.yaml.<br/>
 
   You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
   ```bash
