@@ -4,11 +4,17 @@ FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 ARG QEMU_ARCH
 ARG S6_ARCH
 ARG DSMR_VERSION
+ARG DOCKER_TARGET_RELEASE
 
-ENV QEMU_ARCH=${QEMU_ARCH:-x86_64}
-ENV S6_ARCH=${S6_ARCH:-amd64}
-ENV S6_KEEP_ENV=1
-ENV DSMR_VERSION=${DSMR_VERSION:-4.19.0}
+# environment variables
+ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
+    TERM="xterm"
+
+ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
+    S6_ARCH=${S6_ARCH:-amd64} \
+    S6_KEEP_ENV=1 \
+    DSMR_VERSION=${DSMR_VERSION:-4.19.0} \
+    DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
@@ -23,15 +29,18 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
     DATALOGGER_MODE=standalone \
     VACUUM_DB_ON_STARTUP=false
 
+# copy qemu, s6-overlay and local files
 COPY /tmp/qemu/qemu-${QEMU_ARCH}-static /usr/bin/qemu-${QEMU_ARCH}-static
 COPY /tmp/s6-${S6_ARCH}/ /
-COPY /tmp/dsmr/ /dsmr
-
-COPY app /app
+COPY /tmp/app/ /app
 COPY rootfs /
 
-RUN apk --update add --no-cache \
+RUN echo "**** install runtime packages ****" \
+    && apk --update add --no-cache \
     bash \
+    coreutils \
+    ca-certificates \
+    shadow \
     dpkg \
     curl \
     nginx \
@@ -42,30 +51,38 @@ RUN apk --update add --no-cache \
     mariadb-client \
     tzdata
 
-RUN cp -f /dsmr/dsmrreader/provisioning/django/settings.py.template /dsmr/dsmrreader/settings.py
-
-RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev cargo rust \
+RUN echo "**** install build packages ****" \
+    && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev cargo rust \
+    && echo "**** install pip packages ****" \
     && python3 -m pip install --upgrade pip \
-    && python3 -m pip install -r /dsmr/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
+    && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
     && python3 -m pip install psycopg2 --no-cache-dir \
     && python3 -m pip install mysqlclient --no-cache-dir \
     && python3 -m pip install tzupdate --no-cache-dir \
+    && echo "**** create app user and make base folders ****" \
+    && groupmod -g 1000 users \
+    && useradd -u 803 -U -d /config -s /bin/false app \
+    && usermod -G users app \
     && mkdir -p /app /config /defaults \
+    && echo "**** copy default settings dsmr reader ****" \
+    && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \
+    && echo "**** cleanup package leftovers ****" \
     && apk --purge del .build-deps \
     && apk --purge del \
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
 
-RUN mkdir -p /run/nginx/ \
+RUN echo "**** configure nginx package ****" \
+    && mkdir -p /run/nginx/ \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/www/dsmrreader/static \
-    && cp -f /dsmr/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+    && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
 # TODO: Improve healtcheck to respond on 200 only
 HEALTHCHECK --interval=5s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.0.1/about -o /dev/null -w "HTTP_%{http_code}" || exit 1
 
-WORKDIR /dsmr
+WORKDIR /app
 
 ENTRYPOINT ["/init"]

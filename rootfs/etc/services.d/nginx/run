@@ -2,6 +2,6 @@
 
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
     echo "Starting DSMR Reader - nginx..."
-    cd /dsmr || exit
+    cd /app || exit
     exec /usr/sbin/nginx -g 'daemon off;'
 fi

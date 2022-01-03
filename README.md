@@ -1,8 +1,10 @@
 <font size="-1">
 
-[![DockerPulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
-[![Docker Build Status](https://github.com/oznu/docker-homebridge/workflows/Build/badge.svg)](https://github.com/xirixiz/dsmr-reader-docker/actions)
-[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
+[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Stars](https://img.shields.io/docker/stars/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker)
+[![GitHub Build Status](https://github.com/xirixiz/dsmr-reader-docker/workflows/DSMR:%20Build%20Docker%20images/badge.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/actions)
+[![GitHub Stars](https://img.shields.io/github/stars/xirixiz/dsmr-reader-docker.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/)
+[![Donate](https://img.shields.io/badge/donate-paypal-yellowgreen.svg?logo=paypal)](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [buymecoffee]: https://www.buymeacoffee.com/xirixiz
@@ -67,6 +69,10 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   # Required (defaults are shown as value):
   - DJANGO_TIME_ZONE=Europe/Amsterdam
   - VIRTUAL_HOST=localhost
+  # It's possible to map a UID/GID with a user/group from you local system.
+  # This will not change the username, onbly match ID's to prevent issues with access rights!
+  - DUID=803
+  - DGID=803
   ```
 
 * ##### Nginx related:
@@ -186,12 +192,6 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ***
 #### Features
-* ##### To-do list:
-  ```text
-  * Upgrade to Docker Alpine base image 3.13 - Done
-  * Upgrade to Postgres 13 client and backend - Done
-  ```
-
 * ##### DSMR Reader - Database cleanup/vacuum
   It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
 
@@ -209,7 +209,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
   ```yaml
   volumes:
-    - ./modules/forward_telegram_to_api.py:/dsmr/dsmr_plugins/modules/forward_telegram_to_api.py
+    - ./modules/forward_telegram_to_api.py:/app/dsmr_plugins/modules/forward_telegram_to_api.py
   environment:
     - DSMRREADER_PLUGINS=dsmr_plugins.modules.forward_telegram_to_api
   ```
@@ -280,6 +280,15 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   - restart the dsmrdb container
   - start the dsmr container
   ```
+* ##### UID/GID
+  When using volumes (`-v` or `--volume` flags) permissions issues can occur between the host OS and the container, to avoid this you can specify a user id `DUID` and group id `DGID` from the local system in the Docker container. Make sure the owner of the directory has all permissions on the volume you'd like to mount into the Docker container.
+
+  You can identify a UID or GID by executing the following command
+
+  ```bash
+    id xirixiz
+    uid=1000(xirixiz) gid=1000(xirixiz) groups=1000(xirixiz) 1001(docker)
+  ```
 
 ***
 #### Issues
@@ -313,7 +322,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 * ##### Synology
   For Synology, or maybe other NAS appliances, an additional driver is required:
   * Drivers are required for DSM < 7.0: http://www.jadahl.com/drivers_6.1 or http://www.jadahl.com/drivers_6.2
-  * Drivers to enable USB for DSM > 7.0:
+  * Drivers to enable USB for DSM > 7.0: http://www.jadahl.com/iperf-arp-scan/DSM_7.0/
   ```sh
   sudo insmod /lib/modules/usbserial.ko
   sudo insmod /lib/modules/ftdi_sio.ko

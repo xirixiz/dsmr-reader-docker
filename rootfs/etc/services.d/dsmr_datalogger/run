@@ -2,6 +2,6 @@
 
 if [[ "${DATALOGGER_MODE}" = standalone ]]; then
     echo "Starting DSMR Reader - datalogger..."
-    cd /dsmr || exit
-    exec /usr/local/bin/python3 -u /dsmr/manage.py dsmr_datalogger
+    cd /app || exit
+    exec s6-setuidgid app /usr/local/bin/python3 -u /app/manage.py dsmr_datalogger
 fi
