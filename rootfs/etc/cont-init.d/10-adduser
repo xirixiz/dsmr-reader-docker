@@ -20,6 +20,7 @@ if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [ "$(uname -m)" == "a
   sleep infinity
 fi
 
+adduser app dialout
 chown -R app:app /app
 chown -R app:app /config
 chown -R app:app /defaults
