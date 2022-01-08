@@ -133,7 +133,9 @@ function __dsmr_client_installation() {
 
 function _check_device() {
   _info "Fixing /dev/ttyUSB* security..."
-  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+  if ls /dev/ttyUSB* 1> /dev/null 2>&1; then 
+    chmod 666 /dev/ttyUSB*
+  fi
 }
 
 function _check_db_availability() {
