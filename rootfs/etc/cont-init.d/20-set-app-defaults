@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 #---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ function __dsmr_client_installation() {
 
 function _check_device() {
   _info "Fixing /dev/ttyUSB* security..."
-  if ls /dev/ttyUSB* 1> /dev/null 2>&1; then 
+  if ls /dev/ttyUSB* 1>/dev/null 2>&1; then
     chmod 666 /dev/ttyUSB*
   fi
 }
@@ -144,7 +144,7 @@ function _check_db_availability() {
     _error "DSMR web credentials not set. Exiting..."
     exit 1
   fi
-  if [[ ! -z "${DJANGO_DATABASE_ENGINE}" ]]; then
+  if [[ -n "${DJANGO_DATABASE_ENGINE}" ]]; then
     _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
     for i in {1..30}; do
       if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}"; then
