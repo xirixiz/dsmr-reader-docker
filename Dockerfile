@@ -60,9 +60,6 @@ RUN echo "**** install build packages ****" \
     && python3 -m pip install mysqlclient --no-cache-dir \
     && python3 -m pip install tzupdate --no-cache-dir \
     && echo "**** create app user and make base folders ****" \
-    && groupmod -g 1000 users \
-    && useradd -u 803 -U -d /config -s /bin/false app \
-    && usermod -G users app \
     && mkdir -p /app /config /defaults \
     && echo "**** copy default settings dsmr reader ****" \
     && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \

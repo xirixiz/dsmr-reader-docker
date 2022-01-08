@@ -16,12 +16,6 @@ function _pre_reqs() {
   _info "DSMR Reader release: ${DSMR_VERSION}"
   _info "DSMR Reader Docker release: ${DOCKER_TARGET_RELEASE}"
 
-  _info "Ensure permissions..."
-  adduser app dialout
-  chown -R app:app /app
-  chown -R app:app /config
-  chown -R app:app /defaults
-
   _info "Setting architecture requirements..."
   _detect_architecture
 }
