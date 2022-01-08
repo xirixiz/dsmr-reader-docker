@@ -43,7 +43,7 @@ services:
       - 7777:80
       - 7779:443
     devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
+      - "/dev/ttyUSB1:/dev/ttyUSB0"
     healthcheck:
       test:
         [
