@@ -13,6 +13,7 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
     S6_ARCH=${S6_ARCH:-amd64} \
     S6_KEEP_ENV=1 \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     DSMR_VERSION=${DSMR_VERSION:-4.19.0} \
     DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
 
