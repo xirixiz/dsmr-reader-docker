@@ -6,7 +6,6 @@ ARG S6_ARCH
 ARG DSMR_VERSION
 ARG DOCKER_TARGET_RELEASE
 
-# environment variables
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     TERM="xterm"
 
