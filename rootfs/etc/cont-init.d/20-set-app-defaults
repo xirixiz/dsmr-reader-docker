@@ -17,7 +17,6 @@ function _pre_reqs() {
   _info "DSMR Reader Docker release: ${DOCKER_TARGET_RELEASE}"
 
   _info "Ensure permissions..."
-  adduser app
   usermod -a -G audio,dialout app
   chown -R app:app /app
   chown -R app:app /config
