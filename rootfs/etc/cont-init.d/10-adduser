@@ -1,13 +1,5 @@
 #!/usr/bin/with-contenv bash
 
-function _check_device() {
-  if ls /dev/ttyUSB* 1>/dev/null 2>&1; then
-    chmod 666 /dev/ttyUSB*
-  fi
-}
-
-_check_device
-
 DUID=${DUID:-803}
 DGID=${DGID:-803}
 
