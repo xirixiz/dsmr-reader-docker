@@ -95,6 +95,11 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   HTTP_AUTH_USERNAME=
   HTTP_AUTH_PASSWORD=
   ```
+It's not possible to combine those settings!!!:
+  ```properties
+  ENABLE_NGINX_SSL
+  NGINX_LISTEN_PORT
+  ```
 
 * ##### DSMR related (defaults are shown as value):
   ```properties
