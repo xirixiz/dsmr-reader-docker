@@ -175,7 +175,7 @@ function _nginx_change_listen_port() {
   if [[ -z "${ENABLE_NGINX_SSL}" ]]; then
     if [[ -n "${NGINX_LISTEN_PORT}" ]]; then
       _info "Changing the default NGINX listen port..."
-      sed "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
+      sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
     fi
   fi
 }
