@@ -76,6 +76,13 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   ```
 
 * ##### Nginx related:
+```properties
+  # Default inside the container nginx is running on port 80.
+  # In some cases (host network f.e.), some people requested to be able to change the default listen port.
+  # However, in most cases this setting isn't being used.
+  NGINX_LISTEN_PORT=80
+  ```
+
   ```properties
   # Enables port 443 for nginx
   # /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!
