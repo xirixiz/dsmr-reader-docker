@@ -150,7 +150,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: '🚀 Docker Pull image cache'
+      - name: "🚀 Docker Pull image cache"
         id: get_image_cache
         run: |
           export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
