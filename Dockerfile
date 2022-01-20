@@ -29,10 +29,10 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
   VACUUM_DB_ON_STARTUP=false
 
 # copy qemu, s6-overlay and local files
-COPY /tmp/qemu/qemu-${QEMU_ARCH}-static /usr/bin/qemu-${QEMU_ARCH}-static \
-  /tmp/s6-${S6_ARCH}/ / \
-  /tmp/app/ /app \
-  rootfs /
+COPY /tmp/qemu/qemu-${QEMU_ARCH}-static /usr/bin/qemu-${QEMU_ARCH}-static
+COPY /tmp/s6-${S6_ARCH}/ /
+COPY /tmp/app/ /app
+COPY rootfs /
 
 RUN echo "**** install runtime packages ****" \
   && apk --update add --no-cache \
