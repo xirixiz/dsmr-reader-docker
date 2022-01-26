@@ -171,33 +171,44 @@ function _run_post_config() {
   /usr/local/bin/python3 /app/manage.py dsmr_superuser
 }
 
+function _nginx_change_listen_port() {
+  if [[ -z "${ENABLE_NGINX_SSL}" ]]; then
+    if [[ -n "${NGINX_LISTEN_PORT}" ]]; then
+      _info "Changing the default NGINX listen port..."
+      sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
+    fi
+  fi
+}
+
 function _nginx_ssl_configuration() {
   _info "Checking for NGINX SSL configuration..."
-  if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
-    if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
-      if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/fullchain.pem" ]]; then
-        _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
-        exit 1
-      else
-        _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
-      fi
-      if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
-        _info "SSL has already been enabled..."
-      else
-        sed -i '/listen\s*80/r '<(
-          cat <<-END_HEREDOC
-        listen 443 ssl;
-        ssl_certificate /etc/ssl/private/fullchain.pem;
-        ssl_certificate_key /etc/ssl/private/privkey.pem;
+  if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
+    if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
+      if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
+        if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/fullchain.pem" ]]; then
+          _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
+          exit 1
+        else
+          _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
+        fi
+        if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
+          _info "SSL has already been enabled..."
+        else
+          sed -i '/listen\s*80/r '<(
+            cat <<-END_HEREDOC
+          listen 443 ssl;
+          ssl_certificate /etc/ssl/private/fullchain.pem;
+          ssl_certificate_key /etc/ssl/private/privkey.pem;
 END_HEREDOC
-        ) /etc/nginx/http.d/dsmr-webinterface.conf
-      fi
-      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-        _info "NGINX SSL configured and enabled"
-        return
-      else
-        _error "NGINX configuration error"
-        exit 1
+          ) /etc/nginx/http.d/dsmr-webinterface.conf
+        fi
+        if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+          _info "NGINX SSL configured and enabled"
+          return
+        else
+          _error "NGINX configuration error"
+          exit 1
+        fi
       fi
     fi
   fi
@@ -266,6 +277,7 @@ fi
 if [[ "${DATALOGGER_MODE}" = standalone || "${DATALOGGER_MODE}" = receiver ]]; then
   _check_db_availability
   _run_post_config
+  _nginx_change_listen_port
   _nginx_ssl_configuration
   _generate_auth_configuration
 fi
