@@ -17,7 +17,6 @@ ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
   DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
-  DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True \
   DJANGO_DATABASE_NAME=dsmrreader \
   DJANGO_DATABASE_USER=dsmrreader \
   DJANGO_DATABASE_PASSWORD=dsmrreader \
@@ -25,7 +24,7 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
   DJANGO_DATABASE_PORT=5432 \
   DSMRREADER_ADMIN_USER=admin \
   DSMRREADER_ADMIN_PASSWORD=admin \
-  DATALOGGER_MODE=standalone \
+  DSMRREADER_REMOTE_DATALOGGER_MODE=standalone \
   VACUUM_DB_ON_STARTUP=false
 
 # copy qemu, s6-overlay and local files

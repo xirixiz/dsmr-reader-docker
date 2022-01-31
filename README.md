@@ -140,32 +140,32 @@ It's not possible to combine those settings!!!:
     # sender (datlogger sender only)
     # receiver (local datalogger disabled, api container)
     # standalone (a single container setup)
-  DATALOGGER_MODE=standalone
-  DATALOGGER_TIMEOUT=x
-  DATALOGGER_SLEEP=x
-  DATALOGGER_DEBUG_LOGGING=false
+  DSMRREADER_REMOTE_DATALOGGER_MODE=standalone
+  DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
+  DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
+  DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
   ```
 
 * ##### Remote DSMR datalogger related
   More info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html):
   ```properties
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
-  DATALOGGER_API_HOSTS=x
+  DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
   # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
-  DATALOGGER_API_KEYS=x
+  DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
   # Required. Only serial or ipv4 (network) are valid values
-  DATALOGGER_INPUT_METHOD=x
+  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=x
   ```
 
 * ##### Serial settings. Required if the input method is set to serial:
-  ```properties  DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
-  DATALOGGER_SERIAL_BAUDRATE=115200
+  ```properties DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200
   ```
 
 * ##### Network settings. Required if the input method is set to ipv4:
   ```properties
-  DATALOGGER_NETWORK_HOST=x.x.x.x
-  DATALOGGER_NETWORK_PORT=x
+  DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=x.x.x.x
+  DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=x
   ```
 
 * ##### Run with docker-compose
