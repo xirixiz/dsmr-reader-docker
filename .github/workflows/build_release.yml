@@ -19,7 +19,7 @@ env:
   DOCKER_BASE_IMAGE: python:3-alpine3.13
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.01.05
+  DOCKER_TARGET_RELEASE: 2022.02.01-v5.0.0-rc2
 
 jobs:
   ################################################
@@ -136,10 +136,14 @@ jobs:
           dsmr_version: ${{ steps.dsmr_version.outputs.version }}
         run: |
           mkdir -p tmp/app
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v5.0.0-rc2.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
           pushd tmp/app &&
-          curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
+          curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
+          # curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
+
+
 
       ################################################
       ## Docker
