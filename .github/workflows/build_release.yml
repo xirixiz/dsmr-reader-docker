@@ -175,7 +175,7 @@ jobs:
           echo "DOCKER BUILD: S6_VERSION -> ${{ steps.s6_version.outputs.version }}."
           echo "DOCKER BUILD: QEMU_VERSION -> ${{ steps.qemu_version.outputs.version }}."
           echo "DOCKER BUILD: QEMU_ARCH - ${{matrix.QEMU_ARCH}}."
-          echo "DOCKER BUILD: S6_VERSION -> ${{ steps.dsmr_version.outputs.version }}."
+          echo "DOCKER BUILD: DSMR_VERSION -> ${{ steps.dsmr_version.outputs.version }}."
           echo "DOCKER BUILD: DOCKERFILE - ${DOCKERFILE}."
           echo "DOCKER BUILD: DOCKER_TAG_SUFFIX - ${{ matrix.DOCKER_TAG_SUFFIX }}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
