@@ -117,7 +117,7 @@ jobs:
           s6_version: ${{ steps.s6_version.outputs.version }}
         run: |
           mkdir -p tmp/s6-${{ matrix.S6_ARCH }}
-          curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}.tar.xz" | tar xvf - -C tmp/s6-${{ matrix.S6_ARCH }}
+          curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}-${s6_version}.tar.xz" | tar xvf - -C tmp/s6-${{ matrix.S6_ARCH }}
 
       ################################################
       ## DSMR
