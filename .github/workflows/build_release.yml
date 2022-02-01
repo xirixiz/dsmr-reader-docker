@@ -33,7 +33,7 @@ jobs:
           # AMD64
           - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: x86_64
-            S6_ARCH: amd64
+            S6_ARCH: x86_64
             DOCKER_TAG_SUFFIX: amd64
 
           # ARM32V6
