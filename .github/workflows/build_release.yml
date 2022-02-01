@@ -33,7 +33,7 @@ jobs:
           # AMD64
           - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
             QEMU_ARCH: x86_64
-            S6_ARCH: x86_64
+            S6_ARCH: amd64
             DOCKER_TAG_SUFFIX: amd64
 
           # ARM32V6
@@ -107,9 +107,10 @@ jobs:
         id: s6_version
         shell: bash
         run: |
-          URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          VERSION=${VERSION#"v"}
+          # URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
+          # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # VERSION=${VERSION#"v"}
+          VERSION="2.2.0.3"
           echo "::set-output name=version::${VERSION}"
 
       - name: "🚀 S6 - Get package"
@@ -117,7 +118,7 @@ jobs:
           s6_version: ${{ steps.s6_version.outputs.version }}
         run: |
           mkdir -p tmp/s6-${{ matrix.S6_ARCH }}
-          curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}-${s6_version}.tar.xz" | tar xvf - -C tmp/s6-${{ matrix.S6_ARCH }}
+          curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.S6_ARCH }}
 
       ################################################
       ## DSMR
