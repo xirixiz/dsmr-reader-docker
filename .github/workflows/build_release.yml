@@ -109,8 +109,9 @@ jobs:
         run: |
           # URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
           # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          # VERSION=${VERSION#"v"}
           VERSION="2.2.0.3"
+          VERSION=${VERSION#"v"}
+
           echo "::set-output name=version::${VERSION}"
 
       - name: "🚀 S6 - Get package"
@@ -143,8 +144,6 @@ jobs:
           curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           # curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
-
-
 
       ################################################
       ## Docker
