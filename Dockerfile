@@ -47,6 +47,7 @@ RUN echo "**** install runtime packages ****" \
   postgresql-client \
   mariadb-connector-c-dev \
   mariadb-client \
+  libjpeg-turbo \
   tzdata
 
 RUN echo "**** install build packages ****" \
