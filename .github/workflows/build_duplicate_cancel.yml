@@ -5,6 +5,7 @@ on:
     workflows:
       - 'DSMR: Build Docker images'
     types: ['requested']
+  workflow_dispatch:
 
 jobs:
   cancel-duplicate-workflow-runs:
