@@ -20,7 +20,7 @@ env:
   DOCKER_BASE_IMAGE: python:3-alpine3.13
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.02.01
+  DOCKER_TARGET_RELEASE: 2022.02.02
 
 jobs:
   ################################################
@@ -110,6 +110,7 @@ jobs:
         run: |
           # URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
           # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # TODO: Switch to release 3.x
           VERSION="2.2.0.3"
           VERSION=${VERSION#"v"}
 
@@ -131,7 +132,8 @@ jobs:
         run: |
           # URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
           # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          VERSION="5.0.0-rc2"
+          # TODO: Add tag release support
+          VERSION="5.0.0"
           VERSION=${VERSION#"v"}
           echo "::set-output name=version::${VERSION}"
 
