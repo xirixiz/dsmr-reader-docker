@@ -1,3 +1,4 @@
+
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 
@@ -17,6 +18,7 @@ ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
   DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
+  DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True \
   DJANGO_DATABASE_NAME=dsmrreader \
   DJANGO_DATABASE_USER=dsmrreader \
   DJANGO_DATABASE_PASSWORD=dsmrreader \
