@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-if [[ "${DATALOGGER_MODE}" = sender ]]; then
+if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = sender ]]; then
     echo "Starting DSMR Reader - remote datalogger..."
     cd /app || exit
     exec s6-setuidgid app /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py

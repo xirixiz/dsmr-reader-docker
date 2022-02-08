@@ -1,3 +1,4 @@
+
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
 
@@ -25,7 +26,7 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
   DJANGO_DATABASE_PORT=5432 \
   DSMRREADER_ADMIN_USER=admin \
   DSMRREADER_ADMIN_PASSWORD=admin \
-  DATALOGGER_MODE=standalone \
+  DSMRREADER_REMOTE_DATALOGGER_MODE=standalone \
   VACUUM_DB_ON_STARTUP=false
 
 # copy qemu, s6-overlay and local files
@@ -48,10 +49,11 @@ RUN echo "**** install runtime packages ****" \
   postgresql-client \
   mariadb-connector-c-dev \
   mariadb-client \
+  libjpeg-turbo \
   tzdata
 
 RUN echo "**** install build packages ****" \
-  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev cargo rust \
+  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
   && python3 -m pip install --upgrade pip \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \

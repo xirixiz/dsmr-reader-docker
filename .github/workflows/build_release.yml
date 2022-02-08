@@ -14,12 +14,13 @@ on:
       - closed
     paths-ignore:
       - "**.md"
+  workflow_dispatch:
 
 env:
   DOCKER_BASE_IMAGE: python:3-alpine3.13
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.01.05
+  DOCKER_TARGET_RELEASE: 2022.02.02
 
 jobs:
   ################################################
@@ -107,9 +108,12 @@ jobs:
         id: s6_version
         shell: bash
         run: |
-          URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
+          # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # TODO: Switch to release 3.x
+          VERSION="2.2.0.3"
           VERSION=${VERSION#"v"}
+
           echo "::set-output name=version::${VERSION}"
 
       - name: "🚀 S6 - Get package"
@@ -126,8 +130,10 @@ jobs:
         id: dsmr_version
         shell: bash
         run: |
-          URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
+          # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # TODO: Add tag release support
+          VERSION="5.0.0"
           VERSION=${VERSION#"v"}
           echo "::set-output name=version::${VERSION}"
 
@@ -136,9 +142,11 @@ jobs:
           dsmr_version: ${{ steps.dsmr_version.outputs.version }}
         run: |
           mkdir -p tmp/app
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
           pushd tmp/app &&
-          curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
+          curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
+          # curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
 
       ################################################
@@ -170,7 +178,7 @@ jobs:
           echo "DOCKER BUILD: S6_VERSION -> ${{ steps.s6_version.outputs.version }}."
           echo "DOCKER BUILD: QEMU_VERSION -> ${{ steps.qemu_version.outputs.version }}."
           echo "DOCKER BUILD: QEMU_ARCH - ${{matrix.QEMU_ARCH}}."
-          echo "DOCKER BUILD: S6_VERSION -> ${{ steps.dsmr_version.outputs.version }}."
+          echo "DOCKER BUILD: DSMR_VERSION -> ${{ steps.dsmr_version.outputs.version }}."
           echo "DOCKER BUILD: DOCKERFILE - ${DOCKERFILE}."
           echo "DOCKER BUILD: DOCKER_TAG_SUFFIX - ${{ matrix.DOCKER_TAG_SUFFIX }}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
@@ -181,6 +189,7 @@ jobs:
             --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
             --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
             --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \
+            --build-arg DSMR_VERSION=${{ steps.dsmr_version.outputs.version }} \
             --build-arg DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE} \
             -t ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
             .
