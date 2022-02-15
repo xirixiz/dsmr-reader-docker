@@ -83,7 +83,8 @@ RUN echo "**** configure nginx package ****" \
   && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
 
 # TODO: Improve healtcheck to respond on 200 only
-HEALTHCHECK --interval=5s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.0.1/about -o /dev/null -w "HTTP_%{http_code}" || exit 1
+# TODO: Improve healtcheck so it's only valid for containers with the webinterface enabled
+# HEALTHCHECK --interval=5s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.0.1/about -o /dev/null -w "HTTP_%{http_code}" || exit 1
 
 WORKDIR /app
 
