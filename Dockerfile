@@ -43,6 +43,7 @@ RUN echo "**** install runtime packages ****" \
   shadow \
   dpkg \
   curl \
+  jq \
   nginx \
   openssl \
   netcat-openbsd \
