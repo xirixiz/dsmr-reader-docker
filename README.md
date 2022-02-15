@@ -203,7 +203,7 @@ It's not possible to combine those settings!!!:
     xirixiz/dsmr-reader-docker
   ```
 
-The ```--no-healthcheck``` argument should only be used when the containers function NOT presenting the DSMR Reader webinterface, for example the datalogger sender mode.
+The ```--no-healthcheck``` argument should only be used when the containers function NOT presenting the DSMR Reader webinterface, for example the datalogger sender mode. By default this argument should not be used!
 
 ***
 #### Features
