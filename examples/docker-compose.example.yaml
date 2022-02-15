@@ -44,6 +44,8 @@ services:
       - 7779:443
     devices:
       - "/dev/ttyUSB1:/dev/ttyUSB0"
+    # healthcheck:
+    #   disable: true
     healthcheck:
       test:
         [
@@ -59,6 +61,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+
 
 volumes:
   dsmrdb: null
