@@ -20,7 +20,7 @@ env:
   DOCKER_BASE_IMAGE: python:3-alpine3.13
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.02.02
+  DOCKER_TARGET_RELEASE: 2022.02.03
 
 jobs:
   ################################################
@@ -130,10 +130,10 @@ jobs:
         id: dsmr_version
         shell: bash
         run: |
-          # URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-          # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
           # TODO: Add tag release support
-          VERSION="5.0.0"
+          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          # VERSION="5.0.0"
           VERSION=${VERSION#"v"}
           echo "::set-output name=version::${VERSION}"
 
@@ -142,11 +142,11 @@ jobs:
           dsmr_version: ${{ steps.dsmr_version.outputs.version }}
         run: |
           mkdir -p tmp/app
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
-          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          # TODO: Add tag release support
+          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
           pushd tmp/app &&
           curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
-          # curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v4/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
 
       ################################################

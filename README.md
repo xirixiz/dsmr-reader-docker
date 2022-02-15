@@ -198,9 +198,12 @@ It's not possible to combine those settings!!!:
     -e DJANGO_DATABASE_USER=dsmrreader \
     -e DJANGO_DATABASE_PASSWORD=dsmrreader \
     -e VIRTUAL_HOST=localhost \
+    --no-healthcheck \
     --device /dev/ttyUSB0:/dev/ttyUSB0 \
     xirixiz/dsmr-reader-docker
   ```
+
+The ```--no-healthcheck``` argument should only be used when the containers function NOT presenting the DSMR Reader webinterface, for example the datalogger sender mode. By default this argument should not be used!
 
 ***
 #### Features
