@@ -67,7 +67,7 @@ RUN echo "**** install build packages ****" \
   && groupmod -g 1000 users \
   && useradd -u 803 -U -d /config -s /bin/false app \
   && usermod -G users,dialout,audio app \
-  && mkdir -p /app /config /defaults \
+  && mkdir -vp /app /config /defaults \
   && echo "**** copy default settings dsmr reader ****" \
   && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \
   && echo "**** cleanup package leftovers ****" \
@@ -77,7 +77,8 @@ RUN echo "**** install build packages ****" \
   && rm -rf /tmp/*
 
 RUN echo "**** configure nginx package ****" \
-  && mkdir -p /run/nginx/ \
+  && mkdir -vp /run/nginx/ \
+  && mkdir -vp /etc/nginx/conf.d/ \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
   && rm -f /etc/nginx/conf.d/default.conf \
