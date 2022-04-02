@@ -78,12 +78,11 @@ RUN echo "**** install build packages ****" \
 
 RUN echo "**** configure nginx package ****" \
   && mkdir -vp /run/nginx/ \
-  && mkdir -vp /etc/nginx/conf.d/ \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
-  && rm -f /etc/nginx/conf.d/default.conf \
-  && mkdir -p /var/www/dsmrreader/static \
-  && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+  && rm -f /etc/nginx/http.d/default.conf \
+  && mkdir -vp /var/www/dsmrreader/static \
+  && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
 
 # TODO: Improve healtcheck to respond on 200 only
 # TODO: Improve healtcheck so it's only valid for containers with the webinterface enabled
