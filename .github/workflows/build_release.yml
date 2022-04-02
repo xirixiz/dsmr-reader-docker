@@ -17,10 +17,10 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_BASE_IMAGE: python:3-alpine3.13
+  DOCKER_BASE_IMAGE: python:3-alpine3.15
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.02.03
+  DOCKER_TARGET_RELEASE: 2022.04.01
 
 jobs:
   ################################################
@@ -161,7 +161,7 @@ jobs:
       - name: "🚀 Docker Pull image cache"
         id: get_image_cache
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
           docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
             && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
             || export IMAGE_CACHE=""
@@ -170,7 +170,7 @@ jobs:
 
       - name: "🚀 Docker - Build"
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
 
           echo "DOCKER BUILD: Build Docker image ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}."
           echo "DOCKER BUILD: BASE_IMAGE - ${{matrix.BASE_IMAGE}}."
@@ -196,7 +196,7 @@ jobs:
 
       - name: "🚀 Docker - Push"
         run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
           docker push ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}
 
     ################################################
@@ -222,7 +222,7 @@ jobs:
         run: |
           export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
           export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "development"; fi)
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
+          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
 
           echo "DOCKER BUILD: Build Docker manifest ${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}."
           echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
