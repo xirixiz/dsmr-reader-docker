@@ -1,6 +1,6 @@
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-amd64/python:3-alpine3.13}
+FROM ${BASE_IMAGE:-amd64/python:3-alpine3.15}
 
 ARG QEMU_ARCH
 ARG S6_ARCH
@@ -13,7 +13,7 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
   S6_ARCH=${S6_ARCH:-amd64} \
   S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
-  DSMR_VERSION=${DSMR_VERSION:-4.19.0} \
+  DSMR_VERSION=${DSMR_VERSION:-5.0.0} \
   DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
@@ -36,6 +36,8 @@ COPY /tmp/app/ /app
 COPY rootfs /
 
 RUN echo "**** install runtime packages ****" \
+  && rm -rf /var/cache/apk/* \
+  && rm -rf /tmp/* \
   && apk --update add --no-cache \
   bash \
   coreutils \
@@ -65,7 +67,7 @@ RUN echo "**** install build packages ****" \
   && groupmod -g 1000 users \
   && useradd -u 803 -U -d /config -s /bin/false app \
   && usermod -G users,dialout,audio app \
-  && mkdir -p /app /config /defaults \
+  && mkdir -vp /app /config /defaults \
   && echo "**** copy default settings dsmr reader ****" \
   && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \
   && echo "**** cleanup package leftovers ****" \
@@ -75,12 +77,13 @@ RUN echo "**** install build packages ****" \
   && rm -rf /tmp/*
 
 RUN echo "**** configure nginx package ****" \
-  && mkdir -p /run/nginx/ \
+  && mkdir -vp /run/nginx/ \
+  && ln -sf /etc/nginx/http.d /etc/nginx/conf.d \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
-  && rm -f /etc/nginx/conf.d/default.conf \
-  && mkdir -p /var/www/dsmrreader/static \
-  && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/conf.d/dsmr-webinterface.conf
+  && rm -f /etc/nginx/http.d/default.conf \
+  && mkdir -vp /var/www/dsmrreader/static \
+  && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
 
 # TODO: Improve healtcheck to respond on 200 only
 # TODO: Improve healtcheck so it's only valid for containers with the webinterface enabled
