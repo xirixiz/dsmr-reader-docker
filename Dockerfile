@@ -78,6 +78,7 @@ RUN echo "**** install build packages ****" \
 
 RUN echo "**** configure nginx package ****" \
   && mkdir -vp /run/nginx/ \
+  && ln -sf /etc/nginx/http.d /etc/nginx/conf.d \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
   && rm -f /etc/nginx/http.d/default.conf \
