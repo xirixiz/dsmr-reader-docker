@@ -144,8 +144,8 @@ jobs:
         run: |
           mkdir -p tmp/app
           # TODO: Add tag release support
-          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
+          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
           pushd tmp/app &&
           curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
           popd
@@ -159,15 +159,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: "🚀 Docker Pull image cache"
-        id: get_image_cache
-        run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-v${dsmr_version}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
-          docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
-            && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
-            || export IMAGE_CACHE=""
-          echo $IMAGE_CACHE
-          echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
+      # - name: "🚀 Docker Pull image cache"
+      #   id: get_image_cache
+      #   run: |
+      #     export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-v${dsmr_version}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
+      #     docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
+      #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
+      #       || export IMAGE_CACHE=""
+      #     echo $IMAGE_CACHE
+      #     echo ::set-output name=IMAGE_CACHE::${IMAGE_CACHE}
 
       - name: "🚀 Docker - Build"
         run: |
