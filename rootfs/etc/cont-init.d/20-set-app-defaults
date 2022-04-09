@@ -250,6 +250,38 @@ function _generate_auth_configuration() {
   _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
+function _generate_clientcert_auth_configuration() {
+  _info "Checking for CLIENT CERTIFICATE AUTHENTICATION configuration..."
+  if [[ -n "${ENABLE_CLIENTCERT_AUTH}" ]]; then
+    if [[ "${ENABLE_CLIENTCERT_AUTH}" = true ]]; then
+      _info "ENABLE_CLIENTCERT_AUTH is enabled, let's secure this!"
+      canWeContinue=true
+      if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
+        _warn "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem"
+        canWeContinue=false
+      fi
+      if [[ "${canWeContinue}" = false ]]; then
+        _error "Sorry, something failed. Please check above warnings."
+        exit 1
+      fi
+      _info "Enabling the configuration in NGINX..."
+      sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;' /etc/nginx/http.d/dsmr-webinterface.conf
+      if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
+        _info "Found CRL file, adding to configuration..."
+        sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/http.d/dsmr-webinterface.conf
+      fi
+      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+        _info "CLIENT CERT AUTHENTICATION configured and enabled"
+        return
+      else
+        _error "NGINX configuration error"
+        exit 1
+      fi
+    fi
+  fi
+  _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
+}
+
 function _iframe {
   if [[ "${ENABLE_IFRAME}" = true ]]; then
     _info "Enabling IFrame..."
@@ -278,6 +310,7 @@ if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = standalone || "${DSMRREADER_REMOT
   _check_db_availability
   _run_post_config
   _nginx_change_listen_port
+  _generate_clientcert_auth_configuration
   _nginx_ssl_configuration
   _generate_auth_configuration
 fi
