@@ -62,7 +62,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ***
 #### Setup / parameters
-  For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
+  For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
 
   It's possible to set the following settings as environment variables, for example:
   ```properties
@@ -147,7 +147,7 @@ It's not possible to combine those settings!!!:
   ```
 
 * ##### Remote DSMR datalogger related
-  More info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html):
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html):
   ```properties
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
