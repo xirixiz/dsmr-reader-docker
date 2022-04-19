@@ -62,6 +62,14 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ***
 #### Setup / parameters
+
+* ##### Public access warning
+
+  Exposing your DSMR-reader installation to the Internet? 
+  Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
+
+* ##### Settings
+
   For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
 
   It's possible to set the following settings as environment variables, for example:
