@@ -1,6 +1,6 @@
 <font size="-1">
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags)
 [![Docker Stars](https://img.shields.io/docker/stars/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker)
 [![GitHub Build Status](https://github.com/xirixiz/dsmr-reader-docker/workflows/DSMR:%20Build%20Docker%20images/badge.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/actions)
 [![GitHub Stars](https://img.shields.io/github/stars/xirixiz/dsmr-reader-docker.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/)
