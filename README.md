@@ -78,7 +78,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   - DJANGO_TIME_ZONE=Europe/Amsterdam
   - VIRTUAL_HOST=localhost
   # It's possible to map a UID/GID with a user/group from you local system.
-  # This will not change the username, onbly match ID's to prevent issues with access rights!
+  # This will not change the username, only match ID's to prevent issues with access rights!
   - DUID=803
   - DGID=803
   ```
