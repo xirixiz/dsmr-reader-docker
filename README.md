@@ -1,6 +1,6 @@
 <font size="-1">
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags)
 [![Docker Stars](https://img.shields.io/docker/stars/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker)
 [![GitHub Build Status](https://github.com/xirixiz/dsmr-reader-docker/workflows/DSMR:%20Build%20Docker%20images/badge.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/actions)
 [![GitHub Stars](https://img.shields.io/github/stars/xirixiz/dsmr-reader-docker.svg?logo=github)](https://github.com/xirixiz/dsmr-reader-docker/)
@@ -62,7 +62,15 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 ***
 #### Setup / parameters
-  For DSMR Reader specific environment settings, please refer to: https://dsmr-reader.readthedocs.io/nl/v4/env_settings.html
+
+* ##### Public access warning
+
+  Exposing your DSMR-reader installation to the Internet? 
+  Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
+
+* ##### Settings
+
+  For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
 
   It's possible to set the following settings as environment variables, for example:
   ```properties
@@ -70,7 +78,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   - DJANGO_TIME_ZONE=Europe/Amsterdam
   - VIRTUAL_HOST=localhost
   # It's possible to map a UID/GID with a user/group from you local system.
-  # This will not change the username, onbly match ID's to prevent issues with access rights!
+  # This will not change the username, only match ID's to prevent issues with access rights!
   - DUID=803
   - DGID=803
   ```
@@ -147,7 +155,7 @@ It's not possible to combine those settings!!!:
   ```
 
 * ##### Remote DSMR datalogger related
-  More info: https://dsmr-reader.readthedocs.io/nl/v4/installation/datalogger.html):
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html):
   ```properties
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
