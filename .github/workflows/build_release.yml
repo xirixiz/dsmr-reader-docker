@@ -20,7 +20,7 @@ env:
   DOCKER_BASE_IMAGE: python:3-alpine3.15
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.04.01
+  DOCKER_TARGET_RELEASE: 2022.05.01
 
 jobs:
   ################################################
