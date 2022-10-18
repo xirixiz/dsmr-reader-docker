@@ -4,4 +4,6 @@ if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = standalone || "${DSMRREADER_REMOT
     echo "Starting DSMR Reader - nginx..."
     cd /app || exit
     exec /usr/sbin/nginx -g 'daemon off;'
+else
+    sleep infinity
 fi
