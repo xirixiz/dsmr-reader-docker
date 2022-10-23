@@ -55,8 +55,8 @@ This is a multi-arch image and will also run on a Raspberry Pi or other Docker-e
 
 | Image Tag   | Architectures                    | Image OS          |
 | :---------- | :------------------------------- | :---------------- |
-| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
-| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.13 |
+| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.16 |
+| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.16 |
 
 Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
 
