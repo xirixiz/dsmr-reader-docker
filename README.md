@@ -55,8 +55,8 @@ This is a multi-arch image and will also run on a Raspberry Pi or other Docker-e
 
 | Image Tag   | Architectures                    | Image OS          |
 | :---------- | :------------------------------- | :---------------- |
-| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.16 |
-| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.16 |
+| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.17 |
+| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.17 |
 
 Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
 
@@ -65,7 +65,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
 
 * ##### Public access warning
 
-  Exposing your DSMR-reader installation to the Internet? 
+  Exposing your DSMR-reader installation to the Internet?
   Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
 
 * ##### Settings

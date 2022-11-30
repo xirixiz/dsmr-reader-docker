@@ -18,10 +18,11 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_BASE_IMAGE: python:3-alpine3.16
+  # DOCKER_BASE_IMAGE: python:3-alpine3.17
+  DOCKER_BASE_IMAGE: python:3-alpine
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.10.02
+  DOCKER_TARGET_RELEASE: 2022.11.01
 
 jobs:
   ################################################
