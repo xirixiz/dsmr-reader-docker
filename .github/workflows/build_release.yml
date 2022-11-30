@@ -71,7 +71,7 @@ jobs:
             then echo ${GITHUB_REF/refs\/tags\//}; \
             else echo ${GITHUB_REF/refs\/heads\//}; fi)
           echo "${RELEASE_NAME}"
-          echo "KEY=${RELEASE_NAME}" >>$GITHUB_OUTPUT
+          echo "NAME=${RELEASE_NAME}" >>$GITHUB_OUTPUT
 
       - name: "🚀 GitHub - Get Tag"
         id: get_tag
@@ -81,7 +81,7 @@ jobs:
             else echo "${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.name }}"; \
             fi;)
           echo "${TARGET_IMAGE_TAG}"
-          echo "KEY=${TARGET_IMAGE_TAG}" >>$GITHUB_OUTPUT
+          echo "NAME=${TARGET_IMAGE_TAG}" >>$GITHUB_OUTPUT
 
       ################################################
       ## QEMU
@@ -93,7 +93,7 @@ jobs:
           URL='https://api.github.com/repos/multiarch/qemu-user-static/releases/latest'
           VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
           VERSION=${VERSION#"v"}
-          echo "KEY=${VERSION}" >>$GITHUB_OUTPUT
+          echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
       - name: "🚀 QEMU - Get package"
         env:
@@ -116,7 +116,7 @@ jobs:
           VERSION="2.2.0.3"
           VERSION=${VERSION#"v"}
 
-          echo "KEY=${VERSION}" >>$GITHUB_OUTPUT
+          echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
       - name: "🚀 S6 - Get package"
         env:
@@ -138,7 +138,7 @@ jobs:
           DOWNLOAD_URL=$(curl -SskLf "${URL}" | jq -r '.tarball_url')
           # VERSION="5.0.0"
           VERSION=${VERSION#"v"}
-          echo "KEY=${VERSION}" >>$GITHUB_OUTPUT
+          echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
       - name: "🚀 DSMR - Get package"
         env:
@@ -169,7 +169,7 @@ jobs:
       #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
       #       || export IMAGE_CACHE=""
       #     echo $IMAGE_CACHE
-      #     echo "KEY=${IMAGE_CACHE}" >>$GITHUB_OUTPUT
+      #     echo "IMAGE_CACHE=${IMAGE_CACHE}" >>$GITHUB_OUTPUT
 
       - name: "🚀 Docker - Build"
         run: |
@@ -228,7 +228,7 @@ jobs:
           URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
           VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
           VERSION=${VERSION#"v"}
-          echo "KEY=${VERSION}" >>$GITHUB_OUTPUT
+          echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
       - name: "🛰️ Docker - Publish Manifest"
         run: |
