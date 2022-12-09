@@ -1,20 +1,20 @@
 name: "DSMR: Build Docker images"
 
 on:
-  push:
-    branches:
-      - develop
-      - master
-    paths-ignore:
-      - "**.md"
-  pull_request:
-    branches:
-      - development
-      - master
-    types:
-      - closed
-    paths-ignore:
-      - "**.md"
+  # push:
+  #   branches:
+  #     - develop
+  #     - master
+  #   paths-ignore:
+  #     - "**.md"
+  # pull_request:
+  #   branches:
+  #     - development
+  #     - master
+  #   types:
+  #     - closed
+  #   paths-ignore:
+  #     - "**.md"
   workflow_dispatch:
 
 env:
@@ -22,7 +22,7 @@ env:
   # DOCKER_BASE_IMAGE: python:3-alpine
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.11.03
+  DOCKER_TARGET_RELEASE: 2022.11.04
 
 jobs:
   ################################################
