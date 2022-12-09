@@ -182,7 +182,7 @@ function _nginx_change_listen_port() {
 
 function _nginx_disable_access_logs() {
   if [[ -z "${DISABLE_NGINX_ACCESS_LOGS}" ]]; then
-    _info "Disabling nginx access logs..."
+    _info "Disabling NGINX access logs..."
     sed -i '/server_name/ a\    access_log off;' /etc/nginx/http.d/dsmr-webinterface.conf
   fi
 }
