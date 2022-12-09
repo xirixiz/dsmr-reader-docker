@@ -91,6 +91,12 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   NGINX_LISTEN_PORT=80
   ```
 
+```properties
+  # Default nginx generated access logs.
+  # In some cases you want to disable this, because f.e. you use a reverse proxy which also generated access logs
+  DISABLE_NGINX_ACCESS_LOGS=true
+  ```
+
   ```properties
   # Enables port 443 for nginx
   # /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!

@@ -180,6 +180,13 @@ function _nginx_change_listen_port() {
   fi
 }
 
+function _nginx_disable_access_logs() {
+  if [[ -z "${DISABLE_NGINX_ACCESS_LOGS}" ]]; then
+    _info "Disabling nginx access logs..."
+    sed -i '/server_name/ a\    access_log off;' /etc/nginx/http.d/dsmr-webinterface.conf
+  fi
+}
+
 function _nginx_ssl_configuration() {
   _info "Checking for NGINX SSL configuration..."
   if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
@@ -310,6 +317,7 @@ if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = standalone || "${DSMRREADER_REMOT
   _check_db_availability
   _run_post_config
   _nginx_change_listen_port
+  _nginx_disable_access_logs
   _generate_clientcert_auth_configuration
   _nginx_ssl_configuration
   _generate_auth_configuration
