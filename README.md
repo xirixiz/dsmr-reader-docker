@@ -148,6 +148,9 @@ It's not possible to combine those settings!!!:
   ```
 
 * ##### DSMR Datalogger related
+  When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
+  Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
+  and configure the setting so it matches your environment. More info: https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612
   ```properties
   # Set the datalogger mode.
   # Valid values are:
