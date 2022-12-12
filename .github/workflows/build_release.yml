@@ -9,7 +9,7 @@ on:
   #     - "**.md"
   # pull_request:
   #   branches:
-  #     - development
+  #     - develop
   #     - master
   #   types:
   #     - closed
@@ -22,7 +22,7 @@ env:
   # DOCKER_BASE_IMAGE: python:3-alpine
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2022.11.04
+  DOCKER_TARGET_RELEASE: 2022.12.01
 
 jobs:
   ################################################
