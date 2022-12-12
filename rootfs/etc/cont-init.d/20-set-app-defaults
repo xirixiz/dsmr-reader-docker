@@ -67,7 +67,7 @@ function _dsmr_datalogger_mode() {
     ## STANDALONE
     ################################################
     if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
-      _info "Configuring DSMR Reader - Run all processes in a single container with a serial or ipv4 datalogger..."
+      _info "Configuring DSMR Reader to run all processes in a single container with a serial or ipv4 datalogger..."
       ################################################
       ## STANDALONE - SERIAL
       ################################################
@@ -116,14 +116,14 @@ function _dsmr_datalogger_mode() {
     ## API_SERVER
     ################################################
     if [[ "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-      _info "Configuring DSMR Reader - Running without the datalogger process. A remote datalogger (API_CLIENT) is required..."
+      _info "Configuring DSMR Reader to run without the datalogger process. A remote datalogger (API_CLIENT) is required..."
     fi
 
     ################################################
     ## API_CLIENT
     ################################################
     if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
-      _info "Configuring DSMR Reader - Only start the api client datalogger (API_CLIENT), which sends the P1 telegrams to the server (API_SERVER)..."
+      _info "Configuring DSMR Reader to only start the api client datalogger (API_CLIENT), which sends the P1 telegrams to the server (API_SERVER)..."
       if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}" || -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS}" ]]; then
         _error "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS and/or DSMRREADER_REMOTE_DATALOGGER_API_KEYS required values are not set. Exiting..."
         exit 1
