@@ -151,13 +151,12 @@ It's not possible to combine those settings!!!:
   When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
   Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
   and configure the setting so it matches your environment. More info: https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612
-  ```properties
-  # DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is STANDALONE with the SERIAL flavor):
-    # STANDALONE - Run all processes, including backend, GUI and datalogger. There are two flavors:
-      # STANDALONE - SERIAL - Use a serial connection for the datalogger.
-      # STANDALONE - IPV4 - Use a network socket for the datalogger.
-    # API_SERVER - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
-    # API_CLIENT - Only start the datalogger client, which sends the P1 telegrams to the API_SERVER. It is required to setup DATALOGGER_API_* environment variables.
+  - DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is STANDALONE with the SERIAL flavor):
+    - STANDALONE - Run all processes, including backend, GUI and datalogger. There are two flavors:
+      - STANDALONE - SERIAL - Use a serial connection for the datalogger.
+      - STANDALONE - IPV4 - Use a network socket for the datalogger.
+    - API_SERVER - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
+    - API_CLIENT - Only start the datalogger client, which sends the P1 telegrams to the API_SERVER. It is required to setup DATALOGGER_API_* environment variables.
 
 * ##### DSMR Reader datalogger - STANDALONE - SERIAL (default):
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
