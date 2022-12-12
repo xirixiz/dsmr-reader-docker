@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = standalone || "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = receiver ]]; then
+if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - nginx..."
     cd /app || exit
     exec /usr/sbin/nginx -g 'daemon off;'

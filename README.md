@@ -152,37 +152,64 @@ It's not possible to combine those settings!!!:
   Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
   and configure the setting so it matches your environment. More info: https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612
   ```properties
-  # Set the datalogger mode.
-  # Valid values are:
-    # sender (datlogger sender only)
-    # receiver (local datalogger disabled, api container)
-    # standalone (a single container setup)
-  DSMRREADER_REMOTE_DATALOGGER_MODE=standalone
-  DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
-  DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
-  DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
+  # DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is STANDALONE with the SERIAL flavor):
+    # STANDALONE - Run all processes, including backend, GUI and datalogger. There are two flavors:
+      # STANDALONE - SERIAL - Use a serial connection for the datalogger.
+      # STANDALONE - IPV4 - Use a network socket for the datalogger.
+    # API_SERVER - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
+    # API_CLIENT - Only start the datalogger client, which sends the P1 telegrams to the API_SERVER. It is required to setup DATALOGGER_API_* environment variables.
+
+* ##### DSMR Reader datalogger - STANDALONE - SERIAL (default):
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
+  The default startup values for DSMR Reader standalone are:
+  ```properties
+  DSMRREADER_DATALOGGER_INPUT_METHOD=serial
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
+
+  # DSMR meter version 4/5
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=8
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=N
+   ```
+
+  Some meters are running on an older version and can be set providing the values:
+  ```properties
+  # DSMR meter version 2/3 settings
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=9600
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=7
+  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
   ```
 
-* ##### Remote DSMR datalogger related
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html):
+* ##### DSMR Reader datalogger - STANDALONE - IPV4:
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env).
+  Instead of a serial connection it's also possible to use a network socket instead. You need to define the following variables:
+  ```properties
+  DSMRREADER_DATALOGGER_INPUT_METHOD=ipv4
+  DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 (default)
+  DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 (default)
+  ```
+
+* ##### Remote DSMR datalogger - API_CLIENT
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
   ```properties
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
   # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
-  # Required. Only serial or ipv4 (network) are valid values
-  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=x
   ```
-
-* ##### Serial settings. Required if the input method is set to serial:
-  ```properties DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200
-  ```
-
-* ##### Network settings. Required if the input method is set to ipv4:
+* ##### Remote DSMR datalogger - API_SERVER
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
+  The configured API_CLIENT will push data to the API_SERVER. The only difference between STANDALONE and API_SERVER is that the datalogger process isn't running.
   ```properties
-  DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=x.x.x.x
-  DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=x
+  # None
+  ```
+
+* ##### Remote DSMR datalogger - Optional settings
+  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#other-settings-env).
+  ```properties
+  DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
+  DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
+  DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
   ```
 
 * ##### Run with docker-compose

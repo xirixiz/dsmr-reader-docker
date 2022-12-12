@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-if [[ "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = standalone || "${DSMRREADER_REMOTE_DATALOGGER_MODE}" = receiver ]]; then
+if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - backend..."
     cd /app || exit
     exec s6-setuidgid app /usr/local/bin/python3 -u /app/manage.py dsmr_backend
