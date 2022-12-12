@@ -163,7 +163,7 @@ It's not possible to combine those settings!!!:
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
   The default startup values for DSMR Reader standalone are:
   ```properties
-  DSMRREADER_DATALOGGER_INPUT_METHOD=serial
+  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
   DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
 
   # DSMR meter version 4/5
@@ -184,7 +184,7 @@ It's not possible to combine those settings!!!:
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env).
   Instead of a serial connection it's also possible to use a network socket instead. You need to define the following variables:
   ```properties
-  DSMRREADER_DATALOGGER_INPUT_METHOD=ipv4
+  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4
   DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 (default)
   DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 (default)
   ```
