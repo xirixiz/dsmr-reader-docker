@@ -77,11 +77,11 @@ function _dsmr_datalogger_mode() {
           _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT and/or DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE and/or DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE required values are not set. Exiting..."
           exit 1
         else
-          _info "Fixing /dev/ttyUSB* security..."
-          if ls /dev/ttyUSB* 1>/dev/null 2>&1; then
-            chmod 666 /dev/ttyUSB*
+          _info "Fixing ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT} security..."
+          if ls "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}" 1>/dev/null 2>&1; then
+            chmod 666 "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
           else
-            _error "Device /dev/ttyUSB* not found. Exiting..."
+            _error "Device ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT} not found. Exiting..."
             exit 1
           fi
           _info "Adding serial input method configuration settings..."
@@ -136,7 +136,6 @@ function _dsmr_datalogger_mode() {
       fi
     fi
   fi
-
 }
 
 function _optional_settings() {
