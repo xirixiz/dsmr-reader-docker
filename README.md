@@ -158,6 +158,12 @@ It's not possible to combine those settings!!!:
     - API_SERVER - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
     - API_CLIENT - Only start the datalogger client, which sends the P1 telegrams to the API_SERVER. It is required to setup DATALOGGER_API_* environment variables.
 
+  ![image](https://user-images.githubusercontent.com/11210639/207313372-6bffa581-8c3e-4b9f-9ef2-91b6e6b2b3c4.png)
+
+  ![image](https://user-images.githubusercontent.com/11210639/207313462-94a2a545-87b1-43cc-a9de-eff250a38d11.png)
+
+  ![image](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
+  
 * ##### DSMR Reader datalogger - STANDALONE - SERIAL (default):
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
   The default startup values for DSMR Reader standalone are:
