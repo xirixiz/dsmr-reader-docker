@@ -41,10 +41,9 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 ***
 #### Technologies
 ```text
-* Docker >= 19.x
+* Docker >= 20.x
 * Python 3.x
-* Posgres 12.x
-* Posgres 13.x
+* Posgres >= 13.x
 * MySQL ??.?? (untested by me)
 ```
 
