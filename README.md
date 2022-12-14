@@ -151,20 +151,20 @@ It's not possible to combine those settings!!!:
   When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
   Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
   and configure the setting so it matches your environment. More info: https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612
-  - DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is STANDALONE with the SERIAL flavor):
-    - STANDALONE - Run all processes, including backend, GUI and datalogger. There are two flavors:
-      - STANDALONE - SERIAL - Use a serial connection for the datalogger.
-      - STANDALONE - IPV4 - Use a network socket for the datalogger.
-    - API_SERVER - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
-    - API_CLIENT - Only start the datalogger client, which sends the P1 telegrams to the API_SERVER. It is required to setup DATALOGGER_API_* environment variables.
+  - DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is standalone with the serial flavor):
+    - standalone - Run all processes, including backend, GUI and datalogger. There are two flavors:
+      - standalone - serial - Use a serial connection for the datalogger.
+      - standalone - ipv4 - Use a network socket for the datalogger.
+    - api_server - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
+    - api_client - Only start the datalogger client, which sends the P1 telegrams to the api_server. It is required to setup DATALOGGER_API_* environment variables.
 
   ![image](https://user-images.githubusercontent.com/11210639/207313372-6bffa581-8c3e-4b9f-9ef2-91b6e6b2b3c4.png)
 
   ![image](https://user-images.githubusercontent.com/11210639/207313462-94a2a545-87b1-43cc-a9de-eff250a38d11.png)
 
   ![image](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
-  
-* ##### DSMR Reader datalogger - STANDALONE - SERIAL (default):
+
+* ##### DSMR Reader datalogger - standalone - serial (default):
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
   The default startup values for DSMR Reader standalone are:
   ```properties
@@ -185,7 +185,7 @@ It's not possible to combine those settings!!!:
   DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
   ```
 
-* ##### DSMR Reader datalogger - STANDALONE - IPV4:
+* ##### DSMR Reader datalogger - standalone - ipv4:
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env).
   Instead of a serial connection it's also possible to use a network socket instead. You need to define the following variables:
   ```properties
@@ -194,7 +194,7 @@ It's not possible to combine those settings!!!:
   DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 (default)
   ```
 
-* ##### Remote DSMR datalogger - API_CLIENT
+* ##### Remote DSMR datalogger - api_client
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
   ```properties
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
@@ -202,9 +202,9 @@ It's not possible to combine those settings!!!:
   # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
   ```
-* ##### Remote DSMR datalogger - API_SERVER
+* ##### Remote DSMR datalogger - api_server
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
-  The configured API_CLIENT will push data to the API_SERVER. The only difference between STANDALONE and API_SERVER is that the datalogger process isn't running.
+  The configured api_client will push data to the api_server. The only difference between standalone and api_server is that the datalogger process isn't running.
   ```properties
   # None
   ```
