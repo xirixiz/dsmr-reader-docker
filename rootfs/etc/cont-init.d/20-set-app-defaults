@@ -116,7 +116,7 @@ function _dsmr_datalogger_mode() {
     ## API_SERVER
     ################################################
     if [[ "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-      _info "Configuring DSMR Reader to run without the datalogger process. A remote datalogger (API_CLIENT) is required..."
+      _info "Configuring DSMR Reader to run without the datalogger process. A remote datalogger (api_client) is required..."
     fi
 
     ################################################
