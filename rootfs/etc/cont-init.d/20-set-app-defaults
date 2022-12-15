@@ -328,8 +328,8 @@ _pre_reqs
 _iframe
 if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
   _check_db_availability
+  _run_post_config
 fi
-_run_post_config
 _nginx_change_listen_port
 _nginx_disable_access_logs
 _generate_clientcert_auth_configuration
