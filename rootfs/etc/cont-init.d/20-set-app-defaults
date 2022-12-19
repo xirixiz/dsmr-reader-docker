@@ -80,9 +80,6 @@ function _dsmr_datalogger_mode() {
           _info "Fixing ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT} security..."
           if ls "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}" 1>/dev/null 2>&1; then
             chmod 666 "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
-          else
-            _error "Device ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT} not found. Exiting..."
-            exit 1
           fi
           _info "Adding serial input method configuration settings..."
           {
@@ -325,15 +322,16 @@ function _cleandb {
 [[ "${DEBUG}" = true ]] && set -o xtrace
 
 _pre_reqs
-_iframe
+
 if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
   _check_db_availability
+  _iframe
   _run_post_config
+  _nginx_change_listen_port
+  _nginx_disable_access_logs
+  _generate_clientcert_auth_configuration
+  _nginx_ssl_configuration
+  _generate_auth_configuration
+  _dsmr_datalogger_mode
+  _optional_settings
 fi
-_nginx_change_listen_port
-_nginx_disable_access_logs
-_generate_clientcert_auth_configuration
-_nginx_ssl_configuration
-_generate_auth_configuration
-_dsmr_datalogger_mode
-_optional_settings
