@@ -149,6 +149,7 @@ function _optional_settings() {
   if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING}" ]]; then
     _info "Adding DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING to the DSMR Reader remote datalogger configuration..."
     echo DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING="${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING}" >>/app/.env
+    echo DSMRREADER_LOGLEVEL="${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING}" >>/app/.env
   fi
 }
 
