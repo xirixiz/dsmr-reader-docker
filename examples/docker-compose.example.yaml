@@ -2,7 +2,7 @@ version: '3'
 
 services:
   dsmrdb:
-    # When using Postgres, release 13.x is supported only
+    # When using Postgres, release 13.x and 14.x are supported only
     # due to the limited availability of client packages, especially for arm32v7
     image: postgres:14-alpine
     container_name: dsmrdb
