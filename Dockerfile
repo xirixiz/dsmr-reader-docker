@@ -1,6 +1,6 @@
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-amd64/python:3-alpine3.16}
+FROM ${BASE_IMAGE:-amd64/python:3-alpine3.17}
 
 ARG QEMU_ARCH
 ARG S6_ARCH
