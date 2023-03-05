@@ -196,6 +196,8 @@ It's not possible to combine those settings!!!:
 * ##### Remote DSMR datalogger - api_client
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
   ```properties
+  # Required. Instructs dsmr reader to start in api_client mode
+  DSMRREADER_OPERATION_MODE=api_client
   # Required. Destination(s) of the DSMR Reader (Docker) host(s)
   DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
   # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
