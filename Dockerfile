@@ -1,6 +1,6 @@
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-amd64/python:3-alpine3.16}
+FROM ${BASE_IMAGE:-amd64/python:3-alpine3.17}
 
 ARG QEMU_ARCH
 ARG S6_ARCH
@@ -63,7 +63,7 @@ RUN echo "**** install runtime packages ****" \
   tzdata
 
 RUN echo "**** install build packages ****" \
-  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libressl-dev libffi-dev jpeg-dev cargo rust \
+  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
   && python3 -m pip install --upgrade pip \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
@@ -85,7 +85,7 @@ RUN echo "**** install build packages ****" \
 
 RUN echo "**** configure nginx package ****" \
   && mkdir -vp /run/nginx/ \
-  && ln -sf /etc/nginx/http.d /etc/nginx/conf.d \
+  && mkdir -vp /etc/nginx/conf.d \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
   && rm -f /etc/nginx/http.d/default.conf \
