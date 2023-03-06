@@ -207,7 +207,9 @@ It's not possible to combine those settings!!!:
   More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
   The configured api_client will push data to the api_server. The only difference between standalone and api_server is that the datalogger process isn't running.
   ```properties
-  # None
+  # Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
+  # all telegrams are coming in through the API
+  DSMRREADER_OPERATION_MODE=api_server
   ```
 
 * ##### Remote DSMR datalogger - Optional settings
