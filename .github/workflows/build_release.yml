@@ -17,9 +17,11 @@ on:
   #     - "**.md"
   workflow_dispatch:
 
+concurrency:
+  group: docker-build
+  cancel-in-progress: true
+
 env:
-  DOCKER_BASE_IMAGE: python:3-alpine3.17
-  # DOCKER_BASE_IMAGE: python:3-alpine
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
   DOCKER_TARGET_RELEASE: 2023.03.01
@@ -30,32 +32,6 @@ jobs:
   ################################################
   build_release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          # AMD64
-          - BASE_IMAGE: amd64/${DOCKER_BASE_IMAGE}
-            QEMU_ARCH: x86_64
-            S6_ARCH: amd64
-            DOCKER_TAG_SUFFIX: amd64
-
-          # ARM32V6
-          - BASE_IMAGE: arm32v6/${DOCKER_BASE_IMAGE}
-            QEMU_ARCH: arm
-            S6_ARCH: armhf
-            DOCKER_TAG_SUFFIX: arm32v6
-
-          # ARM32V7
-          - BASE_IMAGE: arm32v7/${DOCKER_BASE_IMAGE}
-            QEMU_ARCH: arm
-            S6_ARCH: armhf
-            DOCKER_TAG_SUFFIX: arm32v7
-
-          # ARM64V8
-          - BASE_IMAGE: arm64v8/${DOCKER_BASE_IMAGE}
-            QEMU_ARCH: aarch64
-            S6_ARCH: aarch64
-            DOCKER_TAG_SUFFIX: arm64v8
 
     steps:
       ################################################
@@ -86,44 +62,8 @@ jobs:
       ################################################
       ## QEMU
       ################################################
-      - name: "⚙️ QEMU - Determine version"
-        id: qemu_version
-        shell: bash
-        run: |
-          URL='https://api.github.com/repos/multiarch/qemu-user-static/releases/latest'
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          VERSION=${VERSION#"v"}
-          echo "version=${VERSION}" >>$GITHUB_OUTPUT
-
-      - name: "🚀 QEMU - Get package"
-        env:
-          qemu_version: ${{ steps.qemu_version.outputs.version }}
-        run: |
-          docker run --rm --privileged multiarch/qemu-user-static:register --reset
-          mkdir -p tmp/qemu
-          curl -SskLf "https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${{ matrix.QEMU_ARCH }}-static.tar.gz" | tar xvzf - -C tmp/qemu
-
-      ################################################
-      ## S6
-      ################################################
-      - name: "⚙️ S6 - Determine version"
-        id: s6_version
-        shell: bash
-        run: |
-          # URL='https://api.github.com/repos/just-containers/s6-overlay/releases/latest'
-          # VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          # TODO: Switch to release 3.x
-          VERSION="2.2.0.3"
-          VERSION=${VERSION#"v"}
-
-          echo "version=${VERSION}" >>$GITHUB_OUTPUT
-
-      - name: "🚀 S6 - Get package"
-        env:
-          s6_version: ${{ steps.s6_version.outputs.version }}
-        run: |
-          mkdir -p tmp/s6-${{ matrix.S6_ARCH }}
-          curl -SskLf "https://github.com/just-containers/s6-overlay/releases/download/v${s6_version}/s6-overlay-${{ matrix.S6_ARCH }}.tar.gz" | tar xvzf - -C tmp/s6-${{ matrix.S6_ARCH }}
+      - name: "⚙️ QEMU - Set up QEMU"
+        uses: docker/setup-qemu-action@v2
 
       ################################################
       ## DSMR
@@ -140,119 +80,44 @@ jobs:
           VERSION=${VERSION#"v"}
           echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
-      - name: "🚀 DSMR - Get package"
-        env:
-          dsmr_version: ${{ steps.dsmr_version.outputs.version }}
-        run: |
-          mkdir -p tmp/app
-          # TODO: Add tag release support
-          curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
-          # curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/v${dsmr_version}.tar.gz" | tar xvzf - --strip-components=1 -C tmp/app
-          pushd tmp/app &&
-          curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -O &&
-          popd
-
       ################################################
       ## Docker
       ################################################
+      - name: "⚙️ Docker - Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v2
+
       - name: "🔓 Docker - Login"
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # - name: "🚀 Docker Pull image cache"
-      #   id: get_image_cache
-      #   run: |
-      #     export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
-      #     docker pull ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
-      #       && export IMAGE_CACHE="--cache-from ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}" \
-      #       || export IMAGE_CACHE=""
-      #     echo $IMAGE_CACHE
-      #     echo "IMAGE_CACHE=${IMAGE_CACHE}" >>$GITHUB_OUTPUT
+      - name: "🔓 Docker - Login to GHCR"
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "⚙️ Docker - Set up metadata"
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          tags: |
+            type=raw,value=${{ steps.dsmr_version.outputs.version }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+            type=raw,value=development,enable=${{ github.ref != format('refs/heads/{0}', 'master') }}
+          images: |
+            ${{ env.DOCKER_TARGET_REPO }}
+            ghcr.io/${{ env.DOCKER_TARGET_REPO }}
 
       - name: "🚀 Docker - Build"
-        run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
-
-          echo "DOCKER BUILD: Build Docker image ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}."
-          echo "DOCKER BUILD: BASE_IMAGE - ${{matrix.BASE_IMAGE}}."
-          echo "DOCKER BUILD: S6_ARCH -> ${{matrix.S6_ARCH}}."
-          echo "DOCKER BUILD: S6_VERSION -> ${{ steps.s6_version.outputs.version }}."
-          echo "DOCKER BUILD: QEMU_VERSION -> ${{ steps.qemu_version.outputs.version }}."
-          echo "DOCKER BUILD: QEMU_ARCH - ${{matrix.QEMU_ARCH}}."
-          echo "DOCKER BUILD: DSMR_VERSION -> ${{ steps.dsmr_version.outputs.version }}."
-          echo "DOCKER BUILD: DOCKERFILE - ${DOCKERFILE}."
-          echo "DOCKER BUILD: DOCKER_TAG_SUFFIX - ${{ matrix.DOCKER_TAG_SUFFIX }}."
-          echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
-          echo "DOCKER BUILD: DOCKER_TAG_SUFFIX_BRANCH - ${DOCKER_TAG_SUFFIX_BRANCH}."
-
-          # docker build -f ${DOCKERFILE} ${{ steps.get_image_cache.outputs.IMAGE_CACHE }} \
-          docker build -f ${DOCKERFILE} \
-            --build-arg BASE_IMAGE=${{ matrix.BASE_IMAGE }} \
-            --build-arg QEMU_ARCH=${{ matrix.QEMU_ARCH }} \
-            --build-arg S6_ARCH=${{ matrix.S6_ARCH }} \
-            --build-arg DSMR_VERSION=${{ steps.dsmr_version.outputs.version }} \
-            --build-arg DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE} \
-            -t ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH} \
-            .
-
-      - name: "🚀 Docker - Push"
-        run: |
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
-          docker push ${DOCKER_TARGET_REPO}:${{ matrix.DOCKER_TAG_SUFFIX }}${DOCKER_TAG_SUFFIX_BRANCH}
-
-    ################################################
-    ## JOB OUTPUTS
-    ################################################
-    outputs:
-      get_branch: ${{ steps.get_branch.outputs.name }}
-
-  ################################################
-  ## JOB: MANIFEST_RELEASE
-  ################################################
-  manifest_release:
-    needs: build_release
-    runs-on: ubuntu-latest
-    steps:
-      - name: "🔓 Docker - Login"
-        uses: docker/login-action@v2
+        uses: docker/build-push-action@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: "⚙️ DSMR - Determine version"
-        id: dsmr_version
-        shell: bash
-        run: |
-          URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          VERSION=${VERSION#"v"}
-          echo "version=${VERSION}" >>$GITHUB_OUTPUT
-
-      - name: "🛰️ Docker - Publish Manifest"
-        run: |
-          export GET_BRANCH=${{ needs.build_release.outputs.get_branch }}
-          export DOCKER_MANIFEST_SUFFIX=$(if [ "${GET_BRANCH}" = "master" ]; then echo "latest"; else echo "development"; fi)
-          export DOCKER_TAG_SUFFIX_BRANCH=$(if [ "${GET_BRANCH}" = "master" ]; then echo "-${{ steps.dsmr_version.outputs.version }}-${DOCKER_TARGET_RELEASE}"; else echo "-development"; fi)
-
-          echo "DOCKER BUILD: Build Docker manifest ${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}."
-          echo "DOCKER BUILD: DOCKER_TARGET_REPO - ${DOCKER_TARGET_REPO}."
-          echo "DOCKER BUILD: DOCKER_MANIFEST_SUFFIX - ${DOCKER_MANIFEST_SUFFIX}."
-          echo "DOCKER BUILD: DOCKER_TAG_SUFFIX_BRANCH - ${DOCKER_TAG_SUFFIX_BRANCH}."
-          echo "DOCKER BUILD: MANIFEST AMD64 - ${DOCKER_TARGET_REPO}:amd64${DOCKER_TAG_SUFFIX_BRANCH}."
-          echo "DOCKER BUILD: MANIFEST ARM32V6 - ${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}."
-          echo "DOCKER BUILD: MANIFEST ARM32V7 - ${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}."
-          echo "DOCKER BUILD: MANIFEST ARM64V8 - ${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}."
-
-          docker manifest create "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}" \
-            "${DOCKER_TARGET_REPO}:amd64${DOCKER_TAG_SUFFIX_BRANCH}" \
-            "${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" \
-            "${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" \
-            "${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}"
-
-          docker manifest annotate "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm32v6${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v6
-          docker manifest annotate "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm32v7${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm --variant=v7
-          docker manifest annotate "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}" "${DOCKER_TARGET_REPO}:arm64v8${DOCKER_TAG_SUFFIX_BRANCH}" --os=linux --arch=arm64 --variant=v8
-
-          docker manifest push "${DOCKER_TARGET_REPO}:${DOCKER_MANIFEST_SUFFIX}"
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |-
+            DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
