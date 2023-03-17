@@ -37,11 +37,10 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 
 #### Contribution
 Special thanks to the following persons for their great contribution(s)
-```text
 [@dennissiemensma](https://github.com/dsmrreader)
 [@bjw-s](https://github.com/bjw-s)
 [@Caroga](https://github.com/Caroga)
-```
+
 ***
 #### Screenshots
 ![Example screenshot](./img/screenshot.png)
