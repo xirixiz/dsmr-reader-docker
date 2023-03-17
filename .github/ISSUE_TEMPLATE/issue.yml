@@ -7,7 +7,7 @@ body:
       label: Support guidelines
       description: Please read the support guidelines before proceeding.
       options:
-        - label: I've read the [support guidelines](https://github.com/xirixiz/dsmr-reader-docker/blob/master/.github/SUPPORT.md)
+        - label: I've read the [support guidelines](https://github.com/xirixiz/dsmr-reader-docker/blob/main/.github/SUPPORT.md)
           required: true
 
   - type: checkboxes
