@@ -4,13 +4,13 @@ on:
   # push:
   #   branches:
   #     - develop
-  #     - master
+  #     - main
   #   paths-ignore:
   #     - "**.md"
   # pull_request:
   #   branches:
   #     - develop
-  #     - master
+  #     - main
   #   types:
   #     - closed
   #   paths-ignore:
@@ -52,7 +52,7 @@ jobs:
       - name: "🚀 GitHub - Get Tag"
         id: get_tag
         run: |
-          export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.name }}" = "master" ]; \
+          export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.name }}" = "main" ]; \
             then echo "${{ matrix.DOCKER_TAG_SUFFIX }}"; \
             else echo "${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.name }}"; \
             fi;)
@@ -104,9 +104,9 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           tags: |
-            type=raw,value=${{ steps.dsmr_version.outputs.version }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
-            type=raw,value=development,enable=${{ github.ref != format('refs/heads/{0}', 'master') }}
+            type=raw,value=${{ steps.dsmr_version.outputs.version }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=development,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
           images: |
             ${{ env.DOCKER_TARGET_REPO }}
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}

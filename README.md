@@ -21,6 +21,7 @@ You will need a cable and hardware that can run Docker.
 - [DSMR-reader - Docker](#dsmr-reader---docker)
   - [Table of contents](#table-of-contents)
   - [General info](#general-info)
+  - [Contribution](#contribution)
   - [Screenshots](#screenshots)
   - [Technologies](#technologies)
   - [Releases](#releases)
@@ -33,6 +34,12 @@ You will need a cable and hardware that can run Docker.
 ***
 #### General info
 The purpose of this project is to provide a simplified installation of DSMR-reader using all the benefits of Docker.
+
+#### Contribution
+Special thanks to the following persons for their great contribution(s)
+@dennissiemensma
+@bjw-s
+@Caroga
 
 ***
 #### Screenshots
@@ -102,7 +109,7 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   ENABLE_NGINX_SSL=false
   ```
 
-  Nginx .httpassword (thanks @Caroga):
+  Nginx .httpassword:
   ```properties
   ENABLE_HTTP_AUTH=false
   HTTP_AUTH_USERNAME=
@@ -221,7 +228,7 @@ It's not possible to combine those settings!!!:
   ```
 
 * ##### Run with docker-compose
-  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/master/examples/docker-compose.example.yaml.<br/>
+  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml.<br/>
 
   You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
   ```bash
