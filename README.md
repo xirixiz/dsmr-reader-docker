@@ -37,9 +37,11 @@ The purpose of this project is to provide a simplified installation of DSMR-read
 
 #### Contribution
 Special thanks to the following persons for their great contribution(s)
-- @dennissiemensma
-- @bjw-s
-- @Caroga
+```text
+* @dennissiemensma
+* @bjw-s
+* @Caroga
+```
 
 ***
 #### Screenshots
