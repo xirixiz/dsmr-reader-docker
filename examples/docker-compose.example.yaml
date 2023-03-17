@@ -25,7 +25,7 @@ services:
       retries: 10
 
   dsmr:
-    image: xirixiz/dsmr-reader-docker:latest
+    image: ghcr.io/xirixiz/dsmr-reader-docker:latest
     depends_on:
       dsmrdb:
         condition: service_healthy
