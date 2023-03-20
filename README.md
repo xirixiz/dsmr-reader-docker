@@ -398,6 +398,9 @@ The ```--no-healthcheck``` argument should only be used when the containers func
   * https://synocommunity.com/package/synokernel-usbserial
   * The docker-compose file must be set to version 3.2 or lower.
 
+  Addition link:
+  * https://www.reddit.com/r/synology/comments/y92eyu/usb_serial_drivers_cp210x_for_dsm_62/
+
 ***
 #### Inspiration
 Project inspired by the hard work and effort of [@dennissiemensma](https://github.com/dsmrreader)
