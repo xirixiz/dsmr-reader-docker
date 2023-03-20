@@ -395,12 +395,7 @@ The ```--no-healthcheck``` argument should only be used when the containers func
 
 * ##### Synology
   For Synology, or maybe other NAS appliances, an additional driver is required:
-  * Drivers are required for DSM < 7.0: http://www.jadahl.com/drivers_6.1 or http://www.jadahl.com/drivers_6.2
-  * Drivers to enable USB for DSM > 7.0: http://www.jadahl.com/iperf-arp-scan/DSM_7.0/
-  ```sh
-  sudo insmod /lib/modules/usbserial.ko
-  sudo insmod /lib/modules/ftdi_sio.ko
-  ```
+  * https://synocommunity.com/package/synokernel-usbserial
   * The docker-compose file must be set to version 3.2 or lower.
 
 ***
