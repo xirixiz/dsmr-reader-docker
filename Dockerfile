@@ -55,30 +55,30 @@ RUN echo "**** install runtime packages ****" \
   && rm -rf /var/cache/apk/* \
   && rm -rf /tmp/* \
   && apk --update add --no-cache \
-    bash \
-    coreutils \
-    curl \
-    ca-certificates \
-    shadow \
-    dpkg \
-    curl \
-    jq \
-    nginx \
-    openssl \
-    netcat-openbsd \
-    postgresql-client \
-    mariadb-connector-c-dev \
-    mariadb-client \
-    libjpeg-turbo \
-    tzdata
+  bash \
+  coreutils \
+  curl \
+  ca-certificates \
+  shadow \
+  dpkg \
+  curl \
+  jq \
+  nginx \
+  openssl \
+  netcat-openbsd \
+  postgresql-client \
+  mariadb-connector-c-dev \
+  mariadb-client \
+  libjpeg-turbo \
+  tzdata
 
 RUN echo "**** install s6 overlay ****" \
   &&  case "${TARGETARCH}/${TARGETVARIANT}" in \
-        "amd64/")  S6_ARCH=amd64  ;; \
-        "arm64/")  S6_ARCH=aarch64  ;; \
-        "arm/v7")  S6_ARCH=arm  ;; \
-        "arm/v6")  S6_ARCH=armhf  ;; \
-      esac \
+  "amd64/")  S6_ARCH=amd64  ;; \
+  "arm64/")  S6_ARCH=aarch64  ;; \
+  "arm/v7")  S6_ARCH=arm  ;; \
+  "arm/v6")  S6_ARCH=armhf  ;; \
+  esac \
   && curl "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz" -L -s --output /tmp/s6-overlay-${S6_ARCH}.tar.gz \
   && tar -C / -xf /tmp/s6-overlay-${S6_ARCH}.tar.gz
 

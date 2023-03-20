@@ -121,3 +121,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |-
             DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
+            DOCKER_TARGET_RELEASE=${{ env.DOCKER_TARGET_RELEASE }}
