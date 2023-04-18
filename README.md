@@ -109,6 +109,16 @@ Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-re
   ENABLE_NGINX_SSL=false
   ```
 
+```properties
+  # ENABLE HSTS on SSL: https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+  ENABLE_NGINX_ENABLE_HSTS=true
+  ```
+
+  ```properties
+  # Redirect HTTP traffic to HTTPS
+  ENABLE_NGINX_SSL_REDIRECT=true
+  ```
+
   Nginx .httpassword:
   ```properties
   ENABLE_HTTP_AUTH=false

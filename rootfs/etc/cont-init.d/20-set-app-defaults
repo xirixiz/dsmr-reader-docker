@@ -293,6 +293,14 @@ function _generate_clientcert_auth_configuration() {
       fi
       _info "Enabling the configuration in NGINX..."
       sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;\n\tssl_protocols TLSv1.2 TLSv1.3;' /etc/nginx/http.d/dsmr-webinterface.conf
+      if [[ "${ENABLE_NGINX_ENABLE_HSTS}" = true ]]; then
+        _info "Enabling HSTS in NGINX..."
+        sed -i '/ssl_protocols TLSv1.2 TLSv1.3;/a\\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";' /etc/nginx/http.d/dsmr-webinterface.conf
+      fi
+      if [[ "${ENABLE_NGINX_SSL_REDIRECT}" = true ]]; then
+        _info "Enabling SSL redirect in NGINX..."
+        sed -i '/ssl_protocols TLSv1.2 TLSv1.3;/a\\treturn 301 https://$host$request_uri;' /etc/nginx/http.d/dsmr-webinterface.conf
+      fi
       if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
         _info "Found CRL file, adding to configuration..."
         sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/http.d/dsmr-webinterface.conf
