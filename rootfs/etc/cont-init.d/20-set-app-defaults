@@ -217,8 +217,8 @@ function _nginx_ssl_configuration() {
   _info "Checking for NGINX SSL configuration..."
 
   # Validate inputs
-  if [[ -z "${NGINX_LISTEN_PORT-}" ]]; then
-    if [[ -n "${ENABLE_NGINX_SSL-}" && "${ENABLE_NGINX_SSL-}" = true ]]; then
+  if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
+    if [[ -n "${ENABLE_NGINX_SSL}" && "${ENABLE_NGINX_SSL}" = true ]]; then
       _info "Enabling SSL/TLS in NGINX..."
 
       # Validate SSL files
@@ -230,24 +230,36 @@ function _nginx_ssl_configuration() {
       fi
 
       # Enable SSL
-      if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
-        _info "SSL has already been enabled..."
-      else
-        local ssl_config='listen 443 ssl;
+      ssl_config=$(
+        cat <<-END_HEREDOC
+        listen 443 ssl;
         ssl_certificate /etc/ssl/private/fullchain.pem;
         ssl_certificate_key /etc/ssl/private/privkey.pem;
-        ssl_protocols TLSv1.2 TLSv1.3;'
+        ssl_protocols TLSv1.2 TLSv1.3;
+END_HEREDOC
+      )
 
-        if [[ "${ENABLE_HSTS-}" = true ]]; then
-          ssl_config+="\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\";"
-        fi
+      if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
+        _info "SSL has already been enabled."
 
-        if [[ "${ENABLE_SSL_REDIRECT-}" = true ]]; then
-          ssl_config+="\nreturn 301 https://\$host\$request_uri;"
-        fi
+      elif [[ "${ENABLE_HSTS}" = true ]] && [[ "${ENABLE_SSL_REDIRECT}" = true ]]; then
+        _info "Enabling HSTS in NGINX with SSL redirect..."
+        ssl_config+="add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\";\n"
+        ssl_config+="return 301 https://$host$request_uri;"
 
-        sed -i "/listen\s*80/r <(echo -e '$ssl_config')" /etc/nginx/http.d/dsmr-webinterface.conf
+      elif [[ "${ENABLE_HSTS}" = true ]] && [[ "${ENABLE_SSL_REDIRECT}" = false ]]; then
+        _info "Enabling HSTS in NGINX without SSL redirect..."
+        ssl_config+="add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\";"
+
+      elif [[ "${ENABLE_HSTS}" = false ]] && [[ "${ENABLE_SSL_REDIRECT}" = true ]]; then
+        _info "Enabling SSL redirect in NGINX without HSTS..."
+        ssl_config+="return 301 https://$host$request_uri;"
+
+      else
+        _info "Enabling SSL in NGINX without HSTS and SSL redirect..."
       fi
+
+      sed -i "/listen\s*80/r <(echo -e '$ssl_config')" /etc/nginx/http.d/dsmr-webinterface.conf
 
       # Validate NGINX configuration
       if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
