@@ -212,7 +212,7 @@ function _nginx_ssl_configuration() {
   if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
     if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
       if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
-        if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/fullchain.pem" ]]; then
+        if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/privkey.pem" ]]; then
           _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
           exit 1
         else
@@ -226,6 +226,7 @@ function _nginx_ssl_configuration() {
           listen 443 ssl;
           ssl_certificate /etc/ssl/private/fullchain.pem;
           ssl_certificate_key /etc/ssl/private/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3;
 END_HEREDOC
           ) /etc/nginx/http.d/dsmr-webinterface.conf
         fi
