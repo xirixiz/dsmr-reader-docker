@@ -192,11 +192,9 @@ function _run_post_config() {
 }
 
 function _nginx_change_listen_port() {
-  if [[ -z "${ENABLE_NGINX_SSL}" ]]; then
-    if [[ -n "${NGINX_LISTEN_PORT}" ]]; then
-      _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
-      sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
-    fi
+  if [[ -z "${ENABLE_NGINX_SSL}" ]] && [[ -n "${NGINX_LISTEN_PORT}" ]]; then
+    _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
+    sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
   fi
 }
 
@@ -209,112 +207,130 @@ function _nginx_disable_access_logs() {
 
 function _nginx_ssl_configuration() {
   _info "Checking for NGINX SSL configuration..."
-  if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
-    if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
-      if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
-        if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/fullchain.pem" ]]; then
-          _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
-          exit 1
-        else
-          _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
-        fi
-        if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
-          _info "SSL has already been enabled..."
-        else
-          sed -i '/listen\s*80/r '<(
-            cat <<-END_HEREDOC
-          listen 443 ssl;
-          ssl_certificate /etc/ssl/private/fullchain.pem;
-          ssl_certificate_key /etc/ssl/private/privkey.pem;
-END_HEREDOC
-          ) /etc/nginx/http.d/dsmr-webinterface.conf
-        fi
-        if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-          _info "NGINX SSL configured and enabled"
-          return
-        else
-          _error "NGINX configuration error"
-          exit 1
-        fi
+
+  # Validate inputs
+  if [[ -z "${NGINX_LISTEN_PORT-}" ]]; then
+    if [[ -n "${ENABLE_NGINX_SSL-}" && "${ENABLE_NGINX_SSL-}" = true ]]; then
+      _info "Enabling SSL/TLS in NGINX..."
+
+      # Validate SSL files
+      if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
+        _error "Error: SSL files not found. Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
+        exit 1
+      else
+        _info "Required SSL files exist..."
       fi
+
+      # Enable SSL
+      if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
+        _info "SSL has already been enabled..."
+      else
+        local ssl_config='listen 443 ssl;
+        ssl_certificate /etc/ssl/private/fullchain.pem;
+        ssl_certificate_key /etc/ssl/private/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;'
+
+        if [[ "${ENABLE_HSTS-}" = true ]]; then
+          ssl_config+="\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\";"
+        fi
+
+        if [[ "${ENABLE_SSL_REDIRECT-}" = true ]]; then
+          ssl_config+="\nreturn 301 https://\$host\$request_uri;"
+        fi
+
+        sed -i "/listen\s*80/r <(echo -e '$ssl_config')" /etc/nginx/http.d/dsmr-webinterface.conf
+      fi
+
+      # Validate NGINX configuration
+      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+        _info "NGINX SSL configured and enabled..."
+        return
+      else
+        _error "Error: NGINX configuration is invalid..."
+        exit 1
+      fi
+
+    else
+      _info "ENABLE_NGINX_SSL is disabled. Continuing..."
     fi
   fi
-  _info "ENABLE_NGINX_SSL is disabled, nothing to see here. Continuing..."
 }
 
 function _generate_auth_configuration() {
   _info "Checking for HTTP AUTHENTICATION configuration..."
-  if [[ -n "${ENABLE_HTTP_AUTH}" ]]; then
-    if [[ "${ENABLE_HTTP_AUTH}" = true ]]; then
-      _info "ENABLE_HTTP_AUTH is enabled, let's secure this!"
-      canWeContinue=true
-      if [[ -z "${HTTP_AUTH_USERNAME}" ]]; then
-        _warn "Please provide a HTTP_AUTH_USERNAME"
-        canWeContinue=false
-      fi
-      if [[ -z "${HTTP_AUTH_PASSWORD}" ]]; then
-        _warn "Please provide a HTTP_AUTH_PASSWORD"
-        canWeContinue=false
-      fi
-      if [[ "${canWeContinue}" = false ]]; then
-        _error "Cannot generate a valid .htpasswd file, please check above warnings."
-        exit 1
-      fi
-      _info "Generating htpasswd..."
-      HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
-      printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" >/etc/nginx/htpasswd
-      _info "Done! Enabling the configuration in NGINX..."
-      sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/http.d/dsmr-webinterface.conf
-      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-        _info "HTTP AUTHENTICATION configured and enabled"
-        return
-      else
-        _error "NGINX configuration error"
-        exit 1
-      fi
+
+  if [[ "${ENABLE_HTTP_AUTH:-}" = true ]]; then
+    _info "ENABLE_HTTP_AUTH is enabled, let's secure this..."
+
+    can_we_continue=true
+
+    if [[ -z "${HTTP_AUTH_USERNAME:-}" ]]; then
+      _warn "Please provide a HTTP_AUTH_USERNAME..."
+      can_we_continue=false
+    fi
+
+    if [[ -z "${HTTP_AUTH_PASSWORD:-}" ]]; then
+      _warn "Please provide a HTTP_AUTH_PASSWORD..."
+      can_we_continue=false
+    fi
+
+    if [[ "${can_we_continue}" = false ]]; then
+      _error "Cannot generate a valid .htpasswd file, please check above warnings..."
+      exit 1
+    fi
+
+    _info "Generating htpasswd..."
+    http_auth_crypt_password=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
+    printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${http_auth_crypt_password}" >"${HTPASSWD_PATH}"
+    _info "Done! Enabling the configuration in NGINX..."
+    sed -i "s/##    auth_basic/    auth_basic/" "${HTTP_CONF_PATH}/dsmr-webinterface.conf"
+
+    if nginx -c "${NGINX_CONF_PATH}/nginx.conf" -t 2>/dev/null; then
+      _info "HTTP AUTHENTICATION configured and enabled..."
+      return
+    else
+      _error "NGINX configuration error..."
+      exit 1
     fi
   fi
+
   _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
 function _generate_clientcert_auth_configuration() {
   _info "Checking for CLIENT CERTIFICATE AUTHENTICATION configuration..."
-  if [[ -n "${ENABLE_CLIENTCERT_AUTH}" ]]; then
-    if [[ "${ENABLE_CLIENTCERT_AUTH}" = true ]]; then
-      _info "ENABLE_CLIENTCERT_AUTH is enabled, let's secure this!"
-      canWeContinue=true
-      if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
-        _warn "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem"
-        canWeContinue=false
-      fi
-      if [[ "${canWeContinue}" = false ]]; then
-        _error "Sorry, something failed. Please check above warnings."
-        exit 1
-      fi
-      _info "Enabling the configuration in NGINX..."
-      sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;\n\tssl_protocols TLSv1.2 TLSv1.3;' /etc/nginx/http.d/dsmr-webinterface.conf
-      if [[ "${ENABLE_NGINX_ENABLE_HSTS}" = true ]]; then
-        _info "Enabling HSTS in NGINX..."
-        sed -i '/ssl_protocols TLSv1.2 TLSv1.3;/a\\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";' /etc/nginx/http.d/dsmr-webinterface.conf
-      fi
-      if [[ "${ENABLE_NGINX_SSL_REDIRECT}" = true ]]; then
-        _info "Enabling SSL redirect in NGINX..."
-        sed -i '/ssl_protocols TLSv1.2 TLSv1.3;/a\\treturn 301 https://$host$request_uri;' /etc/nginx/http.d/dsmr-webinterface.conf
-      fi
-      if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
-        _info "Found CRL file, adding to configuration..."
-        sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/http.d/dsmr-webinterface.conf
-      fi
-      if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-        _info "CLIENT CERT AUTHENTICATION configured and enabled"
-        return
-      else
-        _error "NGINX configuration error"
-        exit 1
-      fi
+
+  if [[ -n "$ENABLE_CLIENTCERT_AUTH" ]] && [[ "$ENABLE_CLIENTCERT_AUTH" = true ]]; then
+    _info "ENABLE_CLIENTCERT_AUTH is enabled, let's secure this..."
+
+    if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
+      _warn "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem..."
+      can_we_continue=false
     fi
+
+    if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
+      _info "Found CRL file, adding to configuration..."
+      sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/http.d/dsmr-webinterface.conf
+    fi
+
+    if [[ "${can_we_continue}" = false ]]; then
+      _error "Sorry, something failed. Please check above warnings..."
+      exit 1
+    fi
+
+    _info "Enabling the configuration in NGINX..."
+    sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;' /etc/nginx/http.d/dsmr-webinterface.conf
+
+    if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
+      _info "CLIENT CERT AUTHENTICATION configured and enabled..."
+      return
+    else
+      _error "NGINX configuration error..."
+      exit 1
+    fi
+  else
+    _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
   fi
-  _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
 }
 
 function _iframe {
