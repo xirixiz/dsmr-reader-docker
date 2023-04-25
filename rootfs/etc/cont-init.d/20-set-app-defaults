@@ -193,15 +193,22 @@ function _run_post_config() {
 
 function _nginx_change_listen_port() {
   if [[ -z "${ENABLE_NGINX_SSL}" ]] && [[ -n "${NGINX_LISTEN_PORT}" ]]; then
-    _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
-    sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
+    if grep -q "${NGINX_LISTEN_PORT}" /etc/nginx/http.d/dsmr-webinterface.conf; then
+      _info "NGINX_LISTEN_PORT has already been modified..."
+    else
+      _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
+      sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
+    fi
   fi
 }
 
 function _nginx_disable_access_logs() {
   if [[ -n "${DISABLE_NGINX_ACCESS_LOGS}" ]]; then
-    _info "Disabling NGINX access logs..."
-    sed -i '/server_name/ a\    access_log off;' /etc/nginx/http.d/dsmr-webinterface.conf
+    if grep -q "access_log off" /etc/nginx/http.d/dsmr-webinterface.conf; then
+      _info "DISABLE_NGINX_ACCESS_LOGS has already been applied..."
+    else
+      _info "Disabling NGINX access logs..."
+      sed -i '/server_name/ a\    access_log off;' /etc/nginx/http.d/dsmr-webinterface.conf
   fi
 }
 
