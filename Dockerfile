@@ -84,7 +84,7 @@ RUN echo "**** install s6 overlay ****" \
   && tar -C / -xf /tmp/s6-overlay-${S6_ARCH}.tar.gz
 
 RUN echo "**** install build packages ****" \
-  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
+  && apk add --no-cache --virtual .build-deps wheel gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
   && python3 -m pip install --upgrade pip \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
