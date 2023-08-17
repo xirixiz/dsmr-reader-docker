@@ -24,7 +24,7 @@ concurrency:
 env:
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2023.04.02
+  DOCKER_TARGET_RELEASE: 2023.08.01
 
 jobs:
   ################################################
