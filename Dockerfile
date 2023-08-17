@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3-alpine3.18 as staging
+FROM --platform=$BUILDPLATFORM python:3-alpine3.17 as staging
 WORKDIR /app
 
 ARG DSMR_VERSION
@@ -20,6 +20,7 @@ ARG DOCKER_TARGET_RELEASE
 ARG DSMR_VERSION
 
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
+  PYTHONBUFFERED=1 \
   TERM="xterm"
 
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
