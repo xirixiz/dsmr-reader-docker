@@ -1,0 +1,4 @@
+2023.11.01
+- Upgrade to DSMR 5.10.4
+- Upgrade Postgresql client to 15.x
+- Upgrade to Python Alpine Docker image: python:3-alpine3.18
