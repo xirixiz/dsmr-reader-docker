@@ -85,7 +85,6 @@ RUN echo "**** install s6 overlay ****" \
 RUN echo "**** install build packages ****" \
   && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
-  && python3 -m pip install --upgrade pip \
   && python3 -m pip install "cython<3.0.0" --no-cache-dir \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
   && python3 -m pip install psycopg2 --no-cache-dir \
