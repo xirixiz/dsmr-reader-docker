@@ -50,7 +50,7 @@ Special thanks to the following persons for their great contribution(s)
 ```text
 * Docker >= 20.x
 * Python 3.x
-* Posgres >= 13.x
+* Postgres >= 13.x, < 16.x
 * MySQL ??.?? (untested by me)
 ```
 
