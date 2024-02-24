@@ -127,6 +127,8 @@ RUN echo "**** configure nginx package ****" \
 #---------------------------------------------------------------------------------------------------------------------------
 FROM base as final
 
+ENV S6_LOGGING=1
+
 COPY rootfs /
 
 # TODO: Improve healtcheck to respond on 200 only
