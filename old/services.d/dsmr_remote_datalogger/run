@@ -1,0 +1,10 @@
+# shellcheck disable=SC1008
+#!/command/with-contenv bash
+
+if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
+    echo "Starting DSMR Reader - remote datalogger (api_client)..."
+    cd /app || exit
+    exec s6-setuidgid app /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py
+else
+    sleep infinity
+fi

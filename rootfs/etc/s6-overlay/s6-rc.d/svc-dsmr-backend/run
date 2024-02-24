@@ -1,0 +1,13 @@
+# shellcheck disable=SC1008
+#!/command/with-contenv bash
+
+exec 2>&1
+
+if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
+    echo "Starting DSMR Reader - backend..."
+    cd /app || exit
+    exec s6-setuidgid app /usr/local/bin/python3 -u /app/manage.py dsmr_backend
+    # exec s6-notifyoncheck -d -n 300 -w 1000 s6-setuidgid app /usr/local/bin/python3 -u /app/manage.py dsmr_backend
+else
+    sleep infinity
+fi

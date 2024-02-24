@@ -1,4 +1,5 @@
-#!/usr/bin/with-contenv bash
+# shellcheck disable=SC1008
+#!/command/with-contenv bash
 
 if [[ "${DJANGO_DATABASE_ENGINE}" == *"postgres"* ]]; then
     if [[ $1 = "-v" ]]; then

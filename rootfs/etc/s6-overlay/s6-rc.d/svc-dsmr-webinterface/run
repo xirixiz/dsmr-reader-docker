@@ -1,0 +1,12 @@
+# shellcheck disable=SC1008
+#!/command/with-contenv bash
+
+exec 2>&1
+
+if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
+    echo "Starting DSMR Reader - webinterface..."
+    cd /app || exit
+    exec s6-setuidgid app /usr/local/bin/gunicorn dsmrreader.wsgi --timeout 60 --max-requests 500 --bind unix:/tmp/gunicorn--dsmr_webinterface.socket
+else
+    sleep infinity
+fi
