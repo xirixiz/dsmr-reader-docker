@@ -1,8 +1,6 @@
 # shellcheck disable=SC1008
 #!/command/with-contenv bash
 
-exec 2>&1
-
 if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
     echo "Starting DSMR Reader - remote datalogger (api_client)..."
     cd /app || exit

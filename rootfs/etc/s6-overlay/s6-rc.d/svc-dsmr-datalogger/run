@@ -1,8 +1,6 @@
 # shellcheck disable=SC1008
 #!/command/with-contenv bash
 
-exec 2>&1
-
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
     echo "Starting DSMR Reader - datalogger..."
     cd /app || exit

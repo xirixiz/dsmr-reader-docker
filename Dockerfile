@@ -127,7 +127,8 @@ RUN echo "**** configure nginx package ****" \
 #---------------------------------------------------------------------------------------------------------------------------
 FROM base as final
 
-ENV S6_LOGGING=1
+# ENV S6_CMD_USE_TERMINAL=1
+ENV S6_LOGGING=0
 
 COPY rootfs /
 
