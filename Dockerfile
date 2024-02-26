@@ -32,7 +32,8 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
 
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} \
   DSMR_VERSION=${DSMR_VERSION} \
-  DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
+  DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE} \
+  PIP_NO_CACHE_DIR=1
 
 ENV DJANGO_SECRET_KEY=dsmrreader \
   DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
@@ -62,12 +63,11 @@ RUN echo "**** install runtime packages ****" \
   && rm -rf /tmp/* \
   && apk --update add --no-cache \
   bash \
+  unit \
   coreutils \
-  curl \
   ca-certificates \
   shadow \
   dpkg \
-  curl \
   jq \
   nginx \
   openssl \
@@ -85,12 +85,11 @@ RUN echo "**** install s6 overlay ****" \
   "arm/v7")  S6_ARCH=arm ;; \
   "arm/v6")  S6_ARCH=armhf ;; \
   esac \
-  && curl https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-noarch.tar.xz -L -s --output /tmp/s6-overlay-noarch.tar.xz \
+  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-noarch.tar.xz \
+  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-"${S6_ARCH}".tar.xz \
   && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-  && curl https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz -L -s --output /tmp/s6-overlay-${S6_ARCH}.tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz \
-  && curl https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-symlinks-noarch.tar.xz -L -s --output /tmp/s6-overlay-symlinks-noarch.tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
+  && tar -C / -Jxpf /tmp/s6-overlay-"${S6_ARCH}".tar.xz \
+  && rm -rf /tmp/s6-overlay-*.tar.xz
 
 RUN echo "**** install build packages ****" \
   && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
@@ -126,9 +125,6 @@ RUN echo "**** configure nginx package ****" \
 # FINAL STEP
 #---------------------------------------------------------------------------------------------------------------------------
 FROM base as final
-
-# ENV S6_CMD_USE_TERMINAL=1
-ENV S6_LOGGING=0
 
 COPY rootfs /
 
