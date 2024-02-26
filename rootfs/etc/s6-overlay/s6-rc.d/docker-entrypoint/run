@@ -17,16 +17,14 @@ function _pre_reqs() {
     _info "DSMR Reader Reader release: ${DSMR_VERSION}"
     _info "DSMR Reader Reader Docker release: ${DOCKER_TARGET_RELEASE}"
 
-    cat /etc/s6-overlay/s6-rc.d/docker-entrypoint/branding
-
     DUID=${DUID:-803}
     DGID=${DGID:-803}
 
-    groupmod -o -g "${DGID}" app
-    usermod -o -u "${DUID}" app
+    groupmod -o -g "${DGID}" app 2>&1 >/dev/null
+    usermod -o -u "${DUID}" app 2>&1 >/dev/null
 
+    cat /etc/s6-overlay/s6-rc.d/docker-entrypoint/branding
     echo "
-    ───────────────────────────────────────────────────
     User UID: $(id -u app)
     User GID: $(id -g app)
     ───────────────────────────────────────────────────
