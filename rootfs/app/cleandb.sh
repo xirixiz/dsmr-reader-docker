@@ -1,4 +1,3 @@
-# shellcheck disable=SC1008
 #!/command/with-contenv bash
 
 if [[ "${DJANGO_DATABASE_ENGINE}" == *"postgres"* ]]; then
