@@ -65,7 +65,7 @@ RUN echo "**** install runtime packages ****" \
   && rm -rf /tmp/* \
   && apk --update add --no-cache \
   bash \
-  unit \
+  curl \
   coreutils \
   ca-certificates \
   shadow \
