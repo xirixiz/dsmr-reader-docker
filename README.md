@@ -137,7 +137,7 @@ It's not possible to combine those settings!!!:
   DSMRREADER_ADMIN_USER=admin
   # Webinterface user password:
   DSMRREADER_ADMIN_PASSWORD=admin
-  # Loglevel. Valid values are WARNING, INFO, DEBUG:
+  # Loglevel. Valid values are ERROR, WARNING, DEBUG:
   DSMRREADER_LOGLEVEL=WARNING
   # Secret key for encryption:
   DJANGO_SECRET_KEY=dsmrreader
