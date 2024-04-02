@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.11-alpine3.19 as staging
+FROM --platform=$BUILDPLATFORM python:3.11-alpine3.19.1 as staging
 WORKDIR /app
 
 ARG DSMR_VERSION
@@ -66,7 +66,7 @@ RUN echo "**** install runtime packages ****" \
   nginx \
   openssl \
   netcat-openbsd \
-  postgresql15-client \
+  postgresql16-client \
   mariadb-connector-c-dev \
   mariadb-client \
   libjpeg-turbo \
