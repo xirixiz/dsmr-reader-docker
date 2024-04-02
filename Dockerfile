@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.11-alpine3.19 as staging
+FROM --platform=$BUILDPLATFORM python:3-alpine3.19 as staging
 WORKDIR /app
 
 ARG DSMR_VERSION
@@ -9,7 +9,7 @@ RUN echo "**** Download DSMR ****" \
   && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
   && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
-FROM python:3.11-alpine3.19
+FROM python:3-alpine3.19
 
 ARG TARGETARCH
 ARG TARGETVARIANT
