@@ -4,7 +4,7 @@ services:
   dsmrdb:
     # When using Postgres, release 13.x, 14.x and 15.x are supported only
     # due to the limited availability of client packages, especially for arm32v7
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: dsmrdb
     restart: always
     volumes:
