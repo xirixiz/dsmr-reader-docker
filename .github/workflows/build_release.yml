@@ -73,7 +73,6 @@ jobs:
         shell: bash
         run: |
           URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-          # TODO: Add tag release support
           VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
           DOWNLOAD_URL=$(curl -SskLf "${URL}" | jq -r '.tarball_url')
           # VERSION="5.0.0"
