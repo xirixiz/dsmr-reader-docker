@@ -137,4 +137,3 @@ COPY rootfs /
 WORKDIR /app
 
 ENTRYPOINT [ "/init" ]
-CMD [ "sleep", "infinity" ]
