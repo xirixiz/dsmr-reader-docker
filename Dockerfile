@@ -50,6 +50,7 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
 # copy local files
 COPY --from=staging /app /app
 COPY rootfs /
+COPY ./docker/entrypoint /
 
 RUN echo "**** install runtime packages ****" \
   && rm -rf /var/cache/apk/* \
@@ -118,4 +119,4 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.
 
 WORKDIR /app
 
-ENTRYPOINT ["/init"]
+ENTRYPOINT ["/docker-entrypoint.sh", "/init"]
