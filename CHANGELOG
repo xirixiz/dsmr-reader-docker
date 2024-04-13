@@ -1,6 +1,11 @@
+2024.04.04
+- Upgrade alpine to 3.19
+- Upgrade postgresql to 16.x
+- Upgrade GitHub actions to supported releases (nodejs 16 deprecation)
+
 2024.02.21
 - Upgrade to DSMR 5.11.0
-- Upgrade alpine to 3.19
+- Upgrade alpine to 3.17
 - Upgrade postgresql to 15.x
 
 2023.11.01
