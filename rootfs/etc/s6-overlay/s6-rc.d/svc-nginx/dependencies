@@ -1,1 +1,3 @@
 docker-entrypoint
+svc-dsmr-backend
+svc-dsmr-webinterface
