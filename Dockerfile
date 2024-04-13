@@ -91,6 +91,10 @@ RUN echo "**** install s6 overlay ****" \
   && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-"${S6_ARCH}".tar.xz \
   && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
   && tar -C / -Jxpf /tmp/s6-overlay-"${S6_ARCH}".tar.xz \
+  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-noarch.tar.xz \
+  && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz \
+  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-arch.tar.xz \
+  && tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz \
   && rm -rf /tmp/s6-overlay-*.tar.xz
 
 RUN echo "**** install build packages ****" \
