@@ -4,7 +4,7 @@
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - nginx..."
     cd /app || exit
-    exec s6-setuidgid app /usr/sbin/nginx -g "daemon off;"
+    exec /usr/sbin/nginx -g "daemon off;"
 else
     sleep infinity
 fi
