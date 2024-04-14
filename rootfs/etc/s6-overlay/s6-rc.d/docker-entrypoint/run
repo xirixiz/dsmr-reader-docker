@@ -332,6 +332,36 @@ function _generate_clientcert_auth_configuration() {
     _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
 }
 
+function _docker_secrets {
+    # shellcheck source=/dev/null
+    . /etc/s6-overlay/s6-rc.d/docker-entrypoint.d/.env-from-docker-secrets
+
+    if /usr/bin/find "/etc/s6-overlay/s6-rc.d/docker-entrypoint.d/" -mindepth 1 -maxdepth 1 -type f -print -quit 2>/dev/null | read -r v; then
+        _info "/etc/s6-overlay/s6-rc.d/docker-entrypoint.d/ is not empty, will attempt to perform configuration"
+
+        _info "Looking for shell scripts in /etc/s6-overlay/s6-rc.d/docker-entrypoint.d/"
+        find "/etc/s6-overlay/s6-rc.d/docker-entrypoint.d/" -follow -type f -print | sort -V | while read -r f; do
+            case "$f" in
+            *.sh)
+                if [ -x "$f" ]; then
+                    _info "Launching Docker secret $f"
+                    "$f"
+                else
+                    # warn on shell scripts without exec bit
+                    _warn "Ignoring Docker secret $f, not executable"
+                fi
+                ;;
+            *) _info "Ignoring Docker secret $f" ;;
+            esac
+        done
+
+        _info "Docker secrets configuration complete; ready for start up..."
+    else
+        _info "No Docker secrets found in /etc/s6-overlay/s6-rc.d/docker-entrypoint.d/, skipping configuration..."
+    fi
+
+}
+
 function _iframe {
     if [[ "${ENABLE_IFRAME}" = true ]]; then
         _info "Enabling IFrame..."
@@ -362,4 +392,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
     _generate_auth_configuration
     _dsmr_datalogger_mode
     _optional_settings
+    _docker_secrets
 fi

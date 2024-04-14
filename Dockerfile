@@ -8,10 +8,10 @@ WORKDIR /app
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION:-5.0.0}
 
-RUN echo "**** Download DSMR ****" \
-  && apk add --no-cache curl \
-  && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
-  && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
+RUN echo "**** Download DSMR ****" &&
+  apk add --no-cache curl &&
+  curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app &&
+  curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v5/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
 #---------------------------------------------------------------------------------------------------------------------------
 # BUILD STEP
@@ -60,72 +60,72 @@ ENV DJANGO_SECRET_KEY=dsmrreader \
 # copy local files
 COPY --from=staging /app /app
 
-RUN echo "**** install runtime packages ****" \
-  && rm -rf /var/cache/apk/* \
-  && rm -rf /tmp/* \
-  && apk --update add --no-cache \
-  bash \
-  curl \
-  coreutils \
-  ca-certificates \
-  shadow \
-  dpkg \
-  jq \
-  nginx \
-  openssl \
-  netcat-openbsd \
-  postgresql16-client \
-  mariadb-connector-c-dev \
-  mariadb-client \
-  libjpeg-turbo \
-  tzdata
+RUN echo "**** install runtime packages ****" &&
+  rm -rf /var/cache/apk/* &&
+  rm -rf /tmp/* &&
+  apk --update add --no-cache \
+    bash \
+    curl \
+    coreutils \
+    ca-certificates \
+    shadow \
+    dpkg \
+    jq \
+    nginx \
+    openssl \
+    netcat-openbsd \
+    postgresql16-client \
+    mariadb-connector-c-dev \
+    mariadb-client \
+    libjpeg-turbo \
+    tzdata
 
-RUN echo "**** install s6 overlay ****" \
-  && case "${TARGETARCH}/${TARGETVARIANT}" in \
-  "amd64/")  S6_ARCH=x86_64 ;; \
-  "arm64/")  S6_ARCH=aarch64 ;; \
-  "arm/v7")  S6_ARCH=arm ;; \
-  "arm/v6")  S6_ARCH=armhf ;; \
-  esac \
-  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-noarch.tar.xz \
-  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-"${S6_ARCH}".tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-"${S6_ARCH}".tar.xz \
-  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-noarch.tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz \
-  && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-arch.tar.xz \
-  && tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz \
-  && rm -rf /tmp/s6-overlay-*.tar.xz
+RUN echo "**** install s6 overlay ****" &&
+  case "${TARGETARCH}/${TARGETVARIANT}" in
+  "amd64/") S6_ARCH=x86_64 ;;
+  "arm64/") S6_ARCH=aarch64 ;;
+  "arm/v7") S6_ARCH=arm ;;
+  "arm/v6") S6_ARCH=armhf ;;
+  esac &&
+  wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-noarch.tar.xz &&
+  wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-"${S6_ARCH}".tar.xz &&
+  tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz &&
+  tar -C / -Jxpf /tmp/s6-overlay-"${S6_ARCH}".tar.xz &&
+  wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-noarch.tar.xz &&
+  tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz &&
+  wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v"${S6_VERSION}"/s6-overlay-symlinks-arch.tar.xz &&
+  tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz &&
+  rm -rf /tmp/s6-overlay-*.tar.xz
 
-RUN echo "**** install build packages ****" \
-  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
-  && echo "**** install pip packages ****" \
-  && python3 -m pip install "cython<3.0.0" --no-cache-dir \
-  && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-  && python3 -m pip install psycopg2 --no-cache-dir \
-  && python3 -m pip install mysqlclient --no-cache-dir \
-  && python3 -m pip install tzupdate --no-cache-dir \
-  && echo "**** create app user and make base folders ****" \
-  && groupmod -g 1000 users \
-  && useradd -u 803 -U -d /config -s /bin/false app \
-  && usermod -G users,dialout,audio app \
-  && mkdir -vp /app /config /defaults \
-  && echo "**** copy default settings dsmr reader ****" \
-  && cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py \
-  && echo "**** cleanup package leftovers ****" \
-  && apk --purge del .build-deps \
-  && apk --purge del \
-  && rm -rf /var/cache/apk/* \
-  && rm -rf /tmp/*
+RUN echo "**** install build packages ****" &&
+  apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust &&
+  echo "**** install pip packages ****" &&
+  python3 -m pip install "cython<3.0.0" --no-cache-dir &&
+  python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir &&
+  python3 -m pip install psycopg2 --no-cache-dir &&
+  python3 -m pip install mysqlclient --no-cache-dir &&
+  python3 -m pip install tzupdate --no-cache-dir &&
+  echo "**** create app user and make base folders ****" &&
+  groupmod -g 1000 users &&
+  useradd -u 803 -U -d /config -s /bin/false app &&
+  usermod -G users,dialout,audio app &&
+  mkdir -vp /app /config /defaults &&
+  echo "**** copy default settings dsmr reader ****" &&
+  cp -f /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py &&
+  echo "**** cleanup package leftovers ****" &&
+  apk --purge del .build-deps &&
+  apk --purge del &&
+  rm -rf /var/cache/apk/* &&
+  rm -rf /tmp/*
 
-RUN echo "**** configure nginx package ****" \
-  && mkdir -vp /run/nginx/ \
-  && mkdir -vp /etc/nginx/http.d \
-  && ln -sf /dev/stdout /var/log/nginx/access.log \
-  && ln -sf /dev/stderr /var/log/nginx/error.log \
-  && rm -f /etc/nginx/http.d/default.conf \
-  && mkdir -vp /var/www/dsmrreader/static \
-  && cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
+RUN echo "**** configure nginx package ****" &&
+  mkdir -vp /run/nginx/ &&
+  mkdir -vp /etc/nginx/http.d &&
+  ln -sf /dev/stdout /var/log/nginx/access.log &&
+  ln -sf /dev/stderr /var/log/nginx/error.log &&
+  rm -f /etc/nginx/http.d/default.conf &&
+  mkdir -vp /var/www/dsmrreader/static &&
+  cp -f /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FINAL STEP
@@ -141,4 +141,4 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.
 
 WORKDIR /app
 
-ENTRYPOINT ["/docker-entrypoint.sh", "/init"]
+ENTRYPOINT ["/init"]
