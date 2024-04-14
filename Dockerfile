@@ -141,4 +141,4 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.
 
 WORKDIR /app
 
-ENTRYPOINT [
+ENTRYPOINT ["/docker-entrypoint.sh", "/init"]
