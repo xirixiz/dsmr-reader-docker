@@ -161,6 +161,21 @@ It's not possible to combine those settings!!!:
   DJANGO_DATABASE_CONN_MAX_AGE=60
   ```
 
+  ##### Docker secrets
+
+  You can utilize Docker secrets to handle sensitive information such as credentials securely. By appending `_FILE` as suffix, the image will fetch the content of the file instead of relying on the environment variable. The suffix `_FILE` is a commonly practiced Docker secret convention for reading sensitive data from files. Alternatively, you can employ DOCKER-SECRET-> as a prefix to access the content of the secret directly without referencing the mount.
+
+  ```properties
+  # Appending _FILE suffix will retrieve content from the designated file, bypassing the need for the environment variable and placing the content directly into it.
+  DJANGO_DATABASE_PASSWORD_FILE=/run/secrets/dsmrreader_db_password
+  # Using DOCKER-SECRET-> prefix will fetch the content of the specified secret directly.
+  DJANGO_DATABASE_USER=DOCKER-SECRET->dsmrreader_db_user
+  ```
+
+  For an example illustrating how to implement Docker secrets, refer to the following demonstration: [examples/docker-compose.secrets-example.yaml](https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.secrets-example.yaml).<br/>
+
+  For more information about Docker secrets, please refer to: [Docker secrets](https://docs.docker.com/engine/swarm/secrets/)
+
 * ##### DSMR Datalogger related
   When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
   Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
@@ -236,7 +251,7 @@ It's not possible to combine those settings!!!:
   ```
 
 * ##### Run with docker-compose
-  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml.<br/>
+  An example docker-compose.yaml file can be found here: [examples/docker-compose.examle.yaml](https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml).<br/>
 
   You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
   ```bash
