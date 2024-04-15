@@ -24,7 +24,7 @@ function _pre_reqs() {
     groupmod -o -g "${DGID}" app >/dev/null 2>&1
     usermod -o -u "${DUID}" app >/dev/null 2>&1
 
-    cat /etc/s6-overlay/s6-rc.d/docker-entrypoint/branding
+    cat /etc/s6-overlay/s6-rc.d/init-docker-entrypoint/branding
     echo "
     User UID: $(id -u app)
     User GID: $(id -g app)
@@ -324,12 +324,48 @@ function _generate_clientcert_auth_configuration() {
                 _info "CLIENT CERT AUTHENTICATION configured and enabled"
                 return
             else
-                _error "NGINX configuration error"
+                _error "NGINX configuration error!"
                 exit 1
             fi
         fi
     fi
     _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
+}
+
+# Todo: improve docker secrets scripts do check on hex for newline
+# filename="${FILENAME##*/}"
+# last_bytes=$(tail -c 2 "${SECRETFILE}" | od -An -tx1 | tr -d ' ')
+
+# if [[ "$last_bytes" == "0a" ]]; then  # Only LF
+#     _info "Warning: Docker secret file '$filename' contains a trailing Line Feed (LF) newline ('\\n') which may cause issues."
+#     echo "Consider removing it with 'sed -i '' ':a;N;$!ba;s/\\n$//' '$SECRETFILE'' if you encounter problems."
+# elif [[ "$last_bytes" == "0d0a" ]]; then  # CRLF
+#     _info "Warning: Docker secret file '$filename' contains a trailing Windows-style newline (CRLF) which may cause issues."
+#     echo "Consider removing it with 'sed -i '' 's/\\r\\n$//' '$SECRETFILE'' if you encounter problems."
+# elif [[ "$last_bytes" =~ "0d" ]]; then  # Only CR
+#     _info "Warning: Docker secret file '$filename' contains a trailing Carriage Return (CR) newline ('\\r') which may cause issues."
+#     echo "Consider removing it with 'sed -i '' 's/\\r$//' '$SECRETFILE'' if you encounter problems."
+# else
+#     _info "Docker secret file '$filename' is properly formatted without any trailing newline."
+# fi
+
+function _docker_secrets {
+    if find /run/s6/container_environment/FILE__* -maxdepth 1 > /dev/null 2>&1; then
+        _info "Enabling Docker secrets..."
+        for FILENAME in /run/s6/container_environment/FILE__*; do
+                SECRETFILE=$(cat "${FILENAME}")
+                if [[ -f ${SECRETFILE} ]]; then
+                    FILESTRIP=${FILENAME//FILE__/}
+                    if [[ $(tail -n1 "${SECRETFILE}" | wc -l) != 0 ]]; then
+                        _info "Docker secret: ${FILENAME##*/} contains a trailing newline and may not work as expected!"
+                    fi
+                    cat "${SECRETFILE}" >"${FILESTRIP}"
+                    _info "Docker secret ${FILESTRIP##*/} set from ${FILENAME##*/}..."
+                else
+                    _info "Cannot find Docker secret in ${FILENAME##*/}..."
+                fi
+        done
+    fi
 }
 
 function _iframe {
@@ -362,4 +398,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
     _generate_auth_configuration
     _dsmr_datalogger_mode
     _optional_settings
+    _docker_secrets
 fi

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   dsmrdb:
-    # When using Postgres, release 13.x, 14.x and 15.x are supported only
+    # When using Postgres, release 13.x, 14.x, 15.x, and 16.x are supported only
     # due to the limited availability of client packages, especially for arm32v7
     image: postgres:16-alpine
     container_name: dsmrdb
@@ -42,6 +42,9 @@ services:
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
+      - FILE__SECRET=/run/secrets/a_secret_file
+    secrets:
+      - a_secret_file
     ports:
       - 7777:80
       - 7779:443
@@ -64,6 +67,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+secrets:
+    a_secret_file:
+        file : somedir/my_secret.txt
 
 volumes:
   dsmrdb: null

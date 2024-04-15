@@ -133,7 +133,6 @@ RUN echo "**** configure nginx package ****" \
 FROM base as final
 
 COPY rootfs /
-COPY ./docker/entrypoint /
 
 # TODO: Improve healtcheck to respond on 200 only
 # TODO: Improve healtcheck so it's only valid for containers with the webinterface enabled
@@ -141,4 +140,4 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.
 
 WORKDIR /app
 
-ENTRYPOINT ["/docker-entrypoint.sh", "/init"]
+ENTRYPOINT ["/init"]

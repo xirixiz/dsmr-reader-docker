@@ -1,2 +1,2 @@
-docker-entrypoint
+init-docker-entrypoint
 svc-nginx
