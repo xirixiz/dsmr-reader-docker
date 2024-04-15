@@ -43,7 +43,9 @@ services:
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
-      - FILE__MYVAR=/run/secrets/mysecretvariable
+      - FILE__SECRET=/run/secrets/a_secret_file
+    secrets:
+      - a_secret_file
     ports:
       - 7777:80
       - 7779:443
@@ -66,6 +68,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+secrets:
+    a_secret_file:
+        file : somedir/my_secret.txt
 
 volumes:
   dsmrdb: null
