@@ -276,11 +276,20 @@ The ```--no-healthcheck``` argument should only be used when the containers func
 You can set any environment variable from a file by using a special prepend `FILE__`.
 
 As an example:
-```bash
--e FILE__MYVAR=/run/secrets/mysecretvariable
+```yaml
+services:
+    some_service:
+    image: some_image
+    environment:
+        FILE__SECRET: /run/secrets/a_secret_file
+    secrets: - a_secret_file
+
+secrets:
+    a_secret_file:
+        file : somedir/my_secret.txt
 ```
 
-Will set the environment variable `MYVAR` based on the contents of the `/run/secrets/mysecretvariable` file.
+Basiccally, the bottom secrets section mounts `my_secrets.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorize the service to use the `a_secret_file secret`. The environment variable FILE__SECRET tells the service what file to read to set/get the value of the environment variable `SECRET`.
 
 ***
 #### Features

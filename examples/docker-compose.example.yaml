@@ -38,7 +38,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/app/backups
-      - ./secrets:/run/secrets/
     environment:
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
