@@ -38,10 +38,12 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/app/backups
+      - ./secrets:/run/secrets/
     environment:
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
+      - FILE__MYVAR=/run/secrets/mysecretvariable
     ports:
       - 7777:80
       - 7779:443
