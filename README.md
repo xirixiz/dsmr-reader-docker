@@ -272,6 +272,16 @@ It's not possible to combine those settings!!!:
 
 The ```--no-healthcheck``` argument should only be used when the containers function NOT presenting the DSMR Reader webinterface, for example the datalogger sender mode. By default this argument should not be used!
 
+* ##### Environment variables from files (Docker secrets)
+You can set any environment variable from a file by using a special prepend `FILE__`.
+
+As an example:
+```bash
+-e FILE__MYVAR=/run/secrets/mysecretvariable
+```
+
+Will set the environment variable `MYVAR` based on the contents of the `/run/secrets/mysecretvariable` file.
+
 ***
 #### Features
 * ##### DSMR Reader - Database cleanup/vacuum
