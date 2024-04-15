@@ -282,7 +282,8 @@ services:
     image: some_image
     environment:
         FILE__SECRET: /run/secrets/a_secret_file
-    secrets: - a_secret_file
+    secrets:
+        - a_secret_file
 
 secrets:
     a_secret_file:
