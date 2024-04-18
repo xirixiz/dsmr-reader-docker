@@ -1,4 +1,4 @@
-#!/bin/execlineb -P
+#!/command/execlineb -P
 # /etc/s6-overlay/s6-rc.d/nginx/run
 # shellcheck shell=bash
 
@@ -7,7 +7,7 @@ with-contenv
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - nginx..."
     cd /app || exit
-    s6-setuidgid app
+    # s6-setuidgid app
     /usr/sbin/nginx -g 'daemon off;'
 else
     sleep infinity

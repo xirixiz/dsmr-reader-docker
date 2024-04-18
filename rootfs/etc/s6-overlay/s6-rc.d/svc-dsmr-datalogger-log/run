@@ -1,4 +1,4 @@
-#!/bin/execlineb -P
+#!/command/execlineb -P
 # /etc/s6-overlay/s6-rc.d/dsmr_datalogger-log/run
 # shellcheck shell=bash
 
