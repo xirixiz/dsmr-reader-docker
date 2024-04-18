@@ -1,0 +1,10 @@
+#!/bin/execlineb -P
+# /etc/s6-overlay/s6-rc.d/sig-handler/run
+# shellcheck shell=bash
+
+# Trap SIGINT and gracefully shutdown
+foreground {
+  s6-trap-init SIGINT
+}
+importas -u SIGINT SIGINT
+s6-svscanctl -t /var/run/s6/services

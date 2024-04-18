@@ -1,0 +1,5 @@
+#!/bin/execlineb -P
+# /etc/s6-overlay/s6-rc.d/dsmr_webinterface-log/run
+# shellcheck shell=bash
+
+s6-log -bp -- /var/log/dsmr_webinterface
