@@ -1,8 +1,5 @@
-#!/command/execlineb -P
-# /etc/s6-overlay/s6-rc.d/dsmr_webinterface/run
+#!/command/with-contenv bash
 # shellcheck shell=bash
-
-with-contenv
 
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - webinterface..."
