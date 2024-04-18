@@ -4,9 +4,7 @@
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - backend..."
     cd /app || exit
-    nice -n 10
-    s6-setuidgid app
-    /usr/local/bin/python3 -u /dsmr/manage.py dsmr_backend
+    nice -n 10 s6-setuidgid app /usr/local/bin/python3 -u /dsmr/manage.py dsmr_backend
 else
     sleep infinity
 fi
