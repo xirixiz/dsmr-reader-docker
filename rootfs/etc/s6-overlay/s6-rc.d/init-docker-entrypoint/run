@@ -187,11 +187,11 @@ function _check_db_availability() {
     fi
     if [[ -n "${DJANGO_DATABASE_ENGINE}" ]]; then
         _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
-        for i in {1..30}; do
-            if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}"; then
+        for i in {1..10}; do
+            if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}" > /dev/null 2>&1; then
                 sleep 1
-                printf "\\rTesting database connectivity: %s second(s) of 30 seconds..." "$i"
-                if [[ $i == 30 ]]; then
+                printf "\\rTesting database connectivity: %s second(s) of 10 seconds..." "$i"
+                if [[ $i == 10 ]]; then
                     _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
                     exit 1
                 fi
