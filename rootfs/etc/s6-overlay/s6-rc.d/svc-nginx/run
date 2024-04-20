@@ -6,9 +6,8 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
         if [ -e "/tmp/gunicorn--dsmr_webinterface.socket" ]; then
             echo "Starting DSMR Reader - nginx..."
             sleep 2
-            chmod 777 /tmp/gunicorn--dsmr_webinterface.socket
             cd /app || exit
-            s6-setuidgid app /usr/sbin/nginx -g 'daemon off;'
+            /usr/sbin/nginx -g 'daemon off;'
         else
             sleep 1
             printf "\\rTesting webservice socket connectivity: %s second(s) of 10 seconds..." "$i"
