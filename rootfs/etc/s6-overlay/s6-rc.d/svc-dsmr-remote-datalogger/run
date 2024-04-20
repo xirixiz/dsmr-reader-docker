@@ -4,7 +4,7 @@
 if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
     echo "Starting DSMR Reader - remote datalogger (api_client)..."
     cd /app || exit
-    s6-setuidgid app /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py
+    nice -n 5 s6-setuidgid app /usr/local/bin/python3 -u /app/dsmr_datalogger_api_client.py
 else
     sleep infinity
 fi
