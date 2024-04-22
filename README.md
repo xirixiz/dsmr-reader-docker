@@ -48,7 +48,7 @@ Special thanks to the following persons for their great contribution(s)
 ```text
 * Docker >= 20.x
 * Python 3.x
-* Postgres >= 13.x, < 16.x
+* Postgres >= 13.x, max 16.x
 * MySQL ??.?? (untested by me)
 ```
 
