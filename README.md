@@ -308,10 +308,10 @@ This guide explains how to install and configure a DSMR Reader plugin to read Ho
 
 ### Plugin Preparation
 
-* #### Assumption:
+#### Assumption:
 - Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 
-* #### On your Docker host:
+#### On your Docker host:
 
 1. Create a folder `/home/pi/dsmr/plugins`
 2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
