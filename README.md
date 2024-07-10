@@ -308,7 +308,7 @@ This guide explains how to install and configure a DSMR Reader plugin to read Ho
 
 ### Plugin Preparation
 
-#### Assumption:
+#### Assumption(s):
 - Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 
 #### On your Docker host:
