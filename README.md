@@ -24,6 +24,7 @@ You will need a cable and hardware that can run Docker.
   - [Technologies](#technologies)
   - [Releases](#releases)
   - [Setup / parameters](#setup--parameters)
+  - [Homewizard P1 Meter Integration](#dsmr-reader---docker-and-homewizard-p1-meter-integration)
   - [Features](#features)
   - [Issues](#issues)
   - [Inspiration](#inspiration)
@@ -38,6 +39,7 @@ Special thanks to the following persons for their great contribution(s)
 [@dennissiemensma](https://github.com/dsmrreader)
 [@bjw-s](https://github.com/bjw-s)
 [@Caroga](https://github.com/Caroga)
+[mchangsp](https://github.com/mchangsp)
 
 ***
 #### Screenshots
@@ -291,6 +293,84 @@ secrets:
 ```
 
 Basiccally, the bottom secrets section mounts `my_secrets.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorize the service to use the `a_secret_file secret`. The environment variable FILE__SECRET tells the service what file to read to set/get the value of the environment variable `SECRET`.
+
+
+***
+#### DSMR-Reader - Docker and Homewizard P1 Meter Integration
+
+This guide explains how to install and configure a DSMR Reader plugin to read Homewizard P1 telegrams and inject them into DSMR Reader.
+
+### Prerequisites
+
+- A working instance of [DSMR Reader in Docker](https://github.com/xirixiz/dsmr-reader-docker)
+- A working Homewizard P1 meter with Local API enabled
+- The Homewizard P1 meter IP address
+
+### Plugin Preparation
+
+#### Assumption(s):
+- Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
+
+#### On your Docker host:
+
+1. Create a folder `/home/pi/dsmr/plugins`
+2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
+
+    ```python
+    import requests
+    from django.dispatch import receiver
+    from dsmr_backend.signals import backend_called
+    import dsmr_datalogger.services.datalogger
+
+    HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
+    HOMEWIZARD_TIMEOUT = 5
+
+    @receiver(backend_called)
+    def handle_backend_called(**kwargs):
+        response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
+
+        if response.status_code != 200:
+            print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
+            return
+
+        dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
+    ```
+
+### Docker Setup
+
+1. Go to folder `/home/pi/dsmr`
+2. Edit your `docker-compose.yaml` file
+3. Add the following definition to the `volumes:` section:
+
+    ```yaml
+    - ./plugins/homewizard_p1.py:/app/dsmr_plugins/modules/homewizard_p1.py
+    ```
+
+4. Add the following definitions to the `environment:` section:
+
+    ```yaml
+    - DSMRREADER_OPERATION_MODE=api_server
+    - DSMRREADER_PLUGINS=dsmr_plugins.modules.homewizard_p1
+    ```
+
+5. Save the `docker-compose.yaml` file
+6. To stop DSMR Reader, run:
+
+    ```bash
+    docker-compose down
+    ```
+
+7. To start DSMR Reader, run:
+
+    ```bash
+    docker-compose up -d
+    ```
+
+### Original Post
+
+The original instructions are (partly in Dutch) on [GitHub](https://github.com/xirixiz/dsmr-reader-docker/issues/301). The Python source code in the original post was missing an import statement. The instructions have been grouped together and translated into English.
+
+For an alternative solution using Home Assistant automations, see [this guide](https://community.home-assistant.io/t/dsmr-reader-docker-and-homewizard-p1-meter-integration/747265).
 
 ***
 #### Features
