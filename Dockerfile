@@ -2,7 +2,7 @@
 # STAGING STEP
 #---------------------------------------------------------------------------------------------------------------------------
 
-FROM --platform=$BUILDPLATFORM python:3.11-alpine3.19 as staging
+FROM --platform=$BUILDPLATFORM python:3.13-alpine3.21 as staging
 WORKDIR /app
 
 ARG DSMR_VERSION
@@ -16,7 +16,7 @@ RUN echo "**** Download DSMR ****" \
 #---------------------------------------------------------------------------------------------------------------------------
 # BUILD STEP
 #---------------------------------------------------------------------------------------------------------------------------
-FROM python:3.11-alpine3.21 as base
+FROM python:3.13-alpine3.21 as base
 
 # Build the binary according to the TARGET platform variables
 ARG TARGETARCH
