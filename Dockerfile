@@ -73,7 +73,7 @@ RUN echo "**** install runtime packages ****" \
   nginx \
   openssl \
   netcat-openbsd \
-  postgresql16-client \
+  postgresql17-client \
   mariadb-connector-c-dev \
   mariadb-client \
   libjpeg-turbo \
