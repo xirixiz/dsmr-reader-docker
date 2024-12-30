@@ -1,3 +1,8 @@
+2024.12.30
+- Upgrade alpine to 3.21
+- Update readme
+- Import first the docker secrets
+
 2024.04.04
 - Upgrade alpine to 3.19
 - Upgrade postgresql to 16.x
