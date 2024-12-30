@@ -1,5 +1,7 @@
 2024.12.30
 - Upgrade alpine to 3.21
+- Upgrade postgresql to 17.x
+- Upgrade to Python 3.12
 - Update readme
 - Import first the docker secrets
 
