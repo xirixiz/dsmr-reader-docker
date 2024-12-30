@@ -100,7 +100,6 @@ RUN echo "**** install build packages ****" \
   && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql17-dev build-base mariadb-dev libpq-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-  && python3 -m pip install psycopg2 --no-cache-dir \
   && python3 -m pip install mysqlclient --no-cache-dir \
   && python3 -m pip install tzupdate --no-cache-dir \
   && echo "**** create app user and make base folders ****" \
