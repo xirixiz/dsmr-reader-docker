@@ -388,6 +388,7 @@ function _cleandb {
 _pre_reqs
 
 if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
+    _docker_secrets
     _check_db_availability
     _iframe
     _run_post_config
@@ -398,5 +399,4 @@ if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
     _generate_auth_configuration
     _dsmr_datalogger_mode
     _optional_settings
-    _docker_secrets
 fi
