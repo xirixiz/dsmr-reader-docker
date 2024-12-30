@@ -2,7 +2,7 @@
 # STAGING STEP
 #---------------------------------------------------------------------------------------------------------------------------
 
-FROM --platform=$BUILDPLATFORM python:3.13-alpine3.21 as staging
+FROM --platform=$BUILDPLATFORM python:3.12-alpine3.21 as staging
 WORKDIR /app
 
 ARG DSMR_VERSION
@@ -16,7 +16,7 @@ RUN echo "**** Download DSMR ****" \
 #---------------------------------------------------------------------------------------------------------------------------
 # BUILD STEP
 #---------------------------------------------------------------------------------------------------------------------------
-FROM python:3.13-alpine3.21 as base
+FROM python:3.12-alpine3.21 as base
 
 # Build the binary according to the TARGET platform variables
 ARG TARGETARCH
@@ -73,7 +73,7 @@ RUN echo "**** install runtime packages ****" \
   nginx \
   openssl \
   netcat-openbsd \
-  postgresql16-client \
+  postgresql17-client \
   mariadb-connector-c-dev \
   mariadb-client \
   libjpeg-turbo \
@@ -97,11 +97,9 @@ RUN echo "**** install s6 overlay ****" \
   && rm -rf /tmp/s6-overlay-*.tar.xz
 
 RUN echo "**** install build packages ****" \
-  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev build-base mariadb-dev libffi-dev jpeg-dev cargo rust \
+  && apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql17-dev build-base mariadb-dev libpq-dev libffi-dev jpeg-dev cargo rust \
   && echo "**** install pip packages ****" \
-  && python3 -m pip install "cython<3.0.0" --no-cache-dir \
   && python3 -m pip install -r /app/dsmrreader/provisioning/requirements/base.txt --no-cache-dir \
-  && python3 -m pip install psycopg2 --no-cache-dir \
   && python3 -m pip install mysqlclient --no-cache-dir \
   && python3 -m pip install tzupdate --no-cache-dir \
   && echo "**** create app user and make base folders ****" \
