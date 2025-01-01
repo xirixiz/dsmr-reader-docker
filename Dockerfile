@@ -20,20 +20,8 @@ FROM python:3.12-alpine3.21 as base
 # Build arguments
 ARG TARGETARCH
 ARG TARGETVARIANT
-ARG S6_VERSION="3.2.0.2"
-ARG QEMU_ARCH
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION}
-
-# Dynamische architectuur voor S6-overlay
-RUN case "${TARGETARCH}/${TARGETVARIANT}" in \
-      "amd64/")  S6_ARCH=x86_64 ;; \
-      "arm64/")  S6_ARCH=aarch64 ;; \
-      "arm/v7")  S6_ARCH=arm ;; \
-      "arm/v6")  S6_ARCH=armhf ;; \
-      *) echo "Unsupported TARGETARCH/TARGETVARIANT: ${TARGETARCH}/${TARGETVARIANT}" && exit 1 ;; \
-    esac \
-    && echo "S6_ARCH=${S6_ARCH}" > /tmp/s6_arch
 
 # Algemene omgevingsvariabelen
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
@@ -67,14 +55,7 @@ COPY --from=staging /app /app
 
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
-    openssl postgresql17-client libjpeg-turbo tzdata \
-    && echo "**** install S6 overlay ****" \
-    && S6_ARCH=$(cat /tmp/s6_arch) \
-    && wget -q "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-noarch.tar.xz" -O /tmp/s6-overlay-noarch.tar.xz \
-    && wget -q "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" -O /tmp/s6-overlay-arch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz \
-    && rm -f /tmp/s6-overlay*.tar.xz /tmp/s6_arch \
+    openssl postgresql17-client libjpeg-turbo tzdata s6-overlay \
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base \
