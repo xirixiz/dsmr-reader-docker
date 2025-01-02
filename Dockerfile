@@ -18,8 +18,6 @@ RUN apk add --no-cache curl \
 FROM python:3.12-alpine3.21 as base
 
 # Build arguments
-ARG TARGETARCH
-ARG TARGETVARIANT
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION}
 
