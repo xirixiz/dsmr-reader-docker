@@ -20,6 +20,7 @@ FROM python:3.11-alpine3.21 as base
 # Build arguments
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION}
+ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Algemene omgevingsvariabelen
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
@@ -57,7 +58,7 @@ RUN apk add --no-cache \
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base \
-        libffi-dev jpeg-dev rust cargo mariadb-dev mariadb-client mariadb-connector-c \
+        libffi-dev jpeg-dev rust cargo mariadb-dev mariadb-client mariadb-connector-c mariadb-libs \
     && python3 -m pip install --no-cache-dir -r /app/dsmrreader/provisioning/requirements/base.txt \
     && python3 -m pip install --no-cache-dir mysqlclient tzupdate \
     && echo "**** cleanup ****" \
