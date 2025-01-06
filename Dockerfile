@@ -58,9 +58,8 @@ RUN apk add --no-cache \
     py3-mysqlclient s6-overlay netcat-openbsd mariadb-client dpkg \ 
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
-        gcc python3-dev musl-dev postgresql17-dev build-base libffi-dev jpeg-dev zlib-dev rust cargo \
-        freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev harfbuzz-dev fribidi-dev \
-        libimagequant-dev libxcb-dev libpng-dev \
+        gcc python3-dev musl-dev postgresql17-dev build-base \
+        libffi-dev jpeg-dev zlib-dev rust cargo mariadb-connector-c-dev \
     && python3 -m pip install --no-cache-dir --upgrade pip \    
     && python3 -m pip install --no-cache-dir -r /app/dsmrreader/provisioning/requirements/base.txt \
     && python3 -m pip install --no-cache-dir tzupdate \
