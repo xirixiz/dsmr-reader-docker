@@ -56,7 +56,7 @@ RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
     openssl postgresql17-client tzdata \
     s6-overlay netcat-openbsd dpkg  \
-    ibffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \ 
+    libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \ 
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base rust cargo \
