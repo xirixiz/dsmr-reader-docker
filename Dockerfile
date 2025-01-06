@@ -54,14 +54,15 @@ COPY --from=staging /app /app
 
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
-    openssl postgresql17-client libjpeg-turbo tzdata s6-overlay \
-    netcat-openbsd  mariadb-client dpkg \ 
+    openssl postgresql17-client libjpeg-turbo tzdata 
+    py3-mysqlclient s6-overlay \
+    netcat-openbsd mariadb-client dpkg \ 
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base \
-        libffi-dev jpeg-dev mariadb-dev mariadb-connector-c-dev rust cargo \
+        libffi-dev jpeg-dev rust cargo \
     && python3 -m pip install --no-cache-dir -r /app/dsmrreader/provisioning/requirements/base.txt \
-    && python3 -m pip install --no-cache-dir mysqlclient tzupdate \
+    && python3 -m pip install --no-cache-dir tzupdate \
     && echo "**** cleanup ****" \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
