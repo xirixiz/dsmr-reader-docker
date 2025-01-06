@@ -54,9 +54,8 @@ COPY --from=staging /app /app
 
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
-    openssl postgresql17-client libjpeg-turbo tzdata 
-    py3-mysqlclient s6-overlay \
-    netcat-openbsd mariadb-client dpkg \ 
+    openssl postgresql17-client libjpeg-turbo tzdata py3-mysqlclient s6-overlay \
+    netcat-openbsd mariadb-client dpkg \
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base \
