@@ -20,6 +20,7 @@ FROM python:3.11-alpine3.21 as base
 # Build arguments
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION}
+ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Algemene omgevingsvariabelen
 ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
@@ -53,13 +54,16 @@ COPY --from=staging /app /app
 
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
-    openssl postgresql17-client libjpeg-turbo tzdata s6-overlay \
+    openssl postgresql17-client tzdata \
+    s6-overlay netcat-openbsd dpkg  \
+    libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \ 
     && echo "**** install build dependencies and pip packages ****" \
     && apk add --no-cache --virtual .build-deps \
-        gcc python3-dev musl-dev postgresql17-dev build-base \
-        libffi-dev jpeg-dev rust cargo mariadb-dev \
+        gcc python3-dev musl-dev postgresql17-dev build-base rust cargo \
+        libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev \
+    && python3 -m pip install --no-cache-dir --upgrade pip \    
     && python3 -m pip install --no-cache-dir -r /app/dsmrreader/provisioning/requirements/base.txt \
-    && python3 -m pip install --no-cache-dir mysqlclient tzupdate \
+    && python3 -m pip install --no-cache-dir tzupdate mysqlclient \
     && echo "**** cleanup ****" \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
