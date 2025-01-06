@@ -65,7 +65,6 @@ RUN apk add --no-cache \
     && python3 -m pip install --no-cache-dir tzupdate \
     && echo "**** cleanup ****" \
     && apk del .build-deps \
-    && pip cache purge \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
 
 # Setup nginx
