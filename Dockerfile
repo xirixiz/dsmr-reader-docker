@@ -43,7 +43,6 @@ ENV POETRY_NO_INTERACTION=1 \
 
 # DSMR Reader-specifieke omgevingsvariabelen
 ENV DJANGO_SECRET_KEY=dsmrreader \
-    DJANGO_SETTINGS_MODULE=dsmrreader.config.production \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
