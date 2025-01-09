@@ -2,6 +2,8 @@
 Thumbs.db
 ehthumbs.db
 dsmr_dev
+docker-compose.yaml
+.idea
 
 # Folder config file
 Desktop.ini
