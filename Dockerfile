@@ -82,12 +82,11 @@ RUN apk add --no-cache \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
 
-# Setup nginx
+# Setup nginx (vhost in rootfs/etc/nginx/http.d/dsmr-webinterface)
 RUN mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && rm -f /etc/nginx/http.d/default.conf \
-    && cp /app/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
+    && rm -f /etc/nginx/http.d/default.conf
 
 # Create app user
 RUN groupmod -g 1000 users \
