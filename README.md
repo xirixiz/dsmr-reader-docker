@@ -277,23 +277,70 @@ The ```--no-healthcheck``` argument should only be used when the containers func
 * ##### Environment variables from files (Docker secrets)
 You can set any environment variable from a file by using a special prepend `FILE__`.
 
-As an example:
+* ###### Step 1: Create Your Secrets
+First, create your secrets using the docker secret create command:
+```bash
+bashCopyecho -n "your_admin_password" | docker secret create dsmr_admin_password -
+echo -n "your_db_password" | docker secret create db_password -
+```
+Note: The -n flag in echo is crucial as it prevents adding a newline character.
+
+* ###### Step 2: Docker Compose Configuration
 ```yaml
 services:
-    some_service:
-    image: some_image
+  dsmr:
+    image: xirixiz/dsmr-reader-docker
     environment:
-        FILE__SECRET: /run/secrets/a_secret_file
+      # Basic configuration
+      - DSMRREADER_ADMIN_USER=admin
+      - FILE__DSMRREADER_ADMIN_PASSWORD=/run/secrets/admin_password
+
+      # Database configuration
+      - DJANGO_DATABASE_HOST=db
+      - DJANGO_DATABASE_USER=dsmr
+      - FILE__DJANGO_DATABASE_PASSWORD=/run/secrets/db_password
+
+      # API configuration
+      - FILE__DSMRREADER_REMOTE_DATALOGGER_API_KEYS=/run/secrets/api_keys
+
+      # HTTP Authentication
+      - ENABLE_HTTP_AUTH=true
+      - HTTP_AUTH_USERNAME=webuser
+      - FILE__HTTP_AUTH_PASSWORD=/run/secrets/http_password
     secrets:
-        - a_secret_file
+      - admin_password
+      - db_password
+      - api_keys
+      - http_password
 
 secrets:
-    a_secret_file:
-        file : somedir/my_secret.txt
+  admin_password:
+    external: true
+  db_password:
+    external: true
+  api_keys:
+    external: true
+  http_password:
+    external: true
 ```
 
-Basiccally, the bottom secrets section mounts `my_secrets.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorize the service to use the `a_secret_file secret`. The environment variable FILE__SECRET tells the service what file to read to set/get the value of the environment variable `SECRET`.
+Environment Variables Format: For each secret you want to use, define an environment variable with this format:
+- Prefix: FILE__
+- Variable name: The original environment variable name
+- Value: Path to the secret file (always /run/secrets/secret_name)
 
+```yaml
+environment:
+  - FILE__DSMRREADER_ADMIN_PASSWORD=/run/secrets/dsmr_admin_password
+  - FILE__DJANGO_DATABASE_PASSWORD=/run/secrets/db_password
+  - FILE__DSMRREADER_SECRET_KEY=/run/secrets/secret_key
+```
+
+* ###### Important Notes
+- Always use echo -n when creating secrets to avoid newline characters
+- The FILE__ prefix is required for the environment variables
+- Secret files should be created before starting the containers
+- Make sure the secrets are available in your Docker swarm if running in swarm mode
 
 ***
 #### DSMR-Reader - Docker and Homewizard P1 Meter Integration

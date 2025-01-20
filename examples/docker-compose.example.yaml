@@ -70,7 +70,7 @@ services:
 
 secrets:
     a_secret_file:
-        file : somedir/my_secret.txt
+        external: true
 
 volumes:
   dsmrdb: null
