@@ -1,3 +1,7 @@
+### Enhanced and Updated README
+
+This README has been reviewed and improved for better clarity and structure.
+
 <font size="-1">
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags)
