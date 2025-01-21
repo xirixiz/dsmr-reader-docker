@@ -314,6 +314,20 @@ secrets:
 
 This setup mounts `my_secret.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorizes the service to use the `a_secret_file` secret. The environment variable `FILE__SECRET` tells the service what file to read to set/get the value of the environment variable `SECRET`.
 
+Internal secrets:
+```yaml
+secrets:
+  a_secret_file:
+    file: ./secrets/a_secret_file.txt  # Define the path to your secret file
+```
+
+External secrets (for example Docker Swarm):
+```yaml
+secrets:
+  a_secret_file:
+    external: true
+```
+
 ---
 
 #### DSMR-Reader - Docker and Homewizard P1 Meter Integration
