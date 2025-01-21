@@ -1,3 +1,5 @@
+---
+
 <font size="-1">
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/xirixiz/dsmr-reader-docker.svg?logo=docker)](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags)
@@ -9,43 +11,59 @@
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/xirixiz)
 
 ### DSMR-reader - Docker
-*DSMR-protocol reader, telegram data storage and energy consumption visualizer.
+
+*DSMR-protocol reader, telegram data storage, and energy consumption visualizer.
 Can be used for reading the smart meter DSMR (Dutch Smart Meter Requirements) P1 port yourself at your home.
 You will need a cable and hardware that can run Docker.
 **Free for non-commercial use**.*
 
-***
-#### Table of contents
-- [DSMR-reader - Docker](#dsmr-reader---docker)
-  - [Table of contents](#table-of-contents)
-  - [General info](#general-info)
-  - [Contribution](#contribution)
-  - [Screenshots](#screenshots)
-  - [Technologies](#technologies)
-  - [Releases](#releases)
-  - [Setup / parameters](#setup--parameters)
-  - [Homewizard P1 Meter Integration](#dsmr-reader---docker-and-homewizard-p1-meter-integration)
-  - [Features](#features)
-  - [Issues](#issues)
-  - [Inspiration](#inspiration)
-  - [Contact](#contact)
+---
 
-***
-#### General info
+#### Table of Contents
+- [General Info](#general-info)
+- [Contribution](#contribution)
+- [Screenshots](#screenshots)
+- [Technologies](#technologies)
+- [Releases](#releases)
+- [Setup / Parameters](#setup--parameters)
+  - [Public Access Warning](#public-access-warning)
+  - [Settings](#settings)
+  - [Nginx Related](#nginx-related)
+  - [DSMR Related](#dsmr-related)
+  - [DB Related](#db-related)
+  - [DSMR Datalogger Related](#dsmr-datalogger-related)
+  - [Run with Docker Compose](#run-with-docker-compose)
+  - [Run with Docker Run](#run-with-docker-run)
+  - [Environment Variables from Files (Docker Secrets)](#environment-variables-from-files-docker-secrets)
+- [DSMR-Reader - Docker and Homewizard P1 Meter Integration](#dsmr-reader---docker-and-homewizard-p1-meter-integration)
+  - [Prerequisites](#prerequisites)
+  - [Plugin Preparation](#plugin-preparation)
+  - [Docker Setup](#docker-setup)
+  - [Original Post](#original-post)
+- [Features](#features)
+- [Issues](#issues)
+- [Inspiration](#inspiration)
+- [Contact](#contact)
+
+---
+
+#### General Info
 The purpose of this project is to provide a simplified installation of DSMR-reader using all the benefits of Docker.
 
 #### Contribution
-Special thanks to the following persons for their great contribution(s)
-[@dennissiemensma](https://github.com/dsmrreader)
-[@bjw-s](https://github.com/bjw-s)
-[@Caroga](https://github.com/Caroga)
-[mchangsp](https://github.com/mchangsp)
+Special thanks to the following persons for their great contribution(s):
+- [@dennissiemensma](https://github.com/dsmrreader)
+- [@bjw-s](https://github.com/bjw-s)
+- [@Caroga](https://github.com/Caroga)
+- [mchangsp](https://github.com/mchangsp)
 
-***
+---
+
 #### Screenshots
 ![Example screenshot](./img/screenshot.png)
 
-***
+---
+
 #### Technologies
 ```text
 * Docker >= 20.x
@@ -54,9 +72,9 @@ Special thanks to the following persons for their great contribution(s)
 * MySQL ??.?? (untested by me)
 ```
 
-***
-#### Releases
+---
 
+#### Releases
 This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices.
 
 | Image Tag   | Architectures                    | Image OS          |
@@ -64,254 +82,255 @@ This is a multi-arch image and will also run on a Raspberry Pi or other Docker-e
 | latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.19 |
 | development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.19 |
 
-Docker tags/releases can be found here: https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated
+Docker tags/releases can be found [here](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated).
 
-***
-#### Setup / parameters
+---
 
-* ##### Public access warning
+#### Setup / Parameters
 
-  Exposing your DSMR-reader installation to the Internet?
-  Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
+##### Public Access Warning
+Exposing your DSMR-reader installation to the Internet?
+Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
 
-* ##### Settings
+##### Settings
+For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
 
-  For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
-
-  It's possible to set the following settings as environment variables, for example:
-  ```properties
-  # Required (defaults are shown as value):
-  - DJANGO_TIME_ZONE=Europe/Amsterdam
-  - VIRTUAL_HOST=localhost
-  # It's possible to map a UID/GID with a user/group from you local system.
-  # This will not change the username, only match ID's to prevent issues with access rights!
-  - DUID=803
-  - DGID=803
-  ```
-
-* ##### Nginx related:
+It's possible to set the following settings as environment variables, for example:
 ```properties
-  # Default inside the container nginx is running on port 80.
-  # In some cases (host network f.e.), some people requested to be able to change the default listen port.
-  # However, in most cases this setting isn't being used.
-  NGINX_LISTEN_PORT=80
-  ```
-
-```properties
-  # Default nginx generated access logs.
-  # In some cases you want to disable this, because f.e. you use a reverse proxy which also generated access logs
-  DISABLE_NGINX_ACCESS_LOGS=true
-  ```
-
-  ```properties
-  # Enables port 443 for nginx
-  # /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!
-  ENABLE_NGINX_SSL=false
-  ```
-
-```properties
-  # ENABLE HSTS on SSL: https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
-  ENABLE_NGINX_ENABLE_HSTS=false
-  ```
-
-  ```properties
-  # Redirect HTTP traffic to HTTPS
-  ENABLE_NGINX_SSL_REDIRECT=false
-  ```
-
-  Nginx .httpassword:
-  ```properties
-  ENABLE_HTTP_AUTH=false
-  HTTP_AUTH_USERNAME=
-  HTTP_AUTH_PASSWORD=
-  ```
-It's not possible to combine those settings!!!:
-  ```properties
-  ENABLE_NGINX_SSL
-  NGINX_LISTEN_PORT
-  ```
-
-* ##### DSMR related (defaults are shown as value):
-  ```properties
-  # Webinterface user:
-  DSMRREADER_ADMIN_USER=admin
-  # Webinterface user password:
-  DSMRREADER_ADMIN_PASSWORD=admin
-  # Loglevel. Valid values are ERROR, WARNING, DEBUG:
-  DSMRREADER_LOGLEVEL=WARNING
-  # Secret key for encryption:
-  DJANGO_SECRET_KEY=dsmrreader
-  # Ignore database size notifications:
-  DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True
-  # Plugins (custom) setup:
-  DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
-  # Enable IFrame support (f.e. for use in HASS).
-  ENABLE_IFRAME=false
-  ```
-
-* ##### DB related (defaults are shown as value):
-  ```properties
-  # Optional. Vacuum clean Postgres on startup:
-  VACUUM_DB_ON_STARTUP=false
-  # Required. Defaults are set to:
-  DJANGO_DATABASE_ENGINE=django.db.backends.postgresql
-  DJANGO_DATABASE_NAME=dsmrreader
-  DJANGO_DATABASE_USER=dsmrreader
-  DJANGO_DATABASE_PASSWORD=dsmrreader
-  DJANGO_DATABASE_HOST=dsmrdb
-  DJANGO_DATABASE_PORT=5432
-  DJANGO_DATABASE_CONN_MAX_AGE=60
-  ```
-
-* ##### DSMR Datalogger related
-  When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
-  Ignore the errors about /dev/ttyUSB* and head over to the DSMR Reader datalogger configuration in the admin panel
-  and configure the setting so it matches your environment. More info: https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612
-  - DSMRREADER_OPERATION_MODE - Run DSMR Reader in 1 of the following modes (default is standalone with the serial flavor):
-    - standalone - Run all processes, including backend, GUI and datalogger. There are two flavors:
-      - standalone - serial - Use a serial connection for the datalogger.
-      - standalone - ipv4 - Use a network socket for the datalogger.
-    - api_server - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
-    - api_client - Only start the datalogger client, which sends the P1 telegrams to the api_server. It is required to setup DATALOGGER_API_* environment variables.
-
-  ![image](https://user-images.githubusercontent.com/11210639/207313372-6bffa581-8c3e-4b9f-9ef2-91b6e6b2b3c4.png)
-
-  ![image](https://user-images.githubusercontent.com/11210639/207313462-94a2a545-87b1-43cc-a9de-eff250a38d11.png)
-
-  ![image](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
-
-* ##### DSMR Reader datalogger - standalone - serial (default):
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env).
-  The default startup values for DSMR Reader standalone are:
-  ```properties
-  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
-
-  # DSMR meter version 4/5
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=8
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=N
-   ```
-
-  Some meters are running on an older version and can be set providing the values:
-  ```properties
-  # DSMR meter version 2/3 settings
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=9600
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=7
-  DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
-  ```
-
-* ##### DSMR Reader datalogger - standalone - ipv4:
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env).
-  Instead of a serial connection it's also possible to use a network socket instead. You need to define the following variables:
-  ```properties
-  DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4
-  DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 (default)
-  DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 (default)
-  ```
-
-* ##### Remote DSMR datalogger - api_client
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
-  ```properties
-  # Required. Instructs dsmr reader to start in api_client mode
-  DSMRREADER_OPERATION_MODE=api_client
-  # Required. Destination(s) of the DSMR Reader (Docker) host(s)
-  DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
-  # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
-  DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
-  ```
-* ##### Remote DSMR datalogger - api_server
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env).
-  The configured api_client will push data to the api_server. The only difference between standalone and api_server is that the datalogger process isn't running.
-  ```properties
-  # Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
-  # all telegrams are coming in through the API
-  DSMRREADER_OPERATION_MODE=api_server
-  ```
-
-* ##### Remote DSMR datalogger - Optional settings
-  More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#other-settings-env).
-  ```properties
-  DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
-  DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
-  DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
-  ```
-
-* ##### Run with docker-compose
-  An example docker-compose.yaml file can be found here: https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml.<br/>
-
-  You should modify the docker-compose file with parameters that suit your environment, then run docker-compose afterwards:
-  ```bash
-  docker-compose up -d
-  ```
-  After starting the containers with docker-compose, the dashboard is reachable at
-  ```text
-  http://<hostname>:7777
-  ```
-  After starting the containers, don't forget to modify the default DSMR version (default is DSMR v4):
-  ```text
-  http://<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
-  ```
-
-* ##### Run with Docker run
-  Keep in mind the example below only runs dsmr, you need to run a postgres docker container or traditional postgres environment as well, since a database is needed.
-
-  ```bash
-  docker run -d \
-    --name dsmr \
-    --restart always \
-    -p 7777:80 \
-    -p 7779:443 \
-    -e DJANGO_TIME_ZONE=Europe/Amsterdam \
-    -e DJANGO_DATABASE_HOST=x.x.x.x \
-    -e DJANGO_DATABASE_USER=dsmrreader \
-    -e DJANGO_DATABASE_PASSWORD=dsmrreader \
-    -e VIRTUAL_HOST=localhost \
-    --no-healthcheck \
-    --device /dev/ttyUSB0:/dev/ttyUSB0 \
-    xirixiz/dsmr-reader-docker
-  ```
-
-The ```--no-healthcheck``` argument should only be used when the containers function NOT presenting the DSMR Reader webinterface, for example the datalogger sender mode. By default this argument should not be used!
-
-* ##### Environment variables from files (Docker secrets)
-You can set any environment variable from a file by using a special prepend `FILE__`.
-
-As an example:
-```yaml
-services:
-    some_service:
-    image: some_image
-    environment:
-        FILE__SECRET: /run/secrets/a_secret_file
-    secrets:
-        - a_secret_file
-
-secrets:
-    a_secret_file:
-        file : somedir/my_secret.txt
+# Required (defaults are shown as value):
+- DJANGO_TIME_ZONE=Europe/Amsterdam
+- VIRTUAL_HOST=localhost
+# It's possible to map a UID/GID with a user/group from your local system.
+# This will not change the username, only match IDs to prevent issues with access rights!
+- DUID=803
+- DGID=803
 ```
 
-Basiccally, the bottom secrets section mounts `my_secrets.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorize the service to use the `a_secret_file secret`. The environment variable FILE__SECRET tells the service what file to read to set/get the value of the environment variable `SECRET`.
+##### Nginx Related
+```properties
+# Default inside the container nginx is running on port 80.
+# In some cases (host network f.e.), some people requested to be able to change the default listen port.
+# However, in most cases this setting isn't being used.
+NGINX_LISTEN_PORT=80
+```
 
+```properties
+# Default nginx generated access logs.
+# In some cases you want to disable this, because e.g., you use a reverse proxy which also generates access logs
+DISABLE_NGINX_ACCESS_LOGS=true
+```
 
-***
+```properties
+# Enables port 443 for nginx
+# /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are required to be mounted!
+ENABLE_NGINX_SSL=false
+```
+
+```properties
+# ENABLE HSTS on SSL: https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+ENABLE_NGINX_ENABLE_HSTS=false
+```
+
+```properties
+# Redirect HTTP traffic to HTTPS
+ENABLE_NGINX_SSL_REDIRECT=false
+```
+
+Nginx HTTP Auth:
+```properties
+ENABLE_HTTP_AUTH=false
+HTTP_AUTH_USERNAME=
+HTTP_AUTH_PASSWORD=
+```
+
+*It's not possible to combine the following settings!!!:*
+```properties
+ENABLE_NGINX_SSL
+NGINX_LISTEN_PORT
+```
+
+##### DSMR Related (defaults are shown as value):
+```properties
+# Webinterface user:
+DSMRREADER_ADMIN_USER=admin
+# Webinterface user password:
+DSMRREADER_ADMIN_PASSWORD=admin
+# Loglevel. Valid values are ERROR, WARNING, DEBUG:
+DSMRREADER_LOGLEVEL=WARNING
+# Secret key for encryption:
+DJANGO_SECRET_KEY=dsmrreader
+# Ignore database size notifications:
+DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True
+# Plugins (custom) setup:
+DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
+# Enable IFrame support (e.g., for use in HASS).
+ENABLE_IFRAME=false
+```
+
+##### DB Related (defaults are shown as value):
+```properties
+# Optional. Vacuum clean Postgres on startup:
+VACUUM_DB_ON_STARTUP=false
+# Required. Defaults are set to:
+DJANGO_DATABASE_ENGINE=django.db.backends.postgresql
+DJANGO_DATABASE_NAME=dsmrreader
+DJANGO_DATABASE_USER=dsmrreader
+DJANGO_DATABASE_PASSWORD=dsmrreader
+DJANGO_DATABASE_HOST=dsmrdb
+DJANGO_DATABASE_PORT=5432
+DJANGO_DATABASE_CONN_MAX_AGE=60
+```
+
+##### DSMR Datalogger Related
+When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
+Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogger configuration in the admin panel and configure the setting so it matches your environment. More info: [Issue #303](https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612)
+
+- `DSMRREADER_OPERATION_MODE` - Run DSMR Reader in one of the following modes (default is standalone with the serial flavor):
+  - `standalone` - Run all processes, including backend, GUI, and datalogger. There are two flavors:
+    - `standalone - serial` - Use a serial connection for the datalogger.
+    - `standalone - ipv4` - Use a network socket for the datalogger.
+  - `api_server` - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
+  - `api_client` - Only start the datalogger client, which sends the P1 telegrams to the `api_server`. It is required to set up `DATALOGGER_API_*` environment variables.
+
+![Configuration Image 1](https://user-images.githubusercontent.com/11210639/207313372-6bffa581-8c3e-4b9f-9ef2-91b6e6b2b3c4.png)
+![Configuration Image 2](https://user-images.githubusercontent.com/11210639/207313462-94a2a545-87b1-43cc-a9de-eff250a38d11.png)
+![Configuration Image 3](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
+
+##### DSMR Reader Datalogger - Standalone - Serial (default)
+More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env)
+
+The default startup values for DSMR Reader standalone are:
+```properties
+DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
+
+# DSMR meter version 4/5
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=8
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=N
+```
+
+Some meters running on an older version can be set with the following values:
+```properties
+# DSMR meter version 2/3 settings
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=9600
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=7
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
+```
+
+##### DSMR Reader Datalogger - Standalone - IPv4
+More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env)
+
+Instead of a serial connection, it's also possible to use a network socket. Define the following variables:
+```properties
+DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4
+DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 # default
+DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 # default
+```
+
+##### Remote DSMR Datalogger - API Client
+More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
+```properties
+# Required. Instructs dsmr reader to start in api_client mode
+DSMRREADER_OPERATION_MODE=api_client
+# Required. Destination(s) of the DSMR Reader (Docker) host(s)
+DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
+# Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
+DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
+```
+
+##### Remote DSMR Datalogger - API Server
+More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
+
+The configured `api_client` will push data to the `api_server`. The only difference between `standalone` and `api_server` is that the datalogger process isn't running.
+```properties
+# Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
+# All telegrams are coming in through the API
+DSMRREADER_OPERATION_MODE=api_server
+```
+
+##### Remote DSMR Datalogger - Optional Settings
+More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#other-settings-env)
+```properties
+DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
+DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
+DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
+```
+
+##### Run with Docker Compose
+An example `docker-compose.yaml` file can be found [here](https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml).
+
+Modify the `docker-compose` file with parameters that suit your environment, then run:
+```bash
+docker-compose up -d
+```
+After starting the containers with Docker Compose, the dashboard is reachable at:
+```text
+http://<hostname>:7777
+```
+Don't forget to modify the default DSMR version (default is DSMR v4) after starting the containers:
+```text
+http://<hostname>:7777/admin/dsmr_datalogger/dataloggersettings/
+```
+
+##### Run with Docker Run
+**Note:** The example below only runs DSMR. You need to run a Postgres Docker container or traditional Postgres environment as well, since a database is needed.
+
+```bash
+docker run -d \
+  --name dsmr \
+  --restart always \
+  -p 7777:80 \
+  -p 7779:443 \
+  -e DJANGO_TIME_ZONE=Europe/Amsterdam \
+  -e DJANGO_DATABASE_HOST=x.x.x.x \
+  -e DJANGO_DATABASE_USER=dsmrreader \
+  -e DJANGO_DATABASE_PASSWORD=dsmrreader \
+  -e VIRTUAL_HOST=localhost \
+  --no-healthcheck \
+  --device /dev/ttyUSB0:/dev/ttyUSB0 \
+  xirixiz/dsmr-reader-docker
+```
+
+The `--no-healthcheck` argument should only be used when the containers function without presenting the DSMR Reader web interface, for example in datalogger sender mode. By default, this argument should not be used!
+
+##### Environment Variables from Files (Docker Secrets)
+You can set any environment variable from a file by using a special prepend `FILE__`.
+
+**Example:**
+```yaml
+services:
+  some_service:
+    image: some_image
+    environment:
+      FILE__SECRET: /run/secrets/a_secret_file
+    secrets:
+      - a_secret_file
+
+secrets:
+  a_secret_file:
+    file: somedir/my_secret.txt
+```
+
+This setup mounts `my_secret.txt` as `/run/secrets/a_secret_file`. The secrets section under the service authorizes the service to use the `a_secret_file` secret. The environment variable `FILE__SECRET` tells the service what file to read to set/get the value of the environment variable `SECRET`.
+
+---
+
 #### DSMR-Reader - Docker and Homewizard P1 Meter Integration
 
 This guide explains how to install and configure a DSMR Reader plugin to read Homewizard P1 telegrams and inject them into DSMR Reader.
 
-### Prerequisites
-
+##### Prerequisites
 - A working instance of [DSMR Reader in Docker](https://github.com/xirixiz/dsmr-reader-docker)
 - A working Homewizard P1 meter with Local API enabled
 - The Homewizard P1 meter IP address
 
-### Plugin Preparation
+##### Plugin Preparation
 
-#### Assumption(s):
-- Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
+**Assumption:**
+Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 
-#### On your Docker host:
+**On your Docker host:**
 
 1. Create a folder `/home/pi/dsmr/plugins`
 2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
@@ -336,9 +355,9 @@ This guide explains how to install and configure a DSMR Reader plugin to read Ho
         dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
     ```
 
-### Docker Setup
+##### Docker Setup
 
-1. Go to folder `/home/pi/dsmr`
+1. Navigate to folder `/home/pi/dsmr`
 2. Edit your `docker-compose.yaml` file
 3. Add the following definition to the `volumes:` section:
 
@@ -366,153 +385,164 @@ This guide explains how to install and configure a DSMR Reader plugin to read Ho
     docker-compose up -d
     ```
 
-### Original Post
-
+##### Original Post
 The original instructions are (partly in Dutch) on [GitHub](https://github.com/xirixiz/dsmr-reader-docker/issues/301). The Python source code in the original post was missing an import statement. The instructions have been grouped together and translated into English.
 
 For an alternative solution using Home Assistant automations, see [this guide](https://community.home-assistant.io/t/dsmr-reader-docker-and-homewizard-p1-meter-integration/747265).
 
-***
+---
+
 #### Features
-* ##### DSMR Reader - Database cleanup/vacuum
-  It could be that you receive a notification that the database is growing, like in this issue: https://github.com/dsmrreader/dsmr-reader/issues/1165.
 
-  You can cleanup the Docker database by running the following command from the application container:
-  ```bash
-  docker exec -ti dsmr bash -c '/app/cleandb.sh'
-  ```
+##### DSMR Reader - Database Cleanup/Vacuum
+You might receive a notification that the database is growing, like in [this issue](https://github.com/dsmrreader/dsmr-reader/issues/1165).
 
-  Or if you'd like to run verbose:
-  ```bash
-  docker exec -ti dsmr bash -c '/app/cleandb.sh -v'
-  ```
-* ##### DSMR Reader - Plugins
-  DSMR Reader plugins (https://dsmr-reader.readthedocs.io/en/latest/plugins.html) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
+Clean up the Docker database by running the following command from the application container:
+```bash
+docker exec -ti dsmr bash -c '/app/cleandb.sh'
+```
 
-  ```yaml
-  volumes:
-    - ./modules/forward_telegram_to_api.py:/app/dsmr_plugins/modules/forward_telegram_to_api.py
-  environment:
-    - DSMRREADER_PLUGINS=dsmr_plugins.modules.forward_telegram_to_api
-  ```
+Or, to run verbose:
+```bash
+docker exec -ti dsmr bash -c '/app/cleandb.sh -v'
+```
 
-* ##### Backup and restore mechanism 1
-  dsmrdb in docker-compose is configured to use a docker volume. So when the application and docker containter have been removed, the postgres data still persists.
+##### DSMR Reader - Plugins
+DSMR Reader plugins ([documentation](https://dsmr-reader.readthedocs.io/en/latest/plugins.html)) can be added by adding the plugin with a volume mapping and using it in the environmental variable to load it.
 
-  Also you could easily create a backup. Values depend on docker/docker-compose user and database variables:
-  ```bash
-  docker-compose stop dsmr
-  docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
-  docker-compose start dsmr
-  ```
+```yaml
+volumes:
+  - ./modules/forward_telegram_to_api.py:/app/dsmr_plugins/modules/forward_telegram_to_api.py
+environment:
+  - DSMRREADER_PLUGINS=dsmr_plugins.modules.forward_telegram_to_api
+```
 
-  It's also possible to gzip ofcourse:
-  ```bash
-  docker exec -t dsmrdb pg_dumpall -c -U dsmrreader | /bin/gzip > dsmrreader.sql.gz
-  ```
+##### Backup and Restore Mechanism 1
+`dsmrdb` in `docker-compose` is configured to use a Docker volume. So when the application and Docker container have been removed, the Postgres data still persists.
 
-  Or drop the database and restore a backup. Values depend on docker/docker-compose user and database variables:
-  ```bash
-  docker-compose stop dsmr
-  docker exec -t dsmrdb dropdb dsmrreader -U dsmrreader
-  docker exec -t dsmrdb createdb -O dsmrreader dsmrreader -U dsmrreader
-  cat dsmrreader.sql | docker exec -i dsmrdb psql -U dsmrreader
-  docker-compose start dsmr
-  ```
+You can easily create a backup. Values depend on Docker/docker-compose user and database variables:
+```bash
+docker-compose stop dsmr
+docker exec -t dsmrdb pg_dumpall -c -U dsmrreader > dsmrreader.sql
+docker-compose start dsmr
+```
 
-* ##### Backup and restore mechanism 2
-    Ofcourse it's also possible to use Docker's own volume backup and restore megansim.
+It's also possible to gzip:
+```bash
+docker exec -t dsmrdb pg_dumpall -c -U dsmrreader | /bin/gzip > dsmrreader.sql.gz
+```
 
-    Backup:
-    ```bash
-    docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
-      tar -cjf /backup/dsmrdb.tar.bz2 -C /volume ./
-    ```
+Or drop the database and restore a backup. Values depend on Docker/docker-compose user and database variables:
+```bash
+docker-compose stop dsmr
+docker exec -t dsmrdb dropdb dsmrreader -U dsmrreader
+docker exec -t dsmrdb createdb -O dsmrreader dsmrreader -U dsmrreader
+cat dsmrreader.sql | docker exec -i dsmrdb psql -U dsmrreader
+docker-compose start dsmr
+```
 
-    Restore:
-    ```bash
-    docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
-      sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
-    ```
+##### Backup and Restore Mechanism 2
+You can also use Docker's own volume backup and restore mechanism.
 
-* ##### Backup mechanism 3
-  Be aware this backup is done via the dsmr container, not via the dsmrdb container!
-  Backup:
-  ```bash
-  docker exec -ti dsmr bash -c 'PGPASSWORD=${DJANGO_DATABASE_PASSWORD} /usr/bin/pg_dump \
-    -h "${DJANGO_DATABASE_HOST}" \
-    -p "${DJANGO_DATABASE_PORT}" \
-    -d "${DJANGO_DATABASE_NAME}" \
-    -U "${DJANGO_DATABASE_USER}"'
-  ```
+**Backup:**
+```bash
+docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
+  tar -cjf /backup/dsmrdb.tar.bz2 -C /volume ./
+```
 
-* ##### Postgres upgrade (docker)
-  ```text
-  - stop the dsmr reader container ONLY
-  - backup the dsmrdb database (see "Backup and restore mechanism" in the README.md)
-  - validate the dsmrdb backup!
-  - you could also consider to "vacuum" the database following "DSMR Reader - Database cleanup/vacuum" in the README.md.
-  - stop and remove the dsmrdb container
-  - rename the db folder that is mounted in the Docker container, containing the database data, to something else (.old, or whatever you like)
-  - create a new db folder with the name used to mount the folder in the Docker container (so, the folder name just before you renamed it in the previous step)
-  - update docker-compose or your docker run command with the new postgres version
-  - be aware the client package has to be compatible with the postgres version you're going to use. Check here which version is within the dsmr image.
-  - start dsmrdb (it's an empty but valid postgres db now).
-  - restore the database backup created in step 2 (see "Backup and restore mechanism" in the README.md)
-  - restart the dsmrdb container
-  - start the dsmr container
-  ```
-* ##### UID/GID
-  When using volumes (`-v` or `--volume` flags) permissions issues can occur between the host OS and the container, to avoid this you can specify a user id `DUID` and group id `DGID` from the local system in the Docker container. Make sure the owner of the directory has all permissions on the volume you'd like to mount into the Docker container.
+**Restore:**
+```bash
+docker run -it --rm -v dsmrdb:/volume -v /tmp:/backup alpine \
+  sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/dsmrdb.tar.bz2"
+```
 
-  You can identify a UID or GID by executing the following command
+##### Backup Mechanism 3
+*Note:* This backup is done via the `dsmr` container, not via the `dsmrdb` container!
 
-  ```bash
-    id xirixiz
-    uid=1000(xirixiz) gid=1000(xirixiz) groups=1000(xirixiz) 1001(docker)
-  ```
+**Backup:**
+```bash
+docker exec -ti dsmr bash -c 'PGPASSWORD=${DJANGO_DATABASE_PASSWORD} /usr/bin/pg_dump \
+  -h "${DJANGO_DATABASE_HOST}" \
+  -p "${DJANGO_DATABASE_PORT}" \
+  -d "${DJANGO_DATABASE_NAME}" \
+  -U "${DJANGO_DATABASE_USER}"'
+```
 
-***
+##### Postgres Upgrade (Docker)
+```text
+- Stop the DSMR Reader container ONLY
+- Backup the dsmrdb database (see "Backup and restore mechanism" in the README.md)
+- Validate the dsmrdb backup!
+- Consider "vacuuming" the database following "DSMR Reader - Database cleanup/vacuum" in the README.md.
+- Stop and remove the dsmrdb container
+- Rename the db folder that is mounted in the Docker container, containing the database data, to something else (.old, etc.)
+- Create a new db folder with the original mount name
+- Update `docker-compose` or your Docker run command with the new Postgres version
+- Ensure the client package is compatible with the Postgres version you're using. Check the DSMR image for supported versions.
+- Start `dsmrdb` (it's an empty but valid Postgres DB now).
+- Restore the database backup created in step 2 (see "Backup and restore mechanism" in the README.md)
+- Restart the `dsmrdb` container
+- Start the `dsmr` container
+```
+
+##### UID/GID
+When using volumes (`-v` or `--volume` flags), permissions issues can occur between the host OS and the container. To avoid this, specify a user ID `DUID` and group ID `DGID` from the local system in the Docker container. Ensure the owner of the directory has all permissions on the volume you'd like to mount into the Docker container.
+
+Identify a UID or GID by executing:
+```bash
+id xirixiz
+uid=1000(xirixiz) gid=1000(xirixiz) groups=1000(xirixiz) 1001(docker)
+```
+
+---
+
 #### Issues
-* ##### MySQL backend - issue with DSMR running on top of MySQL - configured timezone info tables.
-  It manifests as "Data processing is lagging behind" message on the web-interface and with only leading information in the logs if they set to DEBUG "Missing consumption data for:"
-  \
-  If you drill down from here then you can eventually find this issue: dsmrreader/dsmr-reader#909
-  \
-  Which can be resolved by installing timezone info tables in MySQL: https://dev.mysql.com/doc/refman/8.0/en/mysql-tzinfo-to-sql.html
 
-* ##### Raspberry Pi
-  This issue is caused by the upgrade from Alpine 3.12 to 3.13.
-  Alpine 3.13 requires the following on the host OS (https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.13.0#time64_requirements):
-  ```
-  - Docker 19.03.9 or newer
-  - libseccomp 2.4.2 or newer
-  ```
-  The libseccomp package hasn't been updated for Debian stable yet, Therefore, this image won't run on any Debian (or Raspbian) stable host.
+##### MySQL Backend - Issue with DSMR Running on Top of MySQL
+**Problem:** Configured timezone info tables result in "Data processing is lagging behind" messages on the web interface and only leading information in the logs if set to DEBUG: "Missing consumption data for:"
 
-  Fix:
-  ```bash
-  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
-  echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
-  sudo apt update
-  sudo apt install libseccomp2 -t buster-backports
-  ```
+**Solution:**
+Drill down to find the issue: [dsmrreader/dsmr-reader#909](https://github.com/dsmrreader/dsmr-reader/issues/909)
 
-* ##### Incorrect timestamps
-  Mounting ```/etc/localtime:/etc/localtime``` results most of the times in an incorrect timestamp in DSMR Reader (+/- 1 hour). Removig the mount usually solves the problem.
+Resolve by installing timezone info tables in MySQL: [MySQL Timezone Documentation](https://dev.mysql.com/doc/refman/8.0/en/mysql-tzinfo-to-sql.html)
 
-* ##### Synology
-  For Synology, or maybe other NAS appliances, an additional driver is required:
-  * https://synocommunity.com/package/synokernel-usbserial
-  * The docker-compose file must be set to version 3.2 or lower.
+##### Raspberry Pi
+**Issue:** Caused by the upgrade from Alpine 3.12 to 3.13. Alpine 3.13 requires:
+```
+- Docker 19.03.9 or newer
+- libseccomp 2.4.2 or newer
+```
+The `libseccomp` package hasn't been updated for Debian stable yet. Therefore, this image won't run on any Debian (or Raspbian) stable host.
 
-  Addition link:
-  * https://www.reddit.com/r/synology/comments/y92eyu/usb_serial_drivers_cp210x_for_dsm_62/
+**Fix:**
+```bash
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
+echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
+sudo apt update
+sudo apt install libseccomp2 -t buster-backports
+```
 
-***
+##### Incorrect Timestamps
+Mounting `/etc/localtime:/etc/localtime` often results in incorrect timestamps in DSMR Reader (+/- 1 hour). Removing the mount usually solves the problem.
+
+##### Synology
+For Synology or other NAS appliances, an additional driver is required:
+- [synokernel-usbserial](https://synocommunity.com/package/synokernel-usbserial)
+- The `docker-compose` file must be set to version 3.2 or lower.
+
+**Additional Links:**
+- [Reddit Discussion](https://www.reddit.com/r/synology/comments/y92eyu/usb_serial_drivers_cp210x_for_dsm_62/)
+
+---
+
 #### Inspiration
-Project inspired by the hard work and effort of [@dennissiemensma](https://github.com/dsmrreader)
+Project inspired by the hard work and effort of [@dennissiemensma](https://github.com/dsmrreader).
 
-***
+---
+
 #### Contact
 Created by [@xirixiz](https://github.com/xirixiz) - feel free to contact me!
+
+</font>
+
+---
