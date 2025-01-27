@@ -542,7 +542,8 @@ Mounting `/etc/localtime:/etc/localtime` often results in incorrect timestamps i
 ##### Synology
 For Synology or other NAS appliances, an additional driver is required:
 - [synokernel-usbserial](https://synocommunity.com/package/synokernel-usbserial)
-- The `docker-compose` file must be set to version 3.2 or lower.
+- Validate your USB devices with ```lsusb -cui```
+- For the Docker container to be able to access the serial device, you need to set its permissions correctly. The easiest way to do this is: ```sudo chmod 666 /dev/tty<your_usb_device>```
 
 **Additional Links:**
 - [Reddit Discussion](https://www.reddit.com/r/synology/comments/y92eyu/usb_serial_drivers_cp210x_for_dsm_62/)
