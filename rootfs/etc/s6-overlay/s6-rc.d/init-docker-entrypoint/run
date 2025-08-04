@@ -208,9 +208,9 @@ function _check_db_availability() {
 
 function _run_post_config() {
     _info "Running post configuration..."
-    /usr/local/bin/poetry /app/.venv/bin/python3 /app/manage.py migrate --noinput
-    /usr/local/bin/poetry /app/.venv/bin/python3 /app/manage.py collectstatic --noinput
-    /usr/local/bin/poetry /app/.venv/bin/python3 /app/manage.py dsmr_superuser
+    /app/.venv/bin/python3 /app/manage.py migrate --noinput
+    /app/.venv/bin/python3 /app/manage.py collectstatic --noinput
+    /app/.venv/bin/python3 /app/manage.py dsmr_superuser
 }
 
 function _nginx_change_listen_port() {
