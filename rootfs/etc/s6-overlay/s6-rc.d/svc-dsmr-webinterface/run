@@ -4,7 +4,7 @@
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     echo "Starting DSMR Reader - webinterface..."
     cd /app || exit
-    s6-setuidgid app /usr/local/bin/gunicorn dsmrreader.wsgi --timeout 120 --max-requests 1000 --bind unix:/tmp/gunicorn--dsmr_webinterface.socket
+    s6-setuidgid app /app/.venv/bin/gunicorn dsmrreader.wsgi --timeout 120 --max-requests 1000 --bind unix:/tmp/gunicorn--dsmr_webinterface.socket
 else
     sleep infinity
 fi

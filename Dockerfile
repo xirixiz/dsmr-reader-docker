@@ -5,20 +5,16 @@ FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION
-# TODO: Revert "development" to "6.0.0"
-ENV DSMR_VERSION=${DSMR_VERSION:-development}
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 
-# TODO: Drop this section when everything works
-RUN apk add --no-cache curl \
-    && echo "**** Download DSMR ****" \
-    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
-    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/${DSMR_VERSION}/src/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o src/dsmr_datalogger_api_client.py
+# Download either the development branch (head) or a specific version of DSMR Reader (tag)
+RUN echo "**** Download DSMR (extracts src/*) ****" \
+    && apk add --no-cache curl \
+    && if [ "${DSMR_VERSION}" = "development" ] ; then curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; else curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; fi \
+    && tar xvzf /dsmrreader.download.tar.gz --strip-components=2 dsmr-reader-${DSMR_VERSION}/src/ -C /app \
+    && cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py /app/dsmr_datalogger_api_client.py \
+    && rm /dsmrreader.download.tar.gz
 
-# TODO: Re-enable this section when everything works
-#RUN apk add --no-cache curl \
-#    && echo "**** Download DSMR ****" \
-#    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
-#    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/src/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/src/dsmr_datalogger_api_client.py
 
 #---------------------------------------------------------------------------------------------------------------------------
 # BASE STEP
@@ -27,7 +23,7 @@ FROM python:3.13-alpine AS base
 
 # Build arguments
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION}
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Algemene omgevingsvariabelen
@@ -36,13 +32,11 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     PIP_NO_CACHE_DIR=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
-# Poetry / virtual env omgevingsvariabelen
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1
-
-# DSMR Reader-specifieke omgevingsvariabelen
-ENV DJANGO_SECRET_KEY=dsmrreader \
+# Poetry / DSMR Reader-specifieke omgevingsvariabelen
+ENV POETRY_VIRTUALENVS_CREATE=true \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_VIRTUALENVS_PATH=/app/.venv \
+    DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
@@ -70,15 +64,18 @@ RUN apk add --no-cache \
     openssl postgresql17-client tzdata \
     s6-overlay netcat-openbsd dpkg  \
     libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \
-    && echo "**** install build dependencies and pip packages ****" \
+    && echo "**** install build dependencies ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base rust cargo \
-        libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev \
+        libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev
+
+RUN echo "**** install python packages ****" \
     && python3 -m pip install --no-cache-dir --upgrade pip \
     && pip install poetry \
-    && poetry install --directory=/app/src/ --without dev --no-root \
-    && poetry add --directory=/app/src/ tzupdate mysqlclient \
-    && echo "**** cleanup ****" \
+    && poetry install --directory=/app --without dev --no-root \
+    && poetry add --directory=/app tzupdate mysqlclient
+
+RUN echo "**** cleanup ****" \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
 
