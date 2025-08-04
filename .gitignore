@@ -2,6 +2,7 @@
 Thumbs.db
 ehthumbs.db
 dsmr_dev
+dsmr_backups/
 docker-compose.yaml
 .idea
 
