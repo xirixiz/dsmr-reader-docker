@@ -32,7 +32,8 @@ ENV DSMR_VERSION=${DSMR_VERSION} \
     TERM="xterm" \
     PIP_NO_CACHE_DIR=1 \
 
-    # DSMR Reader-specifieke omgevingsvariabelen    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+    # DSMR Reader-specifieke omgevingsvariabelen    
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
