@@ -39,6 +39,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/app/backups
     environment:
+      - DJANGO_SECRET_KEY=somerandomvalue
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost

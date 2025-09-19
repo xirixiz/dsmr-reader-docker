@@ -1,25 +1,29 @@
 #---------------------------------------------------------------------------------------------------------------------------
 # STAGING STEP
 #---------------------------------------------------------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM python:3.11-alpine3.21 as staging
+FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION:-5.0.0}
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 
-RUN apk add --no-cache curl \
-    && echo "**** Download DSMR ****" \
-    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
-    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
+# Download either the development branch (head) or a specific version of DSMR Reader (tag)
+RUN echo "**** Download DSMR (extracts src/*) ****" \
+    && apk add --no-cache curl \
+    && if [ "${DSMR_VERSION}" = "development" ] ; then curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; else curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; fi \
+    && tar xvzf /dsmrreader.download.tar.gz --strip-components=2 dsmr-reader-${DSMR_VERSION}/src/ -C /app \
+    && cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py /app/dsmr_datalogger_api_client.py \
+    && rm /dsmrreader.download.tar.gz
+
 
 #---------------------------------------------------------------------------------------------------------------------------
 # BASE STEP
 #---------------------------------------------------------------------------------------------------------------------------
-FROM python:3.11-alpine3.21 as base
+FROM python:3.13-alpine AS base
 
 # Build arguments
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION}
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Algemene omgevingsvariabelen
@@ -28,8 +32,11 @@ ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     PIP_NO_CACHE_DIR=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
-# DSMR Reader-specifieke omgevingsvariabelen
-ENV DJANGO_SECRET_KEY=dsmrreader \
+# Poetry / DSMR Reader-specifieke omgevingsvariabelen
+ENV POETRY_VIRTUALENVS_CREATE=true \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_VIRTUALENVS_PATH=/app/.venv \
+    DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
@@ -56,24 +63,27 @@ RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
     openssl postgresql17-client tzdata \
     s6-overlay netcat-openbsd dpkg mariadb-client \
-    libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \ 
-    && echo "**** install build dependencies and pip packages ****" \
+    libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \
+    && echo "**** install build dependencies ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base rust cargo \
-        libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev \
-    && python3 -m pip install --no-cache-dir --upgrade pip \    
-    && python3 -m pip install --no-cache-dir -r /app/dsmrreader/provisioning/requirements/base.txt \
-    && python3 -m pip install --no-cache-dir tzupdate mysqlclient \
-    && echo "**** cleanup ****" \
+        libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev
+
+RUN echo "**** install python packages ****" \
+    && python3 -m pip install --no-cache-dir --upgrade pip \
+    && pip install poetry \
+    && poetry install --directory=/app --without dev --no-root \
+    && poetry add --directory=/app tzupdate mysqlclient
+
+RUN echo "**** cleanup ****" \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* /tmp/* /root/.cache
 
-# Setup nginx
+# Setup nginx (vhost in rootfs/etc/nginx/http.d/dsmr-webinterface)
 RUN mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && rm -f /etc/nginx/http.d/default.conf \
-    && cp /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
+    && rm -f /etc/nginx/http.d/default.conf
 
 # Create app user
 RUN groupmod -g 1000 users \
@@ -81,13 +91,10 @@ RUN groupmod -g 1000 users \
     && usermod -G users,dialout,audio app \
     && mkdir -p /config /defaults
 
-# Copy settings template
-RUN cp /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py
-
 #---------------------------------------------------------------------------------------------------------------------------
 # FINAL STEP
 #---------------------------------------------------------------------------------------------------------------------------
-FROM base as final
+FROM base AS final
 
 COPY rootfs /
 
