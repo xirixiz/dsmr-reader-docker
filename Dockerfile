@@ -7,7 +7,7 @@ WORKDIR /app
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION:-5.11.0}
 
-RUN apk add --no-cache curl tar \
+RUN apk add --no-cache curl \
     && echo "**** Download DSMR ****" \
     && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" \
         | tar xvzf - --strip-components=1 -C /app \
@@ -20,21 +20,18 @@ RUN apk add --no-cache curl tar \
 FROM python:3.12-alpine3.22 as base
 WORKDIR /app
 
-# Build arguments
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION}
-ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Algemene omgevingsvariabelen
-ENV DSMR_VERSION=${DSMR_VERSION} \
-    LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
+ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     TERM="xterm" \
     PIP_NO_CACHE_DIR=1 \
+    LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
-    # DSMR Reader-specifieke omgevingsvariabelen    
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
-    DJANGO_SECRET_KEY=dsmrreader \
+# DSMR Reader-specifieke omgevingsvariabelen
+ENV DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
@@ -57,7 +54,7 @@ ENV DSMR_VERSION=${DSMR_VERSION} \
 # Kopieer bestanden uit staging
 COPY --from=staging /app /app
 
-# Runtime dependencies only
+# Runtime dependencies
 RUN apk add --no-cache \
         bash curl coreutils ca-certificates shadow jq nginx \
         openssl postgresql17-client tzdata \
@@ -71,7 +68,7 @@ RUN apk add --no-cache \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && ln -s /root/.local/bin/uv /usr/local/bin/uv
 
-# Install Python dependencies directly
+# Install Python dependencies
 RUN cd /app/dsmrreader \
     && uv pip install --system --no-cache -r /app/dsmrreader/provisioning/requirements/base.txt \
     && uv pip install --system --no-cache tzupdate mysqlclient \
@@ -84,13 +81,13 @@ RUN mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && rm -f /etc/nginx/http.d/default.conf \
-    && cp /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf    
+    && cp /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
 
 # Create app user
 RUN groupmod -g 1000 users \
     && useradd -u 803 -U -d /config -s /bin/false app \
     && usermod -G users,dialout,audio app \
-    && mkdir -p /config /defaults    
+    && mkdir -p /config /defaults
 
 # Copy settings template
 RUN cp /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py
