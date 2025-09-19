@@ -68,10 +68,12 @@ RUN apk add --no-cache \
 
 RUN echo "**** install python packages ****" \
     && python -m pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir poetry \
-    && POETRY_NO_INTERACTION=1 poetry update --directory=/app pillow \
-    && POETRY_NO_INTERACTION=1 poetry install --directory=/app --without dev --no-root \
-    && POETRY_NO_INTERACTION=1 poetry add --directory=/app tzupdate mysqlclient
+    && pip install --no-cache-dir "poetry>=1.8.3" \
+    && POETRY_NO_INTERACTION=1 poetry about --directory=/app/src \
+    && POETRY_NO_INTERACTION=1 poetry update --directory=/app/src pillow \
+    && POETRY_NO_INTERACTION=1 poetry install --directory=/app/src --without dev --no-root \
+    && POETRY_NO_INTERACTION=1 poetry run --directory=/app/src pip install tzupdate mysqlclient \
+    && POETRY_NO_INTERACTION=1 poetry run --directory=/app/src python -c "import PIL,sys;print('Pillow',PIL.__version__,'Python',sys.version.split()[0])"
 
 RUN echo "**** cleanup ****" \
     && apk del .build-deps \
