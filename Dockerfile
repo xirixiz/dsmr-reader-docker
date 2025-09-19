@@ -59,15 +59,30 @@ ENV POETRY_VIRTUALENVS_CREATE=true \
 # Kopieer bestanden uit staging
 COPY --from=staging /app /app
 
+# Kopieer bestanden van rootfs
+COPY rootfs/app/ app/
+
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
     openssl postgresql17-client tzdata \
-    s6-overlay netcat-openbsd dpkg mariadb-client \
+    netcat-openbsd dpkg mariadb-client \
     libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev \
     && echo "**** install build dependencies ****" \
     && apk add --no-cache --virtual .build-deps \
         gcc python3-dev musl-dev postgresql17-dev build-base rust cargo \
         libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev
+
+# s6-overlay v3 upstream install ----
+ARG S6_OVERLAY_VERSION=3.2.1.0
+RUN set -eux; \
+    ARCH="$(apk --print-arch)"; \
+    curl -fsSL -o /tmp/s6-overlay-noarch.tar.xz \
+      "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz"; \
+    curl -fsSL -o /tmp/s6-overlay-musl.tar.xz \
+      "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-musl-${ARCH}.tar.xz"; \
+    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz; \
+    tar -C / -Jxpf /tmp/s6-overlay-musl.tar.xz; \
+    rm -f /tmp/s6-overlay-*.tar.xz
 
 RUN echo "**** install python packages ****" \
     && python3 -m pip install --no-cache-dir --upgrade pip \
