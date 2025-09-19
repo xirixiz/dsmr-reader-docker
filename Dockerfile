@@ -67,10 +67,12 @@ RUN apk add --no-cache \
         libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev
 
 RUN echo "**** install python packages ****" \
+    && set -eux \
+    && test -f /app/src/pyproject.toml \
     && python -m pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir "poetry>=1.8.3" \
+    && pip install --no-cache-dir poetry \
     && POETRY_NO_INTERACTION=1 poetry about --directory=/app/src \
-    && POETRY_NO_INTERACTION=1 poetry update --directory=/app/src pillow \
+    && POETRY_NO_INTERACTION=1 poetry add --directory=/app/src "pillow>=11,<12" \
     && POETRY_NO_INTERACTION=1 poetry install --directory=/app/src --without dev --no-root \
     && POETRY_NO_INTERACTION=1 poetry run --directory=/app/src pip install tzupdate mysqlclient \
     && POETRY_NO_INTERACTION=1 poetry run --directory=/app/src python -c "import PIL,sys;print('Pillow',PIL.__version__,'Python',sys.version.split()[0])"
