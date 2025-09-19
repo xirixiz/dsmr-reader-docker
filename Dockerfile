@@ -54,9 +54,7 @@ ENV POETRY_VIRTUALENVS_CREATE=true \
 
 # Kopieer bestanden uit staging
 COPY --from=staging /app /app
-
-# Kopieer bestanden van rootfs
-COPY rootfs/app/ app/
+COPY rootfs /
 
 RUN apk add --no-cache \
     bash curl coreutils ca-certificates shadow jq nginx \
@@ -69,10 +67,11 @@ RUN apk add --no-cache \
         libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev mariadb-dev
 
 RUN echo "**** install python packages ****" \
-    && python3 -m pip install --no-cache-dir --upgrade pip \
-    && pip install poetry \
-    && poetry install --directory=/app --without dev --no-root \
-    && poetry add --directory=/app tzupdate mysqlclient
+    && python -m pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir poetry \
+    && POETRY_NO_INTERACTION=1 poetry update --directory=/app pillow \
+    && POETRY_NO_INTERACTION=1 poetry install --directory=/app --without dev --no-root \
+    && POETRY_NO_INTERACTION=1 poetry add --directory=/app tzupdate mysqlclient
 
 RUN echo "**** cleanup ****" \
     && apk del .build-deps \
@@ -94,8 +93,6 @@ RUN groupmod -g 1000 users \
 # FINAL STEP
 #---------------------------------------------------------------------------------------------------------------------------
 FROM base AS final
-
-COPY rootfs /
 
 HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.0.1/about -o /dev/null || exit 1
 
