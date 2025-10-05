@@ -30,23 +30,20 @@ RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache --virtual .build-deps \
       build-base gcc musl-dev python3-dev rust cargo \
       libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev \
-      postgresql17-dev mariadb-dev \
+      postgresql17-dev mariadb-dev mariadb-connector-c \
       curl git
-
-RUN apk add --no-cache mariadb-connector-c
 
 COPY --from=staging /app /app
 
 ENV PIP_NO_CACHE_DIR=1
 RUN python -m pip install --upgrade pip setuptools wheel \
- && pip install --no-cache-dir poetry \
- && POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_NO_INTERACTION=1 \
-    poetry export --without dev --format requirements.txt --output /deps.txt \
+ && pip install --no-cache-dir poetry poetry-plugin-export \
+ && POETRY_VIRTUALENVS_CREATE=false POETRY_NO_INTERACTION=1 \
+    poetry export --directory /app --without dev -f requirements.txt -o /deps.txt \
  && pip install --no-cache-dir --prefix=/install -r /deps.txt \
  && pip install --no-cache-dir --prefix=/install psycopg mysqlclient tzupdate
 
-# Trim: tests, __pycache__, static libs (no compileall here)
+# Trim garbage
 RUN set -eux; \
     find /install -type d -name '__pycache__' -prune -exec rm -rf {} +; \
     find /install -type d -name 'tests' -prune -exec rm -rf {} + || true; \
@@ -55,8 +52,7 @@ RUN set -eux; \
     find /install -type f -name '*.a' -delete; \
     find /install -type f -name '*.la' -delete
 
-RUN apk del .build-deps \
- && rm -rf /root/.cache /tmp/* /var/cache/apk/*
+RUN apk del .build-deps && rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
 #---------------------------------------------------------------------------------------------------------------------------
 # FINAL: runtime image with only what we need
