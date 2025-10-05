@@ -35,7 +35,9 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 COPY --from=staging /app /app
 
+ENV PIP_PREFER_BINARY=1
 ENV PIP_NO_CACHE_DIR=1
+
 RUN python -m pip install --upgrade pip setuptools wheel \
  && pip install --no-cache-dir poetry poetry-plugin-export \
  && POETRY_VIRTUALENVS_CREATE=false POETRY_NO_INTERACTION=1 \
@@ -97,14 +99,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
 COPY --from=builder /install /usr/local
 COPY --from=staging /app /app
 COPY rootfs /
-
-# ---- Legacy venv path compatibility (no behavior change) ----
-RUN set -eux; \
-    mkdir -p /app/.venv/bin; \
-    ln -sf /usr/local/bin/python3 /app/.venv/bin/python3; \
-    if [ -x /usr/local/bin/gunicorn ]; then \
-        ln -sf /usr/local/bin/gunicorn /app/.venv/bin/gunicorn; \
-    fi
 
 RUN set -eux; \
     mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static; \
