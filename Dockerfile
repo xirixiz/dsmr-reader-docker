@@ -23,8 +23,11 @@ RUN apk add --no-cache curl \
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS base
 
+ARG DSMR_VERSION
+
 # Algemene omgevingsvariabelen
-ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
+ENV ENV DSMR_VERSION="${DSMR_VERSION}" \
+    LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
     PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     TERM="xterm" \
     PIP_NO_CACHE_DIR=1 \
