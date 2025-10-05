@@ -13,7 +13,7 @@ WORKDIR /app
 #    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
+ENV DSMR_VERSION="development"
 
 # Download either the development branch (head) or a specific version of DSMR Reader (tag)
 RUN echo "**** Download DSMR (extracts src/*) ****" \
@@ -29,7 +29,7 @@ RUN echo "**** Download DSMR (extracts src/*) ****" \
 FROM python:3.13-alpine AS base
 
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
+ENV DSMR_VERSION="development"
 
 # Algemene omgevingsvariabelen
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
