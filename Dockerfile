@@ -5,11 +5,15 @@ FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION
+ARG DSMR_REF
+# Use v6.0.0 for example for version, include v
 ENV DSMR_VERSION=${DSMR_VERSION:-development}
+# Use ref tags for version
+ENV DSMR_REF=${DSMR_REF:-heads} 
 
 RUN apk add --no-cache curl \
-    && echo "**** Download DSMR ****" \
-    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
+    && echo "**** Download DSMR (${DSMR_REF}/${DSMR_VERSION}) ****" \
+    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/${DSMR_REF}/${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
     && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
 #---------------------------------------------------------------------------------------------------------------------------
