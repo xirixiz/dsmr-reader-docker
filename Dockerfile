@@ -6,6 +6,12 @@ WORKDIR /app
 
 ARG DSMR_VERSION
 ENV DSMR_VERSION=${DSMR_VERSION:-development}
+# ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
+
+# RUN apk add --no-cache curl \
+#    && echo "**** Download DSMR (${DSMR_VERSION} branch) ****" \
+#    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
+#    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
 RUN apk add --no-cache curl \
     && echo "**** Download DSMR (${DSMR_VERSION} branch) ****" \
