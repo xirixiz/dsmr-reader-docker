@@ -5,7 +5,7 @@ FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION:-development}
+ENV DSMR_VERSION="development"
 # ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 
 # RUN apk add --no-cache curl \
