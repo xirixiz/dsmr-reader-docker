@@ -12,18 +12,24 @@ WORKDIR /app
 #    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
 #    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
-RUN apk add --no-cache curl \
- && echo "**** Download DSMR (development branch) ****" \
- && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/development.tar.gz" \
-    | tar -xz --strip-components=1 -C /app \
- && curl -SskLf \
-      "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/development/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" \
-      -o /app/dsmr_datalogger_api_client.py
+ARG DSMR_VERSION
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
+
+# Download either the development branch (head) or a specific version of DSMR Reader (tag)
+RUN echo "**** Download DSMR (extracts src/*) ****" \
+    && apk add --no-cache curl \
+    && if [ "${DSMR_VERSION}" = "development" ] ; then curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; else curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; fi \
+    && tar xvzf /dsmrreader.download.tar.gz --strip-components=2 dsmr-reader-${DSMR_VERSION}/src/ -C /app \
+    && cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py /app/dsmr_datalogger_api_client.py \
+    && rm /dsmrreader.download.tar.gz
 
 #---------------------------------------------------------------------------------------------------------------------------
 # BASE STEP
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS base
+
+ARG DSMR_VERSION
+ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
 
 # Algemene omgevingsvariabelen
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
