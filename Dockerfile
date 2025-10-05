@@ -28,9 +28,6 @@ RUN echo "**** Download DSMR (extracts src/*) ****" \
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS base
 
-ARG DSMR_VERSION
-ENV DSMR_VERSION="development"
-
 # Algemene omgevingsvariabelen
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
     PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
