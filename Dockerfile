@@ -4,30 +4,29 @@
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
-ARG DSMR_VERSION
-ENV DSMR_VERSION="development"
-# ENV DSMR_VERSION=${DSMR_VERSION:-6.0.0}
+#ARG DSMR_VERSION
+#ENV DSMR_VERSION=${DSMR_VERSION:-5.0.0}
 
-# RUN apk add --no-cache curl \
-#    && echo "**** Download DSMR (${DSMR_VERSION} branch) ****" \
+#RUN apk add --no-cache curl \
+#    && echo "**** Download DSMR ****" \
 #    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" | tar xvzf - --strip-components=1 -C /app \
 #    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
 
 RUN apk add --no-cache curl \
-    && echo "**** Download DSMR (${DSMR_VERSION} branch) ****" \
-    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /app \
-    && curl -SskLf "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" -o /app/dsmr_datalogger_api_client.py
+ && echo "**** Download DSMR (development branch) ****" \
+ && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/development.tar.gz" \
+    | tar -xz --strip-components=1 -C /app \
+ && curl -SskLf \
+      "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/development/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" \
+      -o /app/dsmr_datalogger_api_client.py
 
 #---------------------------------------------------------------------------------------------------------------------------
 # BASE STEP
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS base
 
-ARG DSMR_VERSION
-
 # Algemene omgevingsvariabelen
-ENV ENV DSMR_VERSION="${DSMR_VERSION}" \
-    LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
+ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
     PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
     TERM="xterm" \
     PIP_NO_CACHE_DIR=1 \
@@ -65,7 +64,7 @@ COPY rootfs /
 RUN echo "**** Install runtime dependencies ****" \
     && apk add --no-cache \
       bash ca-certificates coreutils curl jq nginx openssl s6-overlay tzdata \
-      postgresql17-client mariadb-client netcat-openbsd dpkg \
+      postgresql17-client mariadb-client netcat-openbsd dpkg shadow \
       libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c-dev
 
 RUN echo "**** Install build dependencies ****" \
