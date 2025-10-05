@@ -68,7 +68,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
       bash curl coreutils ca-certificates shadow jq nginx openssl tzdata \
       s6-overlay netcat-openbsd \
       libffi jpeg libjpeg-turbo libpng zlib \
-      postgresql17-client mariadb-client
+      postgresql17-client mariadb-client mariadb-connector-c
 
 # Copy Python deps from builder
 COPY --from=builder /install /usr/local
