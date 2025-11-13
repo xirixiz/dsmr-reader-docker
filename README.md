@@ -350,23 +350,30 @@ Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
 
     ```python
+    import logging
     import requests
     from django.dispatch import receiver
     from dsmr_backend.signals import backend_called
-    import dsmr_datalogger.services.datalogger
-
+    from dsmr_datalogger.services.datalogger import telegram_to_reading
+    
     HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
     HOMEWIZARD_TIMEOUT = 5
-
+    
+    logger = logging.getLogger(__name__)
+    
     @receiver(backend_called)
     def handle_backend_called(**kwargs):
-        response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
-
-        if response.status_code != 200:
-            print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
+        try:
+            response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f'HomeWizard plugin: failed to retrieve telegram: {e}')
             return
-
-        dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
+    
+        try:
+            telegram_to_reading(data=response.text)
+        except Exception as e:
+            logger.exception(f'HomeWizard plugin: failed to process telegram: {e}')
     ```
 
 ##### Docker Setup
