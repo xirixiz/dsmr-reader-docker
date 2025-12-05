@@ -17,6 +17,9 @@ on:
   #     - "**.md"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: docker-build
   cancel-in-progress: true
@@ -170,3 +173,52 @@ jobs:
             DOCKER_TARGET_RELEASE=${{ env.DOCKER_TARGET_RELEASE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  ################################################
+  ## JOB: BUMP_DOCKER_TARGET_RELEASE
+  ################################################
+  bump_docker_target_release:
+    name: "Bump DOCKER_TARGET_RELEASE"
+    needs: build_release
+    if: needs.build_release.result == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "🚀 GitHub - Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Determine new DOCKER_TARGET_RELEASE"
+        id: bump
+        run: |
+          file=".github/workflows/build_release.yml"
+
+          current=$(grep 'DOCKER_TARGET_RELEASE:' "$file" | head -1 | sed 's/.*DOCKER_TARGET_RELEASE: *//')
+          echo "Current DOCKER_TARGET_RELEASE: $current"
+
+          today=$(date -u +%Y.%m.%d)
+          echo "Today: $today"
+
+          if [ "$today" = "$current" ]; then
+            echo "Already at today's date, nothing to bump."
+            echo "NEW=$current" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          sed -i "s/DOCKER_TARGET_RELEASE: $current/DOCKER_TARGET_RELEASE: $today/" "$file"
+
+          echo "NEW=$today" >> $GITHUB_OUTPUT
+
+      - name: "Commit and push new version"
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git commit -am "chore: bump DOCKER_TARGET_RELEASE to ${{ steps.bump.outputs.NEW }}"
+          git push
