@@ -1,23 +1,36 @@
 # syntax=docker/dockerfile:1.7
 
-#---------------------------------------------------------------------------------------------------------------------------
-# STAGING: fetch DSMR source (same behavior as your working file)
-#---------------------------------------------------------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
-ARG DSMR_VERSION
-ENV DSMR_VERSION="development"
+ARG DSMR_VERSION=development
+ENV DSMR_VERSION=${DSMR_VERSION}
 
-RUN echo "**** Download DSMR (extracts src/*) ****" \
+RUN echo "**** Download DSMR (version: ${DSMR_VERSION}) ****" \
     && apk add --no-cache curl \
+    \
+    # Select correct GitHub ref
     && if [ "${DSMR_VERSION}" = "development" ] ; then \
-         curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/heads/${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; \
+         ARCHIVE_PATH="refs/heads/${DSMR_VERSION}.tar.gz" ; \
+         ROOT_DIR="dsmr-reader-${DSMR_VERSION}" ; \
        else \
-         curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" -o /dsmrreader.download.tar.gz ; \
+         ARCHIVE_PATH="refs/tags/v${DSMR_VERSION}.tar.gz" ; \
+         ROOT_DIR="dsmr-reader-${DSMR_VERSION}" ; \
        fi \
-    && tar xvzf /dsmrreader.download.tar.gz --strip-components=2 dsmr-reader-${DSMR_VERSION}/src/ -C /app \
+    \
+    # Download archive
+    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
+         -o /dsmrreader.download.tar.gz \
+    \
+    # Extract only src/*
+    && tar xvzf /dsmrreader.download.tar.gz \
+         --strip-components=2 \
+         "${ROOT_DIR}/src/" \
+         -C /app \
+    \
+    # Also copy datalogger API client
     && cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py /app/dsmr_datalogger_api_client.py \
+    \
     && rm /dsmrreader.download.tar.gz
 
 #---------------------------------------------------------------------------------------------------------------------------
