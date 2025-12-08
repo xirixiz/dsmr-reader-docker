@@ -58,7 +58,7 @@ RUN python -m pip install --upgrade pip setuptools wheel \
  && POETRY_VIRTUALENVS_CREATE=false POETRY_NO_INTERACTION=1 \
     poetry export --directory /app --without dev -f requirements.txt -o /deps.txt \
  && pip install --no-cache-dir --prefix=/install -r /deps.txt \
- && pip install --no-cache-dir --prefix=/install psycopg mysqlclient tzupdate
+ && pip install --no-cache-dir --prefix=/install psycopg mysqlclient tzupdate packaging requests
 
 # Trim garbage
 RUN set -eux; \
