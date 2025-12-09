@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
-#---------------------------------------------------------------------------------------------------------------------------
-# STAGING: fetch DSMR source and extract requirements
-#---------------------------------------------------------------------------------------------------------------------------
+#######################################################################
+# STAGING: Download DSMR Reader and extract src + provisioning files
+#######################################################################
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
@@ -12,11 +12,11 @@ ENV DSMR_VERSION=${DSMR_VERSION}
 RUN <<'EOF'
 set -euo pipefail
 
-echo "**** Downloading DSMR (version: ${DSMR_VERSION}) ****"
+echo "**** Downloading DSMR (${DSMR_VERSION}) ****"
 
 apk add --no-cache curl
 
-echo "Determining correct GitHub archive path..."
+echo "Determining archive path..."
 if [ "${DSMR_VERSION}" = "development" ]; then
   ARCHIVE_PATH="refs/heads/development.tar.gz"
   ROOT_DIR="dsmr-reader-development"
@@ -25,27 +25,34 @@ else
   ROOT_DIR="dsmr-reader-${DSMR_VERSION}"
 fi
 
-echo "Downloading DSMR from: ${ARCHIVE_PATH}"
+echo "Downloading GitHub tarball..."
 curl -SsfL "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
   -o /tmp/dsmr.tar.gz
 
-echo "Extracting DSMR src/ ..."
+echo "Extracting src/ ..."
 tar xzf /tmp/dsmr.tar.gz \
   --strip-components=2 \
   "${ROOT_DIR}/src/" \
   -C /app
 
-echo "Copying datalogger API client for DSMR..."
+echo "Extracting provisioning requirements..."
+mkdir -p /app/dsmrreader/provisioning
+tar xzf /tmp/dsmr.tar.gz \
+  --strip-components=1 \
+  "${ROOT_DIR}/dsmrreader/provisioning/requirements" \
+  -C /app
+
+echo "Copying datalogger API client..."
 cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py \
    /app/dsmr_datalogger_api_client.py
 
-echo "Cleaning staging image..."
 rm -f /tmp/dsmr.tar.gz
 EOF
 
-#---------------------------------------------------------------------------------------------------------------------------
-# BUILDER: install Python deps from DSMR requirements into /install
-#---------------------------------------------------------------------------------------------------------------------------
+
+#######################################################################
+# BUILDER: Install DSMR Python dependencies into /install
+#######################################################################
 FROM python:3.13-alpine AS builder
 WORKDIR /app
 
@@ -61,11 +68,12 @@ COPY --from=staging /app /app
 ENV PIP_PREFER_BINARY=1
 ENV PIP_NO_CACHE_DIR=1
 
-RUN python -m pip install --upgrade pip setuptools wheel \
- && pip install --no-cache-dir --prefix=/install \
+RUN python -m pip install --upgrade pip setuptools wheel
+
+RUN pip install --no-cache-dir --prefix=/install \
       -r /app/dsmrreader/provisioning/requirements/base.txt
 
-# Trim garbage
+# Cleanup build leftovers
 RUN set -eux; \
     find /install -type d -name '__pycache__' -prune -exec rm -rf {} +; \
     find /install -type d -name 'tests' -prune -exec rm -rf {} + || true; \
@@ -76,21 +84,23 @@ RUN set -eux; \
 
 RUN apk del .build-deps && rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
-#---------------------------------------------------------------------------------------------------------------------------
-# FINAL: runtime image with only what we need
-#---------------------------------------------------------------------------------------------------------------------------
+
+#######################################################################
+# FINAL: Runtime-only image
+#######################################################################
 FROM python:3.13-alpine AS final
 WORKDIR /app
 
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
-    PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
+    PS1="$(whoami)@dsmr_reader:$(pwd)\\$ " \
     TERM="xterm" \
     PIP_NO_CACHE_DIR=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-ENV DJANGO_SECRET_KEY=dsmrreader \
+ENV \
+    DJANGO_SECRET_KEY=dsmrreader \
     DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
@@ -133,5 +143,7 @@ RUN set -eux; \
     mkdir -p /config /defaults; \
     chown -R app:app /config /defaults
 
-HEALTHCHECK --interval=15s --timeout=3s --retries=10 CMD curl -Lsf http://127.0.0.1/about -o /dev/null || exit 1
+HEALTHCHECK --interval=15s --timeout=3s --retries=10 \
+  CMD curl -Lsf http://127.0.0.1/about -o /dev/null || exit 1
+
 ENTRYPOINT ["/init"]
