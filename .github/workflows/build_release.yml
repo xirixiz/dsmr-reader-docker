@@ -3,23 +3,19 @@ name: "DSMR: Build Docker images"
 on:
   # push:
   #   branches:
-  #     - develop
+  #     - development
   #     - main
   #   paths-ignore:
   #     - "**.md"
   # pull_request:
   #   branches:
-  #     - develop
+  #     - development
   #     - main
   #   types:
   #     - closed
   #   paths-ignore:
   #     - "**.md"
   workflow_dispatch:
-
-permissions:
-  contents: write
-  packages: write
 
 concurrency:
   group: docker-build
@@ -28,7 +24,7 @@ concurrency:
 env:
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2025.10.03
+  DOCKER_TARGET_RELEASE: 2025.12.01
 
 jobs:
   ################################################
@@ -72,63 +68,67 @@ jobs:
       ################################################
       ## DSMR
       ################################################
-      - name: "⚙️ DSMR - Determine version (stable on main, pre release or dev branch on develop)"
+      # - name: "⚙️ DSMR - Determine version"
+      #   id: dsmr_version
+      #   shell: bash
+      #   run: |
+      #     URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
+      #     VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+      #     DOWNLOAD_URL=$(curl -SskLf "${URL}" | jq -r '.tarball_url')
+      #     VERSION=${VERSION#"v"}
+      #     echo "version=${VERSION}" >>$GITHUB_OUTPUT
+
+      - name: "⚙️ DSMR - Determine version"
         id: dsmr_version
-        uses: actions/github-script@v7
-        env:
-          REPOSITORY: dsmrreader/dsmr-reader
-          CHANNEL: ${{ steps.get_branch.outputs.name == 'main' && 'stable' || 'development' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          result-encoding: string
-          script: |
-            const [owner, repo] = process.env.REPOSITORY.split('/');
-            const channel = process.env.CHANNEL;
-            const now = new Date();
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            if (channel === 'development') {
-              // Development channel
-              // First try a fresh pre release (not draft, not older than seven days)
-              const { data: releases } = await github.rest.repos.listReleases({
-                owner,
-                repo,
-                per_page: 20
-              });
+          # Value from repository variable in GitHub settings → Variables → DSMR_VERSION
+          REPO_VAR="${{ vars.DSMR_VERSION }}"
 
-              const freshPre = releases.find(r =>
-                r.prerelease &&
-                !r.draft &&
-                r.published_at &&
-                (now - new Date(r.published_at)) <= sevenDaysMs
-              );
+          echo "GITHUB_REF = ${GITHUB_REF}"
+          BRANCH="${GITHUB_REF##*/}"
+          echo "Detected branch: ${BRANCH}"
+          echo "Repository variable DSMR_VERSION: '${REPO_VAR}'"
 
-              if (freshPre) {
-                const version = freshPre.tag_name.replace(/^v/, '');
-                core.info(`Using fresh pre release ${freshPre.tag_name}`);
-                core.setOutput('ref_type', 'tag');
-                core.setOutput('ref', freshPre.tag_name);
-                return version;
-              }
+          #############################################
+          # 1. Repo variable has highest priority
+          #############################################
+          if [ -n "${REPO_VAR}" ]; then
+            VERSION="${REPO_VAR}"
+            VERSION="${VERSION#v}"   # strip leading v
+            echo "Using repository DSMR_VERSION=${VERSION}"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-              // Fallback: use the development branch
-              core.info('No pre release younger than seven days, falling back to development branch');
-              core.setOutput('ref_type', 'branch');
-              core.setOutput('ref', 'development');
-              return 'development';
-            } else {
-              // Main uses latest stable release
-              const { data: latest } = await github.rest.repos.getLatestRelease({
-                owner,
-                repo
-              });
+          #############################################
+          # 2. No repo var: branch-based default
+          #############################################
+          if [ "${BRANCH}" = "development" ]; then
+            VERSION="development"
+            echo "No repo var set, using development branch version"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-              const version = latest.tag_name.replace(/^v/, '');
-              core.info(`Using latest stable ${latest.tag_name}`);
-              core.setOutput('ref_type', 'tag');
-              core.setOutput('ref', latest.tag_name);
-              return version;
-            }
+          if [ "${BRANCH}" = "main" ]; then
+            URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
+            VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+            VERSION="${VERSION#v}"
+            echo "No repo var set, using latest release: ${VERSION}"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Fallback for other branches: latest release
+          URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
+          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
+          VERSION="${VERSION#v}"
+          echo "Fallback to latest release: ${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
 
       ################################################
       ## Docker
@@ -154,7 +154,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           tags: |
-            type=raw,value=${{ steps.dsmr_version.outputs.result }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=${{ steps.dsmr_version.outputs.version }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=raw,value=development,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
           images: |
@@ -162,64 +162,13 @@ jobs:
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}
 
       - name: "🚀 Docker - Build"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            DSMR_VERSION=${{ steps.dsmr_version.outputs.result }}
+          build-args: |-
+            DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
             DOCKER_TARGET_RELEASE=${{ env.DOCKER_TARGET_RELEASE }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  ################################################
-  ## JOB: BUMP_DOCKER_TARGET_RELEASE
-  ################################################
-  bump_docker_target_release:
-    name: "Bump DOCKER_TARGET_RELEASE"
-    needs: build_release
-    if: needs.build_release.result == 'success' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: "🚀 GitHub - Checkout repository"
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Determine new DOCKER_TARGET_RELEASE"
-        id: bump
-        run: |
-          file=".github/workflows/build_release.yml"
-
-          current=$(grep 'DOCKER_TARGET_RELEASE:' "$file" | head -1 | sed 's/.*DOCKER_TARGET_RELEASE: *//')
-          echo "Current DOCKER_TARGET_RELEASE: $current"
-
-          today=$(date -u +%Y.%m.%d)
-          echo "Today: $today"
-
-          if [ "$today" = "$current" ]; then
-            echo "Already at today's date, nothing to bump."
-            echo "NEW=$current" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          sed -i "s/DOCKER_TARGET_RELEASE: $current/DOCKER_TARGET_RELEASE: $today/" "$file"
-
-          echo "NEW=$today" >> $GITHUB_OUTPUT
-
-      - name: "Commit and push new version"
-        run: |
-          if git diff --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git commit -am "chore: bump DOCKER_TARGET_RELEASE to ${{ steps.bump.outputs.NEW }}"
-          git push

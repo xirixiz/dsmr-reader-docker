@@ -1,117 +1,106 @@
-# syntax=docker/dockerfile:1.7
-
 #######################################################################
-# STAGING: Download DSMR Reader en extract src plus provisioning files
+# STAGING: Download DSMR Reader and extract repo directly into /app
 #######################################################################
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
+
 WORKDIR /app
 
 ARG DSMR_VERSION=development
-ENV DSMR_VERSION=${DSMR_VERSION}
+ENV DSMR_VERSION="${DSMR_VERSION}"
 
-RUN <<'EOF'
+RUN <<EOF
 set -euo pipefail
-
-echo "**** Downloading DSMR (${DSMR_VERSION}) ****"
 
 apk add --no-cache curl
 
-echo "Determining archive path..."
-if [ "${DSMR_VERSION}" = "development" ]; then
+# Normalize version: strip leading 'v'
+RAW_VERSION="${DSMR_VERSION#v}"
+
+if [ "${RAW_VERSION}" = "development" ]; then
   ARCHIVE_PATH="refs/heads/development.tar.gz"
-  ROOT_DIR="dsmr-reader-development"
 else
-  ARCHIVE_PATH="refs/tags/v${DSMR_VERSION}.tar.gz"
-  ROOT_DIR="dsmr-reader-${DSMR_VERSION}"
+  ARCHIVE_PATH="refs/tags/v${RAW_VERSION}.tar.gz"
 fi
 
-echo "Downloading GitHub tarball..."
-mkdir -p /tmp/dsmr
-curl -SsfL "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
-  -o /tmp/dsmr.tar.gz
+URL="https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}"
+echo "Downloading: ${URL}"
 
-echo "Extracting full archive to /tmp/dsmr..."
-tar xzf /tmp/dsmr.tar.gz -C /tmp/dsmr
+curl -SsfL "${URL}" -o /tmp/dsmr.tar.gz
 
-echo "Copying src/ to /app..."
-cp -r "/tmp/dsmr/${ROOT_DIR}/src/"* /app
+tar -xzf /tmp/dsmr.tar.gz --strip-components=1 -C /app
+cp -a /app/src/. /app/
+rm -rf /app/src
 
-echo "Locating provisioning requirements..."
-REQ1="/tmp/dsmr/${ROOT_DIR}/dsmrreader/provisioning/requirements"
-REQ2="/tmp/dsmr/${ROOT_DIR}/provisioning/requirements"
-
-mkdir -p /app/dsmrreader/provisioning
-
-if [ -d "${REQ1}" ]; then
-  echo "Found requirements at ${REQ1}"
-  cp -r "${REQ1}" /app/dsmrreader/provisioning/
-elif [ -d "${REQ2}" ]; then
-  echo "Found requirements at ${REQ2}"
-  cp -r "${REQ2}" /app/dsmrreader/provisioning/
-else
-  echo "WARNING: no provisioning requirements directory found in archive" >&2
-fi
-
-echo "Copying datalogger API client..."
-cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py \
-   /app/dsmr_datalogger_api_client.py
-
-echo "Cleaning staging image..."
 rm -f /tmp/dsmr.tar.gz
-rm -rf /tmp/dsmr
 EOF
-
 
 #######################################################################
 # BUILDER: install DSMR Python deps into /install
 #######################################################################
 FROM python:3.13-alpine AS builder
+
 WORKDIR /app
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache --virtual .build-deps \
-      build-base gcc musl-dev python3-dev rust cargo \
-      libffi-dev jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev \
-      postgresql17-dev mariadb-dev mariadb-connector-c \
-      curl git
+      build-base \
+      gcc \
+      musl-dev \
+      python3-dev \
+      rust \
+      cargo \
+      libffi-dev \
+      jpeg-dev \
+      libjpeg-turbo-dev \
+      libpng-dev \
+      zlib-dev \
+      postgresql17-dev \
+      mariadb-dev \
+      mariadb-connector-c-dev
 
 COPY --from=staging /app /app
 
-ENV PIP_PREFER_BINARY=1
-ENV PIP_NO_CACHE_DIR=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    PYTHONUNBUFFERED=1 \
+    PIP_PREFER_BINARY=1 \
+    PIP_NO_CACHE_DIR=1
 
-RUN python -m pip install --upgrade pip setuptools wheel
+# Create an isolated Poetry venv so it doesn't pollute system site-packages
+RUN python -m venv /poetry-venv
 
-# gebruik de requirements van DSMR zelf
-RUN set -eux; \
-    REQ_FILE="/app/dsmrreader/provisioning/requirements/base.txt"; \
-    if [ ! -f "${REQ_FILE}" ]; then \
-      echo "requirements file not found at ${REQ_FILE}" >&2; \
-      echo "tree of /app for debugging" >&2; \
-      ls -R /app >&2; \
-      exit 1; \
-    fi; \
-    pip install --no-cache-dir --prefix=/install -r "${REQ_FILE}"
+# Install Poetry + export plugin in that venv
+RUN --mount=type=cache,target=/root/.cache/pip \
+    /poetry-venv/bin/pip install --no-cache-dir \
+      poetry \
+      poetry-plugin-export
 
-# eventueel extras zoals influxdb client
-# RUN pip install --no-cache-dir --prefix=/install influxdb-client
+# Use Poetry (in its venv) to export project dependencies
+RUN /poetry-venv/bin/poetry export \
+      -f requirements.txt \
+      --without-hashes \
+      -o /tmp/requirements.txt
 
-# opschonen
-RUN set -eux; \
-    find /install -type d -name '__pycache__' -prune -exec rm -rf {} +; \
-    find /install -type d -name 'tests' -prune -exec rm -rf {} + || true; \
-    find /install -type f -name '*.pyc' -delete; \
-    find /install -type f -name '*.pyo' -delete; \
-    find /install -type f -name '*.a' -delete; \
-    find /install -type f -name '*.la' -delete
+# Install runtime deps into /install using the *system* pip
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt && \
+    pip install --no-cache-dir --prefix=/install \
+      psycopg \
+      mysqlclient \
+      tzupdate
 
-RUN apk del .build-deps && rm -rf /root/.cache /tmp/* /var/cache/apk/*
+# Clean up build deps and temporary stuff
+RUN apk del .build-deps && \
+    rm -f /tmp/requirements.txt && \
+    rm -rf /poetry-venv && \
+    rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
 
 #######################################################################
 # FINAL: runtime image
 #######################################################################
 FROM python:3.13-alpine AS final
+
 WORKDIR /app
 
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
@@ -122,32 +111,48 @@ ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-ENV \
-    DJANGO_SECRET_KEY=dsmrreader \
-    DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
-    DJANGO_DATABASE_NAME=dsmrreader \
-    DJANGO_DATABASE_USER=dsmrreader \
-    DJANGO_DATABASE_PASSWORD=dsmrreader \
-    DJANGO_DATABASE_HOST=dsmrdb \
-    DJANGO_DATABASE_PORT=5432 \
-    DSMRREADER_ADMIN_USER=admin \
-    DSMRREADER_ADMIN_PASSWORD=admin \
-    DSMRREADER_OPERATION_MODE=standalone \
-    VACUUM_DB_ON_STARTUP=false \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True \
-    DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=8 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=N \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=23
+ENV DJANGO_SECRET_KEY="dsmrreader" \
+    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
+    DJANGO_DATABASE_NAME="dsmrreader" \
+    DJANGO_DATABASE_USER="dsmrreader" \
+    DJANGO_DATABASE_PASSWORD="dsmrreader" \
+    DJANGO_DATABASE_HOST="dsmrdb" \
+    DJANGO_DATABASE_PORT="5432" \
+    DSMRREADER_ADMIN_USER="admin" \
+    DSMRREADER_ADMIN_PASSWORD="admin" \
+    DSMRREADER_OPERATION_MODE="standalone" \
+    VACUUM_DB_ON_STARTUP="false" \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="True" \
+    DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
+    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT="/dev/ttyUSB0" \
+    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE="115200" \
+    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE="8" \
+    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY="N" \
+    DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST="127.0.0.1" \
+    DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="23"
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache \
-      bash ca-certificates coreutils curl jq nginx openssl s6-overlay tzdata \
-      postgresql17-client mariadb-client netcat-openbsd dpkg shadow \
-      libffi jpeg libjpeg-turbo libpng zlib mariadb-connector-c
+      bash \
+      ca-certificates \
+      coreutils \
+      curl \
+      jq \
+      nginx \
+      openssl \
+      s6-overlay \
+      tzdata \
+      postgresql17-client \
+      mariadb-client \
+      netcat-openbsd \
+      dpkg \
+      shadow \
+      libffi \
+      jpeg \
+      libjpeg-turbo \
+      libpng \
+      zlib \
+      mariadb-connector-c
 
 COPY --from=builder /install /usr/local
 COPY --from=staging /app /app
@@ -161,12 +166,15 @@ RUN set -eux; \
 
 RUN set -eux; \
     groupmod -g 1000 users; \
-    useradd -u 803 -U -d /config -s /bin/false app; \
+    useradd -u 803 -U -d /config -s /sbin/nologin app; \
     usermod -G users,dialout,audio app; \
     mkdir -p /config /defaults; \
-    chown -R app:app /config /defaults
+    chown -R app:app /config /defaults /var/www/dsmrreader
 
-HEALTHCHECK --interval=15s --timeout=3s --retries=10 \
+HEALTHCHECK \
+  --interval=15s \
+  --timeout=3s \
+  --retries=10 \
   CMD curl -Lsf http://127.0.0.1/about -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]

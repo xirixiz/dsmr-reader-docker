@@ -2,13 +2,22 @@ OUTPUT := output
 OUTPUT := $(abspath $(OUTPUT))
 
 build:
-	exec docker build --pull --rm --format docker --build-arg DSMR_VERSION="6.0.0" --platform="linux/amd64" --build-arg QEMU_ARCH="x86_64" --build-arg DOCKER_TARGET_RELEASE="2099.09.09" -t dsmr_test_image .
+	exec docker build --pull --rm --format docker \
+		--build-arg DSMR_VERSION="6.0beta5" \
+		--platform="linux/amd64" \
+		-t dsmr_test_image .
 
 test: build
 	exec docker run --rm --name dsmr --network host dsmr_test_image
 
 shell:
 	exec docker exec -ti dsmr bash
+
+# Als je ALLE volumes wilt wissen die met 'dsmr' beginnen:
+clean-all:
+	@echo "Removing all Docker volumes starting with 'dsmr'..."
+	@docker volume ls -q | grep '^dsmr' | xargs -r docker volume rm
+	@echo "Done."
 
 
 # docker build --pull --rm --format docker --build-arg DSMR_VERSION="5.11.0" --platform="linux/amd64" --build-arg QEMU_ARCH="x86_64" --build-arg DOCKER_TARGET_RELEASE="2099.09.09" -t dsmr_test_image .; docker save localhost/dsmr_test_image:latest > dsmr_dev; scp -O dsmr_dev xirixiz@nas.skynet:/volume1/onedrive/smarthome
