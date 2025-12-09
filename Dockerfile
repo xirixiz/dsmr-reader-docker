@@ -34,7 +34,7 @@ RUN echo "**** Download DSMR (version: ${DSMR_VERSION}) ****" \
     && rm /dsmrreader.download.tar.gz
 
 #---------------------------------------------------------------------------------------------------------------------------
-# BUILDER: export deps via Poetry, install to /install
+# BUILDER: install Python deps from DSMR requirements, naar /install
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS builder
 WORKDIR /app
@@ -52,13 +52,8 @@ ENV PIP_PREFER_BINARY=1
 ENV PIP_NO_CACHE_DIR=1
 
 RUN python -m pip install --upgrade pip setuptools wheel \
- && pip install --no-cache-dir poetry poetry-plugin-export \
- && POETRY_VIRTUALENVS_CREATE=false POETRY_NO_INTERACTION=1 \
-    poetry lock --directory /app \
- && POETRY_VIRTUALENVS_CREATE=false POETRY_NO_INTERACTION=1 \
-    poetry export --directory /app --without dev -f requirements.txt -o /deps.txt \
- && pip install --no-cache-dir --prefix=/install -r /deps.txt \
- && pip install --no-cache-dir --prefix=/install psycopg mysqlclient tzupdate packaging requests
+ && pip install --no-cache-dir --prefix=/install \
+      -r /app/dsmrreader/provisioning/requirements/base.txt
 
 # Trim garbage
 RUN set -eux; \
