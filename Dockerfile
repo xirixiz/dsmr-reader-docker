@@ -1,40 +1,47 @@
 # syntax=docker/dockerfile:1.7
 
+#---------------------------------------------------------------------------------------------------------------------------
+# STAGING: fetch DSMR source and extract requirements
+#---------------------------------------------------------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION=${DSMR_VERSION}
 
-RUN echo "**** Download DSMR (version: ${DSMR_VERSION}) ****" \
-    && apk add --no-cache curl \
-    \
-    # Select correct GitHub ref
-    && if [ "${DSMR_VERSION}" = "development" ] ; then \
-         ARCHIVE_PATH="refs/heads/${DSMR_VERSION}.tar.gz" ; \
-         ROOT_DIR="dsmr-reader-${DSMR_VERSION}" ; \
-       else \
-         ARCHIVE_PATH="refs/tags/v${DSMR_VERSION}.tar.gz" ; \
-         ROOT_DIR="dsmr-reader-${DSMR_VERSION}" ; \
-       fi \
-    \
-    # Download archive
-    && curl -SskLf "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
-         -o /dsmrreader.download.tar.gz \
-    \
-    # Extract only src/*
-    && tar xvzf /dsmrreader.download.tar.gz \
-         --strip-components=2 \
-         "${ROOT_DIR}/src/" \
-         -C /app \
-    \
-    # Also copy datalogger API client
-    && cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py /app/dsmr_datalogger_api_client.py \
-    \
-    && rm /dsmrreader.download.tar.gz
+# Helper script inside this RUN makes it easier to read
+RUN set -euo pipefail ;\
+    echo "**** Downloading DSMR (version: ${DSMR_VERSION}) ****" ;\
+    apk add --no-cache curl ;\
+
+    echo "Determining correct GitHub archive path..." ;\
+    if [ "${DSMR_VERSION}" = "development" ]; then
+        ARCHIVE_PATH="refs/heads/development.tar.gz"
+        ROOT_DIR="dsmr-reader-development"
+    else
+        ARCHIVE_PATH="refs/tags/v${DSMR_VERSION}.tar.gz"
+        ROOT_DIR="dsmr-reader-${DSMR_VERSION}"
+    fi ;\
+
+    echo "Downloading DSMR from: ${ARCHIVE_PATH}" ;\
+    curl -SsfL "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
+        -o /tmp/dsmr.tar.gz ;\
+
+    echo "Extracting DSMR src/ ..." ;\
+    tar xzf /tmp/dsmr.tar.gz \
+        --strip-components=2 \
+        "${ROOT_DIR}/src/" \
+        -C /app ;\
+
+    echo "Copying datalogger API client for DSMR..." ;\
+    cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py \
+       /app/dsmr_datalogger_api_client.py ;\
+
+    echo "Cleaning staging image..." ;\
+    rm -f /tmp/dsmr.tar.gz
 
 #---------------------------------------------------------------------------------------------------------------------------
-# BUILDER: install Python deps from DSMR requirements, naar /install
+# BUILDER: install Python deps from DSMR requirements into /install
 #---------------------------------------------------------------------------------------------------------------------------
 FROM python:3.13-alpine AS builder
 WORKDIR /app
