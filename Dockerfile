@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 #######################################################################
-# STAGING: Download DSMR Reader and extract src + provisioning files
+# STAGING: Download DSMR Reader en extract src plus provisioning files
 #######################################################################
 FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
 WORKDIR /app
@@ -26,32 +26,44 @@ else
 fi
 
 echo "Downloading GitHub tarball..."
+mkdir -p /tmp/dsmr
 curl -SsfL "https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}" \
   -o /tmp/dsmr.tar.gz
 
-echo "Extracting src/ ..."
-tar xzf /tmp/dsmr.tar.gz \
-  --strip-components=2 \
-  "${ROOT_DIR}/src/" \
-  -C /app
+echo "Extracting full archive to /tmp/dsmr..."
+tar xzf /tmp/dsmr.tar.gz -C /tmp/dsmr
 
-echo "Extracting provisioning requirements..."
+echo "Copying src/ to /app..."
+cp -r "/tmp/dsmr/${ROOT_DIR}/src/"* /app
+
+echo "Locating provisioning requirements..."
+REQ1="/tmp/dsmr/${ROOT_DIR}/dsmrreader/provisioning/requirements"
+REQ2="/tmp/dsmr/${ROOT_DIR}/provisioning/requirements"
+
 mkdir -p /app/dsmrreader/provisioning
-tar xzf /tmp/dsmr.tar.gz \
-  --strip-components=1 \
-  "${ROOT_DIR}/dsmrreader/provisioning/requirements" \
-  -C /app
+
+if [ -d "${REQ1}" ]; then
+  echo "Found requirements at ${REQ1}"
+  cp -r "${REQ1}" /app/dsmrreader/provisioning/
+elif [ -d "${REQ2}" ]; then
+  echo "Found requirements at ${REQ2}"
+  cp -r "${REQ2}" /app/dsmrreader/provisioning/
+else
+  echo "WARNING: no provisioning requirements directory found in archive" >&2
+fi
 
 echo "Copying datalogger API client..."
 cp /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py \
    /app/dsmr_datalogger_api_client.py
 
+echo "Cleaning staging image..."
 rm -f /tmp/dsmr.tar.gz
+rm -rf /tmp/dsmr
 EOF
 
 
 #######################################################################
-# BUILDER: Install DSMR Python dependencies into /install
+# BUILDER: install DSMR Python deps into /install
 #######################################################################
 FROM python:3.13-alpine AS builder
 WORKDIR /app
@@ -70,10 +82,21 @@ ENV PIP_NO_CACHE_DIR=1
 
 RUN python -m pip install --upgrade pip setuptools wheel
 
-RUN pip install --no-cache-dir --prefix=/install \
-      -r /app/dsmrreader/provisioning/requirements/base.txt
+# gebruik de requirements van DSMR zelf
+RUN set -eux; \
+    REQ_FILE="/app/dsmrreader/provisioning/requirements/base.txt"; \
+    if [ ! -f "${REQ_FILE}" ]; then \
+      echo "requirements file not found at ${REQ_FILE}" >&2; \
+      echo "tree of /app for debugging" >&2; \
+      ls -R /app >&2; \
+      exit 1; \
+    fi; \
+    pip install --no-cache-dir --prefix=/install -r "${REQ_FILE}"
 
-# Cleanup build leftovers
+# eventueel extras zoals influxdb client
+# RUN pip install --no-cache-dir --prefix=/install influxdb-client
+
+# opschonen
 RUN set -eux; \
     find /install -type d -name '__pycache__' -prune -exec rm -rf {} +; \
     find /install -type d -name 'tests' -prune -exec rm -rf {} + || true; \
@@ -86,7 +109,7 @@ RUN apk del .build-deps && rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
 
 #######################################################################
-# FINAL: Runtime-only image
+# FINAL: runtime image
 #######################################################################
 FROM python:3.13-alpine AS final
 WORKDIR /app
