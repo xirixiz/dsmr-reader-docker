@@ -101,6 +101,12 @@ RUN apk del .build-deps && \
 #######################################################################
 FROM python:3.13-alpine AS final
 
+ARG DSMR_VERSION=development
+ENV DSMR_VERSION="${DSMR_VERSION}"
+
+ARG DOCKER_TARGET_RELEASE=2025.1000
+ENV DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
+
 WORKDIR /app
 
 ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
@@ -121,6 +127,7 @@ ENV DJANGO_SECRET_KEY="dsmrreader" \
     DSMRREADER_ADMIN_USER="admin" \
     DSMRREADER_ADMIN_PASSWORD="admin" \
     DSMRREADER_OPERATION_MODE="standalone" \
+    DISABLE_NGINX_ACCESS_LOGS="true" \
     VACUUM_DB_ON_STARTUP="false" \
     DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="True" \
     DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
@@ -160,9 +167,7 @@ COPY rootfs /
 
 RUN set -eux; \
     mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static; \
-    ln -sf /dev/stdout /var/log/nginx/access.log; \
-    ln -sf /dev/stderr /var/log/nginx/error.log; \
-    rm -f /etc/nginx/http.d/default.conf
+    rm -f /etc/nginx/http.d/*.conf
 
 RUN set -eux; \
     groupmod -g 1000 users; \
