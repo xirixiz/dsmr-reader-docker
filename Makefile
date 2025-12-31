@@ -5,8 +5,11 @@ IMAGE ?= dsmr_test_image
 DSMR_VERSION ?= 6.0rc7
 PLATFORM ?= linux/amd64
 
+COMPOSE ?= podman compose
+COMPOSE_FILE ?= container-compose-development.yaml
+
 .PHONY: build test podman-up podman-down shell \
-        clean-image clean-stages clean-build-cache clean-volumes clean-dev
+        clean-image clean-stages clean-build-cache clean-volumes clean
 
 build:
 	exec podman build --pull --rm --format docker \
@@ -17,14 +20,23 @@ build:
 test: build
 	exec podman run --rm --name dsmr --network host "$(IMAGE)"
 
-podman-up:
-	exec podman-compose -f container-compose-development.yaml up
+container-up:
+	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up
 
-podman-down:
-	exec podman-compose -f container-compose-development.yaml down
+container-down:
+	exec $(COMPOSE) -f "$(COMPOSE_FILE)" down
 
 shell:
 	exec podman exec -ti dsmr bash
+
+clean-containers:
+	@echo "Stopping DSMR containers..."
+	@podman stop dsmr 2>/dev/null || true
+	@podman stop dsmrdb 2>/dev/null || true
+	@echo "Removing DSMR containers..."
+	@podman rm dsmr 2>/dev/null || true
+	@podman rm dsmrdb 2>/dev/null || true
+	@echo "Done."
 
 clean-image:
 	@echo "Removing DSMR test image..."
@@ -32,22 +44,24 @@ clean-image:
 	@echo "Done."
 
 clean-stages:
-	@echo "Removing dangling podman build stage images..."
+	@echo "Removing dangling Podman images..."
 	@podman image prune -f
 	@echo "Done."
 
 clean-build-cache:
-	@echo "Removing unused podman build cache..."
-	@podman buildx prune -f
+	@echo "Removing unused Podman build cache..."
+	@podman builder prune -f
 	@echo "Done."
 
 clean-volumes:
-	@echo "Removing DSMR podman volumes..."
+	@echo "Removing DSMR Podman volumes..."
 	@podman volume ls -q | grep '^dsmr' | xargs -r podman volume rm
 	@echo "Done."
 
-clean-dev:
-	@echo "Cleaning DSMR podman development artifacts..."
+clean:
+	@echo "Cleaning DSMR Podman development artifacts..."
+	-@$(MAKE) podman-down
+	@$(MAKE) clean-containers
 	@$(MAKE) clean-image
 	@$(MAKE) clean-stages
 	@$(MAKE) clean-build-cache
