@@ -155,8 +155,8 @@ NGINX_LISTEN_PORT
 DSMRREADER_ADMIN_USER=admin
 # Webinterface user password:
 DSMRREADER_ADMIN_PASSWORD=admin
-# Loglevel. Valid values are INFO, ERROR, WARNING, DEBUG:
-DSMRREADER_LOGLEVEL=INFO
+# Loglevel. Valid values are: "DEBUG", "WARNING", "ERROR". Default: "ERROR"
+DSMRREADER_LOGLEVEL=ERROR
 # Secret key for encryption:
 DJANGO_SECRET_KEY=dsmrreader
 # Ignore database size notifications:
