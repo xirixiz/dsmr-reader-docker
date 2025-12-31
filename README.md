@@ -117,7 +117,7 @@ NGINX_LISTEN_PORT=80
 ```properties
 # Default nginx generated access logs.
 # In some cases you want to disable this, because e.g., you use a reverse proxy which also generates access logs
-DISABLE_NGINX_ACCESS_LOGS=true
+ENABLE_NGINX_ACCESS_LOGS=false
 ```
 
 ```properties
@@ -145,7 +145,7 @@ HTTP_AUTH_PASSWORD=
 
 *It's not possible to combine the following settings!!!:*
 ```properties
-ENABLE_NGINX_SSL
+ENABLE_NGINX_SSL="false"
 NGINX_LISTEN_PORT
 ```
 
@@ -155,12 +155,12 @@ NGINX_LISTEN_PORT
 DSMRREADER_ADMIN_USER=admin
 # Webinterface user password:
 DSMRREADER_ADMIN_PASSWORD=admin
-# Loglevel. Valid values are ERROR, WARNING, DEBUG:
-DSMRREADER_LOGLEVEL=WARNING
+# Loglevel. Valid values are INFO, ERROR, WARNING, DEBUG:
+DSMRREADER_LOGLEVEL=INFO
 # Secret key for encryption:
 DJANGO_SECRET_KEY=dsmrreader
 # Ignore database size notifications:
-DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True
+DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=true
 # Plugins (custom) setup:
 DSMRREADER_PLUGINS=dsmr_plugins.modules.plugin_name1,dsmr_plugins.modules.plugin_name2
 # Enable IFrame support (e.g., for use in HASS).
@@ -170,7 +170,7 @@ ENABLE_IFRAME=false
 ##### DB Related (defaults are shown as value):
 ```properties
 # Optional. Vacuum clean Postgres on startup:
-VACUUM_DB_ON_STARTUP=false
+ENABLE_VACUUM_DB_ON_STARTUP=false
 # Required. Defaults are set to:
 DJANGO_DATABASE_ENGINE=django.db.backends.postgresql
 DJANGO_DATABASE_NAME=dsmrreader

@@ -3,7 +3,7 @@ OUTPUT := $(abspath $(OUTPUT))
 
 build:
 	exec docker build --pull --rm --format docker \
-		--build-arg DSMR_VERSION="6.0beta5" \
+		--build-arg DSMR_VERSION="6.0rc7" \
 		--platform="linux/amd64" \
 		-t dsmr_test_image .
 

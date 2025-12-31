@@ -43,6 +43,17 @@ function _pre_reqs() {
     chown -R app:app /config
     chown -R app:app /defaults
 
+    alias ll="ls -al"
+
+    _info "Clean .env settings on container (re)start..."
+    : > /app/.env
+
+
+    for var in $(compgen -v | grep '^ENABLE_'); do
+        _normalize_bool "$var"
+    done
+
+
     _info "Setting architecture requirements..."
     _detect_architecture
 }
@@ -79,8 +90,21 @@ function _detect_architecture() {
     fi
 }
 
+function _normalize_bool() {
+    local var="$1"
+    local val="${!var:-false}"
+
+    case "${val,,}" in
+        true|1|yes|y|on)
+            printf -v "$var" 'true'
+            ;;
+        *)
+            printf -v "$var" 'false'
+            ;;
+    esac
+}
+
 function _dsmr_datalogger_mode() {
-    : > /app/.env
     touch /app/.env
     if [[ "${DSMRREADER_OPERATION_MODE}" != @(standalone|api_server|api_client) ]]; then
         _error "DSMRREADER_OPERATION_MODE required value is incorrect. Exiting..."
@@ -198,7 +222,7 @@ function _check_db_availability() {
                 fi
             else
                 _info "Database connectivity successfully verified!"
-                if [[ "${VACUUM_DB_ON_STARTUP}" = true ]]; then
+                if [[ "${ENABLE_VACUUM_DB_ON_STARTUP}" = true ]]; then
                     _cleandb
                 fi
                 break
@@ -226,7 +250,7 @@ function _nginx_change_listen_port() {
 function _nginx_disable_access_logs() {
     LOGCONF="/etc/nginx/http.d/00-nginx-logging.conf"
 
-    if [[ "${DISABLE_NGINX_ACCESS_LOGS}" = true ]]; then
+    if [[ "${ENABLE_NGINX_ACCESS_LOGS}" = false ]]; then
         _info "Disabling NGINX access logs via override config, keeping error logs via s6..."
         cat > "${LOGCONF}" <<'EOF'
 # Docker override: disable access logs, keep error logs via s6

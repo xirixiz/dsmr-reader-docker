@@ -127,9 +127,10 @@ ENV DJANGO_SECRET_KEY="dsmrreader" \
     DSMRREADER_ADMIN_USER="admin" \
     DSMRREADER_ADMIN_PASSWORD="admin" \
     DSMRREADER_OPERATION_MODE="standalone" \
-    DISABLE_NGINX_ACCESS_LOGS="true" \
-    VACUUM_DB_ON_STARTUP="false" \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="True" \
+    DSMRREADER_LOGLEVEL="INFO" \
+    ENABLE_NGINX_ACCESS_LOGS="false" \
+    ENABLE_VACUUM_DB_ON_STARTUP="false" \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="true" \
     DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
     DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT="/dev/ttyUSB0" \
     DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE="115200" \
@@ -174,6 +175,7 @@ RUN set -eux; \
     useradd -u 803 -U -d /config -s /sbin/nologin app; \
     usermod -G users,dialout,audio app; \
     mkdir -p /config /defaults; \
+    rm -f /var/log/akp.log; \
     chown -R app:app /config /defaults /var/www/dsmrreader
 
 HEALTHCHECK \
