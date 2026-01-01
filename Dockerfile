@@ -1,19 +1,25 @@
-#######################################################################
-# STAGING: Download DSMR Reader and extract repo directly into /app
-#######################################################################
-FROM --platform=$BUILDPLATFORM python:3.13-alpine AS staging
+# syntax=docker/dockerfile:1.7
 
+ARG PYTHON_IMAGE=python:3.13-slim-trixie
+ARG S6_OVERLAY_VERSION=3.2.1.0
+
+#######################################################################
+# STAGING: Download DSMR Reader from GitHub into /app
+#######################################################################
+FROM --platform=$BUILDPLATFORM ${PYTHON_IMAGE} AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION="${DSMR_VERSION}"
 
-RUN <<EOF
+RUN <<'EOF'
 set -euo pipefail
 
-apk add --no-cache curl
+apt-get update
+apt-get install -y --no-install-recommends \
+  curl ca-certificates tar gzip
+rm -rf /var/lib/apt/lists/*
 
-# Normalize version: strip leading 'v'
 RAW_VERSION="${DSMR_VERSION#v}"
 
 if [ "${RAW_VERSION}" = "development" ]; then
@@ -25,94 +31,98 @@ fi
 URL="https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}"
 echo "Downloading: ${URL}"
 
-curl -SsfL "${URL}" -o /tmp/dsmr.tar.gz
-
+curl -fsSL "${URL}" -o /tmp/dsmr.tar.gz
 tar -xzf /tmp/dsmr.tar.gz --strip-components=1 -C /app
-cp -a /app/src/. /app/
-rm -rf /app/src
+
+if [ -d /app/src ]; then
+  cp -a /app/src/. /app/
+  rm -rf /app/src
+fi
 
 rm -f /tmp/dsmr.tar.gz
 EOF
 
 #######################################################################
-# BUILDER: install DSMR Python deps into /install
+# BUILDER: Poetry installs deps into a single venv
 #######################################################################
-FROM python:3.13-alpine AS builder
-
+FROM ${PYTHON_IMAGE} AS builder
 WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache --virtual .build-deps \
-      build-base \
-      gcc \
-      musl-dev \
-      python3-dev \
-      rust \
-      cargo \
-      libffi-dev \
-      jpeg-dev \
-      libjpeg-turbo-dev \
-      libpng-dev \
-      zlib-dev \
-      postgresql17-dev \
-      mariadb-dev \
-      mariadb-connector-c-dev
+RUN <<'EOF'
+set -euo pipefail
+apt-get update
+apt-get install -y --no-install-recommends \
+  build-essential gcc g++ make \
+  python3-dev \
+  rustc cargo \
+  pkg-config \
+  libffi-dev \
+  libjpeg-dev \
+  zlib1g-dev \
+  libpng-dev \
+  libpq-dev \
+  default-libmysqlclient-dev \
+  curl ca-certificates
+rm -rf /var/lib/apt/lists/*
+EOF
+
+ENV VENV_PATH=/opt/venv
+RUN python -m venv "${VENV_PATH}"
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir poetry
+
+COPY --from=staging /app/pyproject.toml /app/
+COPY --from=staging /app/poetry.lock /app/
+COPY --from=staging /app/dsmrreader /app/dsmrreader
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    poetry config virtualenvs.create false && \
+    poetry install --only main --no-root --no-interaction --no-ansi
 
 COPY --from=staging /app /app
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PIP_ROOT_USER_ACTION=ignore \
-    PYTHONUNBUFFERED=1 \
-    PIP_PREFER_BINARY=1 \
-    PIP_NO_CACHE_DIR=1
+RUN find /opt/venv -type d -name '__pycache__' -prune -exec rm -rf {} + && \
+    find /opt/venv -type f -name '*.pyc' -delete
 
-# Create an isolated Poetry venv so it doesn't pollute system site-packages
-RUN python -m venv /poetry-venv
+RUN /opt/venv/bin/python -m pip uninstall -y pip setuptools wheel || true
 
-# Install Poetry + export plugin in that venv
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /poetry-venv/bin/pip install --no-cache-dir \
-      poetry \
-      poetry-plugin-export
-
-# Use Poetry (in its venv) to export project dependencies
-RUN /poetry-venv/bin/poetry export \
-      -f requirements.txt \
-      --without-hashes \
-      -o /tmp/requirements.txt
-
-# Install runtime deps into /install using the *system* pip
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt && \
-    pip install --no-cache-dir --prefix=/install \
-      psycopg \
-      mysqlclient \
-      tzupdate
-
-# Clean up build deps and temporary stuff
-RUN apk del .build-deps && \
-    rm -f /tmp/requirements.txt && \
-    rm -rf /poetry-venv && \
-    rm -rf /root/.cache /tmp/* /var/cache/apk/*
-
+RUN apt-get purge -y \
+    build-essential gcc g++ make \
+    rustc cargo \
+    pkg-config \
+    python3-dev \
+    libffi-dev libjpeg-dev zlib1g-dev libpng-dev \
+    libpq-dev default-libmysqlclient-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /root/.cache /tmp/*
 
 #######################################################################
 # FINAL: runtime image
 #######################################################################
-FROM python:3.13-alpine AS final
+FROM ${PYTHON_IMAGE} AS final
+WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV VENV_PATH=/opt/venv
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+ENV PYTHONPATH=/app
+
+COPY --from=builder /opt/venv /opt/venv
 
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION="${DSMR_VERSION}"
 
 ARG DOCKER_TARGET_RELEASE=2025.1000
-ENV DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
+ENV DOCKER_TARGET_RELEASE="${DOCKER_TARGET_RELEASE}"
 
-WORKDIR /app
+ARG S6_OVERLAY_VERSION
+ENV S6_OVERLAY_VERSION="${S6_OVERLAY_VERSION}"
 
-ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" \
-    PS1="$(whoami)@dsmr_reader:$(pwd)\\$ " \
+ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     TERM="xterm" \
-    PIP_NO_CACHE_DIR=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -139,49 +149,57 @@ ENV DJANGO_SECRET_KEY="dsmrreader" \
     DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST="127.0.0.1" \
     DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="23"
 
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-      bash \
-      ca-certificates \
-      coreutils \
-      curl \
-      jq \
-      nginx \
-      openssl \
-      s6-overlay \
-      tzdata \
-      postgresql17-client \
-      mariadb-client \
-      netcat-openbsd \
-      dpkg \
-      shadow \
-      libffi \
-      jpeg \
-      libjpeg-turbo \
-      libpng \
-      zlib \
-      mariadb-connector-c
+RUN <<'EOF'
+set -euo pipefail
 
-COPY --from=builder /install /usr/local
+apt-get update
+apt-get install -y --no-install-recommends \
+  bash ca-certificates curl jq nginx openssl tzdata \
+  netcat-openbsd \
+  postgresql-client mariadb-client \
+  passwd login \
+  xz-utils
+
+rm -rf /var/lib/apt/lists/*
+
+ARCH="$(dpkg --print-architecture)"
+case "${ARCH}" in
+  amd64)  S6_ARCH="x86_64" ;;
+  arm64)  S6_ARCH="aarch64" ;;
+  armhf)  S6_ARCH="armhf" ;;
+  armel)  S6_ARCH="arm" ;;
+  *) echo "Unsupported arch for s6 overlay: ${ARCH}" >&2; exit 1 ;;
+esac
+
+curl -fsSL -o /tmp/s6-noarch.tar.xz \
+  "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz"
+curl -fsSL -o /tmp/s6-arch.tar.xz \
+  "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz"
+
+tar -C / -Jxpf /tmp/s6-noarch.tar.xz
+tar -C / -Jxpf /tmp/s6-arch.tar.xz
+rm -f /tmp/s6-*.tar.xz
+
+rm -f /etc/nginx/sites-enabled/default || true
+
+mkdir -p /etc/nginx/conf.d /run/nginx /var/www/dsmrreader/static
+
+nginx -t
+EOF
+
 COPY --from=staging /app /app
 COPY rootfs /
 
 RUN set -eux; \
-    mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static; \
-    rm -f /etc/nginx/http.d/*.conf
-
-RUN set -eux; \
-    groupmod -g 1000 users; \
-    useradd -u 803 -U -d /config -s /sbin/nologin app; \
-    usermod -G users,dialout,audio app; \
     mkdir -p /config /defaults; \
-    rm -f /var/log/akp.log; \
+    useradd -u 803 -U -d /config -s /usr/sbin/nologin app; \
+    usermod -a -G dialout,audio app; \
     chown -R app:app /config /defaults /var/www/dsmrreader
 
 HEALTHCHECK \
   --interval=15s \
   --timeout=3s \
   --retries=10 \
-  CMD curl -Lsf http://127.0.0.1/about -o /dev/null || exit 1
+  CMD curl -fsSL http://127.0.0.1/about -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]

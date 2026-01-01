@@ -14,6 +14,27 @@ function _warn() { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
 function _error() { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
 function _debug() { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
 
+function _normalize_bool_env() {
+    # normalizes an ENV var in place, defaults to false
+    local var="$1"
+    local val
+    val="$(printenv "${var}" 2>/dev/null || true)"
+
+    case "${val,,}" in
+        true|1|yes|y|on) export "${var}=true" ;;
+        *)               export "${var}=false" ;;
+    esac
+}
+
+function _normalize_all_enable_vars() {
+    # normalize all ENABLE_* vars from the environment
+    local var
+    while IFS='=' read -r var _; do
+        [[ "${var}" == ENABLE_* ]] || continue
+        _normalize_bool_env "${var}"
+    done < <(printenv)
+}
+
 function _pre_reqs() {
     _info "DSMR Reader Reader release: ${DSMR_VERSION}"
     _info "DSMR Reader Reader Docker release: ${DOCKER_TARGET_RELEASE}"
@@ -21,8 +42,8 @@ function _pre_reqs() {
     DUID=${DUID:-803}
     DGID=${DGID:-803}
 
-    groupmod -o -g "${DGID}" app >/dev/null 2>&1
-    usermod -o -u "${DUID}" app >/dev/null 2>&1
+    groupmod -o -g "${DGID}" app >/dev/null 2>&1 || true
+    usermod -o -u "${DUID}" app >/dev/null 2>&1 || true
 
     cat /etc/s6-overlay/s6-rc.d/init-docker-entrypoint/branding
     echo "
@@ -32,74 +53,51 @@ function _pre_reqs() {
     "
 
     time32="$(date +%Y)"
-
     if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [[ "$(uname -m)" == "armv7l" ]]; then
         echo 'Your DockerHost is running an outdated version of libseccomp. Search internet to fix this!'
         sleep infinity
     fi
 
     _info "Ensure permissions..."
-    chown -R app:app /app
-    chown -R app:app /config
-    chown -R app:app /defaults
+    chown -R app:app /app /config /defaults
 
-    alias ll="ls -al"
+    # Optional: only wipe .env if explicitly enabled
+    if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-false}" == "true" ]]; then
+        _info "Clean .env settings on container (re)start..."
+        : > /app/.env
+    else
+        # Ensure it exists, do not wipe
+        touch /app/.env
+    fi
 
-    _info "Clean .env settings on container (re)start..."
-    : > /app/.env
-
-
-    for var in $(compgen -v | grep '^ENABLE_'); do
-        _normalize_bool "$var"
-    done
-
-
-    _info "Setting architecture requirements..."
+    _normalize_all_enable_vars
     _detect_architecture
 }
 
 function _detect_architecture() {
-    arch=$(uname -m)
-    # _info "uname -m output: ${arch}"
-    longbit=$(getconf LONG_BIT)
-    if [[ "$arch" == 'x86_64' ]]; then
-        if [[ "$longbit" = '32' ]]; then
-            arch="i386"
-            _info "X32 Architecture"
-        else
-            arch="amd64"
-            _info "X64 Architecture"
-        fi
-    fi
-    if [[ "$arch" == 'x86_32' ]]; then
-        arch="i386"
-        _info "X32 Architecture"
-    fi
-    if [[ "$arch" == 'armv7l' ]]; then
-        arch="ARM"
-        _info "ARM Architecture"
-    fi
-    if [[ "$arch" == 'aarch64' ]]; then
-        arch="ARM64"
-        _info "ARM Architecture"
-    fi
-    if [ "$arch" == 'unknown' ]; then
-        #Assuming amd64, need to address certain distros uname giving "unknown"
-        arch="amd64"
-        _info "X64 Architecture"
-    fi
-}
+    local arch longbit
+    arch="$(uname -m)"
+    longbit="$(getconf LONG_BIT)"
 
-function _normalize_bool() {
-    local var="$1"
-    local val="${!var:-false}"
-
-    case "${val,,}" in
-        true|1|yes|y|on)
-            printf -v "$var" 'true'
+    case "${arch}" in
+        x86_64)
+            if [[ "${longbit}" == "32" ]]; then
+                _info "Using architecture: X32"
+            else
+                _info "Using architecture: X64"
+            fi
+            ;;
+        armv7l)
+            _info "Using architecture: ARM"
+            ;;
+        aarch64)
+            _info "Using architecture: ARM64"
+            ;;
+        unknown)
+            _info "Using architecture: X64"
             ;;
         *)
-            printf -v "$var" 'false'
+            _info "Using architecture: ${arch}"
             ;;
     esac
 }
@@ -242,13 +240,13 @@ function _nginx_change_listen_port() {
     if [[ -z "${ENABLE_NGINX_SSL}" ]]; then
         if [[ -n "${NGINX_LISTEN_PORT}" ]]; then
             _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
-            sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/http.d/dsmr-webinterface.conf
+            sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/conf.d/dsmr-webinterface.conf
         fi
     fi
 }
 
 function _nginx_disable_access_logs() {
-    LOGCONF="/etc/nginx/http.d/00-nginx-logging.conf"
+    LOGCONF="/etc/nginx/conf.d/00-nginx-logging.conf"
 
     if [[ "${ENABLE_NGINX_ACCESS_LOGS}" = false ]]; then
         _info "Disabling NGINX access logs via override config, keeping error logs via s6..."
@@ -278,7 +276,7 @@ function _nginx_ssl_configuration() {
                 else
                     _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
                 fi
-                if grep -q "443" /etc/nginx/http.d/dsmr-webinterface.conf; then
+                if grep -q "443" /etc/nginx/conf.d/dsmr-webinterface.conf; then
                     _info "SSL has already been enabled..."
                 else
                     sed -i '/listen\s*80/r '<(
@@ -288,7 +286,7 @@ function _nginx_ssl_configuration() {
           ssl_certificate_key /etc/ssl/private/privkey.pem;
           ssl_protocols TLSv1.2 TLSv1.3;
 END_HEREDOC
-                    ) /etc/nginx/http.d/dsmr-webinterface.conf
+                    ) /etc/nginx/conf.d/dsmr-webinterface.conf
                 fi
                 if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
                     _info "NGINX SSL configured and enabled"
@@ -325,7 +323,7 @@ function _generate_auth_configuration() {
             HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
             printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" >/etc/nginx/htpasswd
             _info "Done! Enabling the configuration in NGINX..."
-            sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/http.d/dsmr-webinterface.conf
+            sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
             if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
                 _info "HTTP AUTHENTICATION configured and enabled"
                 return
@@ -353,10 +351,10 @@ function _generate_clientcert_auth_configuration() {
                 exit 1
             fi
             _info "Enabling the configuration in NGINX..."
-            sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;' /etc/nginx/http.d/dsmr-webinterface.conf
+            sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;' /etc/nginx/conf.d/dsmr-webinterface.conf
             if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
                 _info "Found CRL file, adding to configuration..."
-                sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/http.d/dsmr-webinterface.conf
+                sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/conf.d/dsmr-webinterface.conf
             fi
             if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
                 _info "CLIENT CERT AUTHENTICATION configured and enabled"
