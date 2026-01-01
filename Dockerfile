@@ -74,6 +74,7 @@ ENV VENV_PATH=/opt/venv
 RUN python -m venv "${VENV_PATH}"
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
+# Without armv6, Poetry install should be stable again
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir poetry
 
@@ -170,7 +171,6 @@ case "${ARCH}" in
   amd64)  S6_ARCH="x86_64" ;;
   arm64)  S6_ARCH="aarch64" ;;
   armhf)  S6_ARCH="armhf" ;;
-  armel)  S6_ARCH="arm" ;;
   *) echo "Unsupported arch for s6 overlay: ${ARCH}" >&2; exit 1 ;;
 esac
 
