@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG PYTHON_IMAGE=python:3.13-slim-trixie
+ARG PYTHON_IMAGE=python:3.14.2-slim-trixie
 ARG S6_OVERLAY_VERSION=3.2.1.0
 
 #######################################################################
