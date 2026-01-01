@@ -1,12 +1,12 @@
 name: "DSMR: Build Docker images"
 
 on:
-  push:
-    branches:
-      - development
-      - main
-    paths-ignore:
-      - "**.md"
+  # push:
+  #   branches:
+  #     - development
+  #     - main
+  #   paths-ignore:
+  #     - "**.md"
   workflow_dispatch:
 
 concurrency:
