@@ -58,6 +58,9 @@ apt-get install -y --no-install-recommends \
   rustc cargo \
   pkg-config \
   libffi-dev \
+  libffi8 \
+  python3-cffi \
+  python3-cffi-backend \
   libjpeg-dev \
   zlib1g-dev \
   libpng-dev \
