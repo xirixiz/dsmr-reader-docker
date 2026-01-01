@@ -89,7 +89,7 @@ jobs:
             exit 0
           fi
 
-          DATE="$(TZ=Europe/Amsterdam date +%Y.%m.%d)"
+          DATE="$(TZ=Europe/Amsterdam date +%Y%m%d)"
           RUN="${GITHUB_RUN_NUMBER}"
           REL="${DATE}.${RUN}"
 
