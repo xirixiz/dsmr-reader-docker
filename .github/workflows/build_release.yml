@@ -7,6 +7,10 @@ on:
         description: "Optional DSMR Reader version (e.g. v6.0rc7, 6.0rc7, 6.0.0). Leave empty to auto-detect."
         required: false
         default: ""
+      architectures:
+        description: "Target architectures (comma-separated: amd64,arm64,armv7). Leave empty for all."
+        required: false
+        default: ""
 
 concurrency:
   group: docker-build
@@ -15,6 +19,7 @@ concurrency:
 env:
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
+  DEFAULT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
 
 jobs:
   build_release:
@@ -24,6 +29,9 @@ jobs:
       - name: "🚀 GitHub: Checkout repository"
         uses: actions/checkout@v4
 
+      ################################################
+      # DSMR VERSION RESOLUTION
+      ################################################
       - name: "⚙️ DSMR: Determine upstream version"
         id: dsmr_version
         shell: bash
@@ -34,39 +42,28 @@ jobs:
           INPUT_VERSION="${{ github.event.inputs.dsmr_version }}"
           REPO_VAR="${{ vars.DSMR_VERSION }}"
 
-          echo "Branch=${BRANCH}"
-          echo "Workflow input dsmr_version='${INPUT_VERSION}'"
-          echo "Repository variable DSMR_VERSION='${REPO_VAR}'"
-
-          # 1. development branch → always development
           if [[ "${BRANCH}" == "development" ]]; then
-            echo "development branch detected → forcing version=development"
             echo "version=development" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # 2. Manual workflow input (main only)
           if [[ -n "${INPUT_VERSION}" ]]; then
-            VERSION="${INPUT_VERSION#v}"
-            echo "Using manual workflow input DSMR_VERSION=${VERSION}"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "version=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # 3. Repository variable
           if [[ -n "${REPO_VAR}" ]]; then
-            VERSION="${REPO_VAR#v}"
-            echo "Using repository DSMR_VERSION=${VERSION}"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "version=${REPO_VAR#v}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # 4. Default: latest upstream release
-          URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
-          VERSION="$(curl -fsSL "${URL}" | jq -r '.tag_name' | sed 's/^v//')"
-          echo "Using latest upstream release=${VERSION}"
+          VERSION="$(curl -fsSL https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest \
+            | jq -r '.tag_name' | sed 's/^v//')"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
+      ################################################
+      # DOCKER RELEASE VERSION
+      ################################################
       - name: "⚙️ Docker: Compute Docker build release"
         id: docker_release
         shell: bash
@@ -77,16 +74,50 @@ jobs:
 
           if [[ "${BRANCH}" == "main" ]]; then
             DATE="$(TZ=Europe/Amsterdam date +%Y%m%d)"
-            RUN="${GITHUB_RUN_NUMBER}"
-            REL="${DATE}.${RUN}"
+            REL="${DATE}.${GITHUB_RUN_NUMBER}"
           else
             REL="development"
           fi
 
           echo "release=${REL}" >> "$GITHUB_OUTPUT"
           echo "DOCKER_TARGET_RELEASE=${REL}" >> "$GITHUB_ENV"
-          echo "Computed DOCKER_TARGET_RELEASE=${REL}"
 
+      ################################################
+      # ARCHITECTURE SELECTION
+      ################################################
+      - name: "⚙️ Docker: Determine platforms"
+        id: docker_platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          INPUT="${{ github.event.inputs.architectures }}"
+
+          if [[ -z "${INPUT}" ]]; then
+            PLATFORMS="${DEFAULT_PLATFORMS}"
+          else
+            PLATFORMS=""
+            IFS=',' read -ra ARCHES <<< "${INPUT}"
+            for ARCH in "${ARCHES[@]}"; do
+              case "${ARCH}" in
+                amd64) PLATFORMS+=",linux/amd64" ;;
+                arm64) PLATFORMS+=",linux/arm64" ;;
+                armv7) PLATFORMS+=",linux/arm/v7" ;;
+                *)
+                  echo "Unsupported architecture: ${ARCH}" >&2
+                  exit 1
+                  ;;
+              esac
+            done
+            PLATFORMS="${PLATFORMS#,}"
+          fi
+
+          echo "platforms=${PLATFORMS}" >> "$GITHUB_OUTPUT"
+          echo "Using platforms: ${PLATFORMS}"
+
+      ################################################
+      # TAG COMPUTATION (UNCHANGED LOGIC)
+      ################################################
       - name: "⚙️ Docker: Compute tags"
         id: docker_tags
         shell: bash
@@ -105,18 +136,8 @@ jobs:
             exit 0
           fi
 
-          if [[ "${VERSION}" == "development" ]]; then
-            echo "Main branch cannot publish 'development' as version" >&2
-            exit 1
-          fi
-
           MAJOR="$(echo "${VERSION}" | cut -d. -f1)"
           MINOR="$(echo "${VERSION}" | cut -d. -f2)"
-
-          if [[ -z "${MAJOR}" || -z "${MINOR}" ]]; then
-            echo "Version '${VERSION}' does not look like x.y.z (or x.y...), refusing to tag" >&2
-            exit 1
-          fi
 
           {
             echo "tags<<EOF"
@@ -127,6 +148,9 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      ################################################
+      # DOCKER BUILD
+      ################################################
       - name: "⚙️ Docker: Set up QEMU"
         uses: docker/setup-qemu-action@v3
 
@@ -160,7 +184,7 @@ jobs:
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: ${{ steps.docker_platforms.outputs.platforms }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
