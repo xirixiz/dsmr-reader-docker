@@ -1,12 +1,6 @@
 name: "DSMR: Build Docker images"
 
 on:
-  # push:
-  #   branches:
-  #     - development
-  #     - main
-  #   paths-ignore:
-  #     - "**.md"
   workflow_dispatch:
 
 concurrency:
@@ -37,7 +31,6 @@ jobs:
           echo "Branch=${BRANCH}"
           echo "Repository variable DSMR_VERSION='${REPO_VAR}'"
 
-          # Repo variable has highest priority
           if [[ -n "${REPO_VAR}" ]]; then
             VERSION="${REPO_VAR#v}"
             echo "Using repository DSMR_VERSION=${VERSION}"
@@ -45,14 +38,12 @@ jobs:
             exit 0
           fi
 
-          # Development branch uses development
           if [[ "${BRANCH}" == "development" ]]; then
             echo "Using development"
             echo "version=development" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Main (and any other) uses latest upstream release
           URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
           VERSION="$(curl -fsSL "${URL}" | jq -r '.tag_name' | sed 's/^v//')"
           echo "Using latest upstream release=${VERSION}"
@@ -67,9 +58,7 @@ jobs:
           BRANCH="${GITHUB_REF##*/}"
 
           if [[ "${BRANCH}" != "main" ]]; then
-            # No versioning for development, keep a stable marker
             echo "release=development" >> "$GITHUB_OUTPUT"
-            echo "DOCKER_TARGET_RELEASE=development" >> "$GITHUB_ENV"
             exit 0
           fi
 
@@ -77,9 +66,9 @@ jobs:
           RUN="${GITHUB_RUN_NUMBER}"
           REL="${DATE}.${RUN}"
 
-          echo "DOCKER_TARGET_RELEASE=${REL}"
           echo "release=${REL}" >> "$GITHUB_OUTPUT"
           echo "DOCKER_TARGET_RELEASE=${REL}" >> "$GITHUB_ENV"
+          echo "Computed DOCKER_TARGET_RELEASE=${REL}"
 
       - name: "⚙️ Docker: Compute tags"
         id: docker_tags
