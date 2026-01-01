@@ -30,16 +30,25 @@ jobs:
         run: |
           set -euo pipefail
 
+          BRANCH="${GITHUB_REF##*/}"
           INPUT_VERSION="${{ github.event.inputs.dsmr_version }}"
           REPO_VAR="${{ vars.DSMR_VERSION }}"
-          BRANCH="${GITHUB_REF##*/}"
 
           echo "Branch=${BRANCH}"
           echo "Workflow input dsmr_version='${INPUT_VERSION}'"
           echo "Repository variable DSMR_VERSION='${REPO_VAR}'"
 
           #############################################
-          # 1. Manual workflow input (highest priority)
+          # 1. development branch → always development
+          #############################################
+          if [[ "${BRANCH}" == "development" ]]; then
+            echo "development branch detected → forcing version=development"
+            echo "version=development" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          #############################################
+          # 2. Manual workflow input (main only)
           #############################################
           if [[ -n "${INPUT_VERSION}" ]]; then
             VERSION="${INPUT_VERSION#v}"
@@ -49,7 +58,7 @@ jobs:
           fi
 
           #############################################
-          # 2. Repository variable
+          # 3. Repository variable
           #############################################
           if [[ -n "${REPO_VAR}" ]]; then
             VERSION="${REPO_VAR#v}"
@@ -59,22 +68,12 @@ jobs:
           fi
 
           #############################################
-          # 3. Branch-based default
-          #############################################
-          if [[ "${BRANCH}" == "development" ]]; then
-            echo "Using development"
-            echo "version=development" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          #############################################
-          # 4. Latest upstream release (main / fallback)
+          # 4. Default: latest upstream release
           #############################################
           URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
           VERSION="$(curl -fsSL "${URL}" | jq -r '.tag_name' | sed 's/^v//')"
           echo "Using latest upstream release=${VERSION}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
 
       - name: "⚙️ Docker: Compute Docker build release (main only)"
         id: docker_release

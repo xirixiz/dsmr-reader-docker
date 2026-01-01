@@ -119,7 +119,7 @@ COPY --from=builder /opt/venv /opt/venv
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION="${DSMR_VERSION}"
 
-ARG DOCKER_TARGET_RELEASE=2025.1000
+ARG DOCKER_TARGET_RELEASE=development
 ENV DOCKER_TARGET_RELEASE="${DOCKER_TARGET_RELEASE}"
 
 ARG S6_OVERLAY_VERSION
@@ -168,10 +168,13 @@ rm -rf /var/lib/apt/lists/*
 
 ARCH="$(dpkg --print-architecture)"
 case "${ARCH}" in
-  amd64)  S6_ARCH="x86_64" ;;
-  arm64)  S6_ARCH="aarch64" ;;
-  armhf)  S6_ARCH="armhf" ;;
-  *) echo "Unsupported arch for s6 overlay: ${ARCH}" >&2; exit 1 ;;
+  amd64)  S6_ARCH="x86_64" ;;   # x86_64
+  arm64)  S6_ARCH="aarch64" ;;  # ARMv8+
+  armhf)  S6_ARCH="armhf" ;;    # ARMv7 (armv6 intentionally unsupported)
+  *)
+    echo "Unsupported architecture for s6-overlay: ${ARCH}" >&2
+    exit 1
+    ;;
 esac
 
 curl -fsSL -o /tmp/s6-noarch.tar.xz \
