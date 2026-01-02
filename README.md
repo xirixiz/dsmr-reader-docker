@@ -79,7 +79,7 @@ Special thanks to the following persons for their great contribution(s):
 This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv7/8 devices.
 
 | Image Tag   | Architectures           | Image OS     |
-| :---------- | :---------------------- | :------------|
+|:------------|:------------------------|:-------------|
 | latest      | amd64, arm32v7, arm64v8 | Debian Linux |
 | development | amd64, arm32v7, arm64v8 | Debian Linux |
 
@@ -102,7 +102,7 @@ Example: 6.2.0-build-20260102.44
 On top of that, the following **floating tags** are updated to point to the latest compatible build:
 
 | Tag      | Meaning                   |
-| -------- | --------------------------|
+|----------|---------------------------|
 | `6.2.0`  | Exact DSMR Reader version |
 | `6.2`    | Latest `6.2.x` release    |
 | `6`      | Latest `6.x.x` release    |
@@ -171,7 +171,7 @@ Consider additionally using HTTP Auth (see below) or enabling *"Force password l
 For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 
 It's possible to set the following settings as environment variables, for example:
-```properties
+```yaml
 # Required (defaults are shown as value):
 - DJANGO_TIME_ZONE=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
@@ -424,25 +424,25 @@ Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 1. Create a folder `/home/pi/dsmr/plugins`
 2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
 
-    ```python
-    import requests
-    from django.dispatch import receiver
-    from dsmr_backend.signals import backend_called
-    import dsmr_datalogger.services.datalogger
+```python
+import requests
+from django.dispatch import receiver
+from dsmr_backend.signals import backend_called
+import dsmr_datalogger.services.datalogger
 
-    HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
-    HOMEWIZARD_TIMEOUT = 5
+HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
+HOMEWIZARD_TIMEOUT = 5
 
-    @receiver(backend_called)
-    def handle_backend_called(**kwargs):
-        response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
+@receiver(backend_called)
+def handle_backend_called(**kwargs):
+    response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
 
-        if response.status_code != 200:
-            print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
-            return
+    if response.status_code != 200:
+        print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
+        return
 
-        dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
-    ```
+    dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
+```
 
 ##### Docker Setup
 
