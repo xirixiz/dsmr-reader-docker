@@ -205,6 +205,6 @@ HEALTHCHECK \
   --interval=15s \
   --timeout=3s \
   --retries=10 \
-  CMD curl -fsSL http://127.0.0.1/about -o /dev/null || exit 1
+  CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]
