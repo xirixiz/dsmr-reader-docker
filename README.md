@@ -49,7 +49,7 @@ You will need a cable and hardware that can run Docker.
 ---
 
 #### General Info
-The purpose of this project is to provide a simplified installation of DSMR-reader using all the benefits of Docker.
+This project provides the containers for DSMR-reader installations.
 
 #### Contribution
 Special thanks to the following persons for their great contribution(s):
@@ -168,7 +168,7 @@ Exposing your DSMR-reader installation to the Internet?
 Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
 
 ##### Settings
-For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
+For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 
 It's possible to set the following settings as environment variables, for example:
 ```properties
