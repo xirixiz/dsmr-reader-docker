@@ -60,6 +60,13 @@ Special thanks to the following persons for their great contribution(s):
 
 ---
 
+#### Recent incompatible changes
+
+- ``DJANGO_SECRET_KEY`` no longer has a *default value* and must be set by the user. You can use [this generator](https://www.lastpass.com/features/password-generator) to create one (e.g. 50 characters and NO symbols)
+- ``DSMRREADER_ADMIN_PASSWORD`` no longer has a *default value* and must be set by the user. Please make up your own password instead and configure it.
+
+---
+
 #### Screenshots
 ![Example screenshot](./img/screenshot.png)
 
