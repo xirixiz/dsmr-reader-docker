@@ -131,8 +131,7 @@ ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-ENV DJANGO_SECRET_KEY="dsmrreader" \
-    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
+ENV DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
     DJANGO_DATABASE_NAME="dsmrreader" \
     DJANGO_DATABASE_USER="dsmrreader" \
     DJANGO_DATABASE_PASSWORD="dsmrreader" \

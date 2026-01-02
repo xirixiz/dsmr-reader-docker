@@ -232,8 +232,8 @@ DSMRREADER_ADMIN_USER=admin
 DSMRREADER_ADMIN_PASSWORD=
 # Loglevel. Valid values are: "DEBUG", "WARNING", "ERROR". Default: "ERROR"
 DSMRREADER_LOGLEVEL=ERROR
-# Secret key for encryption:
-DJANGO_SECRET_KEY=dsmrreader
+# Secret key for security purposes:
+DJANGO_SECRET_KEY=
 # Ignore database size notifications:
 DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=true
 # Plugins (custom) setup:

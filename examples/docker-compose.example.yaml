@@ -44,10 +44,9 @@ services:
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
       - FILE__SECRET=/run/secrets/a_secret_file
-      # Change DJANGO_SECRET_KEY below to a truly random value if you host DSMR-reader publicly facing the Internet
-      # E.g. by using https://www.lastpass.com/features/password-generator - 50 characters and NO symbols
-      - DJANGO_SECRET_KEY=change_me_if_you_host_dsmr_reader_on_the_internet
-      # Set an admin interface password to your liking - make it a strong one if you host DSMR-reader publicly facing the Internet
+      # Set a random value for DJANGO_SECRET_KEY. E.g. by using https://www.lastpass.com/features/password-generator - 50 characters and NO symbols
+      - DJANGO_SECRET_KEY=
+      # Set an admin interface password to your liking - make it a extra strong one if you host DSMR-reader publicly facing the Internet
       - DSMRREADER_ADMIN_PASSWORD=
     secrets:
       - a_secret_file
