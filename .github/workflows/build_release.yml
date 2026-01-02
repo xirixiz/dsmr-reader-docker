@@ -1,21 +1,16 @@
 name: "DSMR: Build Docker images"
 
 on:
-  # push:
-  #   branches:
-  #     - development
-  #     - main
-  #   paths-ignore:
-  #     - "**.md"
-  # pull_request:
-  #   branches:
-  #     - development
-  #     - main
-  #   types:
-  #     - closed
-  #   paths-ignore:
-  #     - "**.md"
   workflow_dispatch:
+    inputs:
+      dsmr_version:
+        description: "Optional DSMR Reader version (e.g. v6.0rc7, 6.0rc7, 6.0.0). Leave empty to auto-detect."
+        required: false
+        default: ""
+      architectures:
+        description: "Target architectures (comma-separated: amd64,arm64,armv7). Leave empty for all."
+        required: false
+        default: ""
 
 concurrency:
   group: docker-build
@@ -24,151 +19,206 @@ concurrency:
 env:
   DOCKER_TARGET_REPO: xirixiz/dsmr-reader-docker
   DOCKERFILE: Dockerfile
-  DOCKER_TARGET_RELEASE: 2025.1000
+  DEFAULT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
 
 jobs:
-  ################################################
-  ## JOB: BUILD_RELEASE
-  ################################################
   build_release:
     runs-on: ubuntu-latest
 
     steps:
-      ################################################
-      ## GENERAL
-      ################################################
-      - name: "🚀 GitHub - Checkout repository"
+      - name: "🚀 GitHub: Checkout repository"
         uses: actions/checkout@v4
 
-      - name: "🚀 GitHub - Get Branch / Tag Name"
-        id: get_branch
+      ################################################
+      # DETECT BRANCH + INPUT GUARD
+      ################################################
+      - name: "🔍 Determine branch + sanitize inputs"
+        id: branch_guard
+        shell: bash
         run: |
-          export RELEASE_NAME=$(if [[ "${GITHUB_REF}" =~ "refs/tags/" ]]; \
-            then echo ${GITHUB_REF/refs\/tags\//}; \
-            else echo ${GITHUB_REF/refs\/heads\//}; fi)
-          echo "${RELEASE_NAME}"
-          echo "NAME=${RELEASE_NAME}" >>$GITHUB_OUTPUT
+          set -euo pipefail
 
-      - name: "🚀 GitHub - Get Tag"
-        id: get_tag
-        run: |
-          export TARGET_IMAGE_TAG=$(if [ "${{ steps.get_branch.outputs.name }}" = "main" ]; \
-            then echo "${{ matrix.DOCKER_TAG_SUFFIX }}"; \
-            else echo "${{ matrix.DOCKER_TAG_SUFFIX }}-${{ steps.get_branch.outputs.name }}"; \
-            fi;)
-          echo "${TARGET_IMAGE_TAG}"
-          echo "NAME=${TARGET_IMAGE_TAG}" >>$GITHUB_OUTPUT
+          BRANCH="${GITHUB_REF##*/}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${BRANCH}" != "development" ]]; then
+            echo "⚠️ Not on development branch — ignoring workflow_dispatch inputs."
+            echo "use_inputs=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "use_inputs=true" >> "$GITHUB_OUTPUT"
+          fi
 
       ################################################
-      ## QEMU
+      # DSMR VERSION RESOLUTION
       ################################################
-      - name: "⚙️ QEMU - Set up QEMU"
-        uses: docker/setup-qemu-action@v3
-
-      ################################################
-      ## DSMR
-      ################################################
-      # - name: "⚙️ DSMR - Determine version"
-      #   id: dsmr_version
-      #   shell: bash
-      #   run: |
-      #     URL='https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest'
-      #     VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-      #     DOWNLOAD_URL=$(curl -SskLf "${URL}" | jq -r '.tarball_url')
-      #     VERSION=${VERSION#"v"}
-      #     echo "version=${VERSION}" >>$GITHUB_OUTPUT
-
-      - name: "⚙️ DSMR - Determine version"
+      - name: "⚙️ DSMR: Determine upstream version"
         id: dsmr_version
         shell: bash
         run: |
           set -euo pipefail
 
-          # Value from repository variable in GitHub settings → Variables → DSMR_VERSION
+          USE_INPUTS="${{ steps.branch_guard.outputs.use_inputs }}"
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
+          INPUT_VERSION="${{ github.event.inputs.dsmr_version }}"
           REPO_VAR="${{ vars.DSMR_VERSION }}"
 
-          echo "GITHUB_REF = ${GITHUB_REF}"
-          BRANCH="${GITHUB_REF##*/}"
-          echo "Detected branch: ${BRANCH}"
-          echo "Repository variable DSMR_VERSION: '${REPO_VAR}'"
-
-          #############################################
-          # 1. Repo variable has highest priority
-          #############################################
-          if [ -n "${REPO_VAR}" ]; then
-            VERSION="${REPO_VAR}"
-            VERSION="${VERSION#v}"   # strip leading v
-            echo "Using repository DSMR_VERSION=${VERSION}"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "${BRANCH}" == "development" ]]; then
+            echo "version=development" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          #############################################
-          # 2. No repo var: branch-based default
-          #############################################
-          if [ "${BRANCH}" = "development" ]; then
-            VERSION="development"
-            echo "No repo var set, using development branch version"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ "${USE_INPUTS}" == "true" && -n "${INPUT_VERSION}" ]]; then
+            echo "version=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          if [ "${BRANCH}" = "main" ]; then
-            URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
-            VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-            VERSION="${VERSION#v}"
-            echo "No repo var set, using latest release: ${VERSION}"
-            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [[ -n "${REPO_VAR}" ]]; then
+            echo "version=${REPO_VAR#v}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Fallback for other branches: latest release
-          URL="https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest"
-          VERSION=$(curl -SskLf "${URL}" | jq -r '.tag_name')
-          VERSION="${VERSION#v}"
-          echo "Fallback to latest release: ${VERSION}"
+          VERSION="$(curl -fsSL https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest \
+            | jq -r '.tag_name' | sed 's/^v//')"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
+      ################################################
+      # DOCKER RELEASE VERSION
+      ################################################
+      - name: "⚙️ Docker: Compute Docker build release"
+        id: docker_release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
+
+          if [[ "${BRANCH}" == "main" ]]; then
+            DATE="$(TZ=Europe/Amsterdam date +%Y%m%d)"
+            REL="${DATE}.${GITHUB_RUN_NUMBER}"
+          else
+            REL="development"
+          fi
+
+          echo "release=${REL}" >> "$GITHUB_OUTPUT"
+          echo "DOCKER_TARGET_RELEASE=${REL}" >> "$GITHUB_ENV"
 
       ################################################
-      ## Docker
+      # ARCHITECTURE SELECTION
       ################################################
-      - name: "⚙️ Docker - Set up Docker Buildx"
+      - name: "⚙️ Docker: Determine platforms"
+        id: docker_platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          USE_INPUTS="${{ steps.branch_guard.outputs.use_inputs }}"
+          INPUT="${{ github.event.inputs.architectures }}"
+
+          if [[ "${USE_INPUTS}" != "true" || -z "${INPUT}" ]]; then
+            PLATFORMS="${DEFAULT_PLATFORMS}"
+          else
+            PLATFORMS=""
+            IFS=',' read -ra ARCHES <<< "${INPUT}"
+            for ARCH in "${ARCHES[@]}"; do
+              case "${ARCH}" in
+                amd64) PLATFORMS+=",linux/amd64" ;;
+                arm64) PLATFORMS+=",linux/arm64" ;;
+                armv7) PLATFORMS+=",linux/arm/v7" ;;
+                *)
+                  echo "Unsupported architecture: ${ARCH}" >&2
+                  exit 1
+                  ;;
+              esac
+            done
+            PLATFORMS="${PLATFORMS#,}"
+          fi
+
+          echo "platforms=${PLATFORMS}" >> "$GITHUB_OUTPUT"
+          echo "Using platforms: ${PLATFORMS}"
+
+      ################################################
+      # TAG COMPUTATION
+      ################################################
+      - name: "⚙️ Docker: Compute tags"
+        id: docker_tags
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ steps.dsmr_version.outputs.version }}"
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
+
+          if [[ "${BRANCH}" == "development" ]]; then
+            {
+              echo "tags<<EOF"
+              echo "development"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          MAJOR="$(echo "${VERSION}" | cut -d. -f1)"
+          MINOR="$(echo "${VERSION}" | cut -d. -f2)"
+
+          {
+            echo "tags<<EOF"
+            echo "${VERSION}"
+            echo "${MAJOR}.${MINOR}"
+            echo "${MAJOR}"
+            echo "latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      ################################################
+      # DOCKER BUILD
+      ################################################
+      - name: "⚙️ Docker: Set up QEMU"
+        uses: docker/setup-qemu-action@v3
+
+      - name: "⚙️ Docker: Set up Buildx"
         uses: docker/setup-buildx-action@v3
 
-      - name: "🔓 Docker - Login"
+      - name: "🔓 Docker: Login (Docker Hub)"
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: "🔓 Docker - Login to GHCR"
+      - name: "🔓 Docker: Login (GHCR)"
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "⚙️ Docker - Set up metadata"
+      - name: "⚙️ Docker: Metadata"
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: |
-            type=raw,value=${{ steps.dsmr_version.outputs.version }}-${{ env.DOCKER_TARGET_RELEASE }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=raw,value=development,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
           images: |
             ${{ env.DOCKER_TARGET_REPO }}
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}
+          tags: ${{ steps.docker_tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=DSMR Reader Docker
+            org.opencontainers.image.description=Containerized DSMR Reader build
+            org.opencontainers.image.version=${{ steps.dsmr_version.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.created=${{ steps.docker_release.outputs.release }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/README.md
 
-      - name: "🚀 Docker - Build"
+      - name: "🚀 Docker: Build and push"
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+          file: ${{ env.DOCKERFILE }}
+          platforms: ${{ steps.docker_platforms.outputs.platforms }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |-
             DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
-            DOCKER_TARGET_RELEASE=${{ env.DOCKER_TARGET_RELEASE }}
+            DOCKER_TARGET_RELEASE=${{ steps.docker_release.outputs.release }}

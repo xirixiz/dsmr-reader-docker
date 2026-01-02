@@ -32,7 +32,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - dsmr_backups:/app/backups
     environment:
-      VACUUM_DB_ON_STARTUP: "true"
+      ENABLE_VACUUM_DB_ON_STARTUP: "true"
       DJANGO_DATABASE_HOST: localhost
       DJANGO_DATABASE_USER: dsmrreader
       DJANGO_DATABASE_PASSWORD: dsmrreader

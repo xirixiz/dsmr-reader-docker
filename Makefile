@@ -1,24 +1,76 @@
 OUTPUT := output
 OUTPUT := $(abspath $(OUTPUT))
 
+IMAGE ?= dsmr_test_image
+DSMR_VERSION ?= 6.0rc7
+PLATFORM ?= linux/amd64
+
+COMPOSE ?= podman compose
+COMPOSE_FILE ?= container-compose-development.yaml
+
+.PHONY: build test podman-up podman-down shell \
+        clean-image clean-stages clean-build-cache clean-volumes clean
+
 build:
-	exec docker build --pull --rm --format docker \
-		--build-arg DSMR_VERSION="6.0beta5" \
-		--platform="linux/amd64" \
-		-t dsmr_test_image .
+	exec podman build --pull --rm --format docker \
+		--build-arg DSMR_VERSION="$(DSMR_VERSION)" \
+		--platform="$(PLATFORM)" \
+		-t "$(IMAGE)" .
 
 test: build
-	exec docker run --rm --name dsmr --network host dsmr_test_image
+	exec podman run --rm --name dsmr --network host "$(IMAGE)"
+
+container-up:
+	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up
+
+container-down:
+	exec $(COMPOSE) -f "$(COMPOSE_FILE)" down
 
 shell:
-	exec docker exec -ti dsmr bash
+	exec podman exec -ti dsmr bash
 
-# Als je ALLE volumes wilt wissen die met 'dsmr' beginnen:
-clean-all:
-	@echo "Removing all Docker volumes starting with 'dsmr'..."
-	@docker volume ls -q | grep '^dsmr' | xargs -r docker volume rm
+clean-containers:
+	@echo "Stopping DSMR containers..."
+	@podman stop dsmr 2>/dev/null || true
+	@podman stop dsmrdb 2>/dev/null || true
+	@echo "Removing DSMR containers..."
+	@podman rm dsmr 2>/dev/null || true
+	@podman rm dsmrdb 2>/dev/null || true
 	@echo "Done."
 
+clean-image:
+	@echo "Removing DSMR test image..."
+	@podman images -q "$(IMAGE)" | xargs -r podman rmi
+	@echo "Done."
 
-# docker build --pull --rm --format docker --build-arg DSMR_VERSION="5.11.0" --platform="linux/amd64" --build-arg QEMU_ARCH="x86_64" --build-arg DOCKER_TARGET_RELEASE="2099.09.09" -t dsmr_test_image .; docker save localhost/dsmr_test_image:latest > dsmr_dev; scp -O dsmr_dev xirixiz@nas.skynet:/volume1/onedrive/smarthome
-# docker image load < dsmr_dev ; ./docker.sh dsmr_dev; docker logs -f dsmr
+clean-stages:
+	@echo "Removing dangling Podman images..."
+	@podman image prune -f
+	@echo "Done."
+
+clean-build-cache:
+	@echo "Removing unused Podman build cache..."
+	@podman builder prune -f
+	@echo "Done."
+
+clean-volumes:
+	@echo "Removing DSMR Podman volumes..."
+	@podman volume ls -q | grep '^dsmr' | xargs -r podman volume rm
+	@echo "Done."
+
+clean:
+	@echo "Cleaning DSMR Podman development artifacts..."
+	-@$(MAKE) podman-down
+	@$(MAKE) clean-containers
+	@$(MAKE) clean-image
+	@$(MAKE) clean-stages
+	@$(MAKE) clean-build-cache
+	@$(MAKE) clean-volumes
+	@echo "Done."
+
+# make build DSMR_VERSION=6.0rc7
+# make build DSMR_VERSION=6.0.0 PLATFORM=linux/arm64
+# make clean-dev
+
+# podman build --pull --rm --format docker --build-arg DSMR_VERSION="5.11.0" --platform="linux/amd64" --build-arg QEMU_ARCH="x86_64" --build-arg podman_TARGET_RELEASE="2099.09.09" -t dsmr_test_image .; podman save localhost/dsmr_test_image:latest > dsmr_dev; scp -O dsmr_dev xirixiz@nas.skynet:/volume1/onedrive/smarthome
+# podman image load < dsmr_dev ; ./podman.sh dsmr_dev; podman logs -f dsmr
