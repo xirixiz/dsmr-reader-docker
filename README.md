@@ -333,7 +333,7 @@ DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
 ```
 
 ##### Run with Docker Compose
-An example `docker-compose.yaml` file can be found [here](https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml).
+An example `docker-compose.yaml` file can be found [here](/examples/docker-compose.example.yaml).
 
 Modify the `docker-compose` file with parameters that suit your environment, then run:
 ```bash
