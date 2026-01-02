@@ -24,7 +24,8 @@ You will need a cable and hardware that can run Docker.
 - [Contribution](#contribution)
 - [Screenshots](#screenshots)
 - [Technologies](#technologies)
-- [Releases](#releases)
+- [Architectures](#Architectures)
+- [Image versioning & tags](#Image-versioning--tags)
 - [Setup / Parameters](#setup--parameters)
   - [Public Access Warning](#public-access-warning)
   - [Settings](#settings)
@@ -74,17 +75,91 @@ Special thanks to the following persons for their great contribution(s):
 
 ---
 
-#### Releases
-This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices.
+#### Architectures
+This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv7/8 devices.
 
-| Image Tag   | Architectures                    | Image OS          |
-| :---------- | :------------------------------- | :---------------- |
-| latest      | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.19 |
-| development | amd64, arm32v6, arm32v7, arm64v8 | Alpine Linux 3.19 |
+| Image Tag   | Architectures           | Image OS     |
+| :---------- | :---------------------- | :------------|
+| latest      | amd64, arm32v7, arm64v8 | Debian Linux |
+| development | amd64, arm32v7, arm64v8 | Debian Linux |
 
 Docker tags/releases can be found [here](https://hub.docker.com/r/xirixiz/dsmr-reader-docker/tags?page=1&ordering=last_updated).
 
 ---
+
+#### Image versioning & tags
+
+This image follows a **predictable, immutable versioning scheme** so you can safely pin versions or follow rolling updates.
+
+##### Stable releases (`main` branch)
+
+Each stable DSMR Reader release produces **one immutable build**, identified by a build suffix:
+```text
+<DSMR_VERSION>-build-<YYYYMMDD>.<run>
+Example: 6.2.0-build-20260102.44
+```
+
+On top of that, the following **floating tags** are updated to point to the latest compatible build:
+
+| Tag      | Meaning                   |
+| -------- | --------------------------|
+| `6.2.0`  | Exact DSMR Reader version |
+| `6.2`    | Latest `6.2.x` release    |
+| `6`      | Latest `6.x.x` release    |
+| `latest` | Latest stable release     |
+
+This means:
+- **Exact tags** (`6.2.0`) are immutable and never change
+- **Minor tags** (`6.2`) move forward within the same minor series
+- **Major tags** (`6`) move forward within the same major series
+- `latest` always points to the newest stable release
+
+##### Development builds (`development` branch)
+
+The `development` branch always publishes **one rolling tag**: ```development```
+
+This tag is **intentionally overwritten** on every build and should only be used for testing or development purposes.
+
+##### Recommended usage
+
+- **Production (safe & reproducible)**
+xirixiz/dsmr-reader-docker:6.2.0
+
+- **Production (auto-updating within minor version)**
+xirixiz/dsmr-reader-docker:6.2
+
+- **Production (auto-updating within major version)**
+xirixiz/dsmr-reader-docker:6
+
+- **Always latest stable**
+xirixiz/dsmr-reader-docker:latest
+
+- **Development / testing only**
+xirixiz/dsmr-reader-docker:development
+
+##### Image metadata (labels)
+
+All images include **OCI-compliant metadata labels** for traceability.
+
+Inspect them with for example: ```docker inspect xirixiz/dsmr-reader-docker:latest | jq '.[0].Config.Labels'```
+
+Important labels:
+
+- `org.opencontainers.image.version`
+  Full immutable image version
+  *(e.g. `6.2.0-build-20260102.44`)*
+
+- `org.opencontainers.image.revision`
+  Git commit SHA used for the build
+
+- `io.github.dsmrreader.upstream.version`
+  DSMR Reader upstream version
+
+- `io.github.dsmrreader.docker.release`
+  Docker build release identifier
+
+- `io.github.dsmrreader.branch`
+  Git branch used for the build
 
 #### Setup / Parameters
 

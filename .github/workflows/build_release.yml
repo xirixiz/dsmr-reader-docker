@@ -30,6 +30,25 @@ jobs:
         uses: actions/checkout@v4
 
       ################################################
+      # DETECT BRANCH + INPUT GUARD
+      ################################################
+      - name: "🔍 Determine branch + sanitize inputs"
+        id: branch_guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BRANCH="${GITHUB_REF##*/}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${BRANCH}" != "development" ]]; then
+            echo "⚠️ Not on development branch — ignoring workflow_dispatch inputs."
+            echo "use_inputs=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "use_inputs=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      ################################################
       # DSMR VERSION RESOLUTION
       ################################################
       - name: "⚙️ DSMR: Determine upstream version"
@@ -38,7 +57,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          BRANCH="${GITHUB_REF##*/}"
+          USE_INPUTS="${{ steps.branch_guard.outputs.use_inputs }}"
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
           INPUT_VERSION="${{ github.event.inputs.dsmr_version }}"
           REPO_VAR="${{ vars.DSMR_VERSION }}"
 
@@ -47,7 +67,7 @@ jobs:
             exit 0
           fi
 
-          if [[ -n "${INPUT_VERSION}" ]]; then
+          if [[ "${USE_INPUTS}" == "true" && -n "${INPUT_VERSION}" ]]; then
             echo "version=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -70,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          BRANCH="${GITHUB_REF##*/}"
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
 
           if [[ "${BRANCH}" == "main" ]]; then
             DATE="$(TZ=Europe/Amsterdam date +%Y%m%d)"
@@ -91,9 +111,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          USE_INPUTS="${{ steps.branch_guard.outputs.use_inputs }}"
           INPUT="${{ github.event.inputs.architectures }}"
 
-          if [[ -z "${INPUT}" ]]; then
+          if [[ "${USE_INPUTS}" != "true" || -z "${INPUT}" ]]; then
             PLATFORMS="${DEFAULT_PLATFORMS}"
           else
             PLATFORMS=""
@@ -116,7 +137,7 @@ jobs:
           echo "Using platforms: ${PLATFORMS}"
 
       ################################################
-      # TAG COMPUTATION (UNCHANGED LOGIC)
+      # TAG COMPUTATION
       ################################################
       - name: "⚙️ Docker: Compute tags"
         id: docker_tags
@@ -125,7 +146,7 @@ jobs:
           set -euo pipefail
 
           VERSION="${{ steps.dsmr_version.outputs.version }}"
-          BRANCH="${GITHUB_REF##*/}"
+          BRANCH="${{ steps.branch_guard.outputs.branch }}"
 
           if [[ "${BRANCH}" == "development" ]]; then
             {
@@ -178,6 +199,16 @@ jobs:
             ${{ env.DOCKER_TARGET_REPO }}
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}
           tags: ${{ steps.docker_tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=DSMR Reader Docker
+            org.opencontainers.image.description=Containerized DSMR Reader build
+            org.opencontainers.image.version=${{ steps.dsmr_version.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.created=${{ steps.docker_release.outputs.release }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/README.md
 
       - name: "🚀 Docker: Build and push"
         uses: docker/build-push-action@v5
