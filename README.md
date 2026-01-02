@@ -229,7 +229,7 @@ NGINX_LISTEN_PORT
 # Webinterface user:
 DSMRREADER_ADMIN_USER=admin
 # Webinterface user password:
-DSMRREADER_ADMIN_PASSWORD=your-personal-password
+DSMRREADER_ADMIN_PASSWORD=
 # Loglevel. Valid values are: "DEBUG", "WARNING", "ERROR". Default: "ERROR"
 DSMRREADER_LOGLEVEL=ERROR
 # Secret key for encryption:
