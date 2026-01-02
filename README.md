@@ -633,6 +633,5 @@ Project inspired by the hard work and effort of [@dennissiemensma](https://githu
 #### Contact
 Created by [@xirixiz](https://github.com/xirixiz) - feel free to contact me!
 
-</font>
 
 ---
