@@ -272,8 +272,6 @@ Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogg
 ![Configuration Image 3](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
 
 ##### DSMR Reader Datalogger - Standalone - Serial (default)
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env)
-
 The default startup values for DSMR Reader standalone are:
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
@@ -294,8 +292,6 @@ DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
 ```
 
 ##### DSMR Reader Datalogger - Standalone - IPv4
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env)
-
 Instead of a serial connection, it's also possible to use a network socket. Define the following variables:
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4
@@ -304,7 +300,7 @@ DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 # default
 ```
 
 ##### Remote DSMR Datalogger - API Client
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
+For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
 # Required. Instructs dsmr reader to start in api_client mode
 DSMRREADER_OPERATION_MODE=api_client
@@ -315,8 +311,6 @@ DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
 ```
 
 ##### Remote DSMR Datalogger - API Server
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
-
 The configured `api_client` will push data to the `api_server`. The only difference between `standalone` and `api_server` is that the datalogger process isn't running.
 ```properties
 # Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
@@ -325,7 +319,7 @@ DSMRREADER_OPERATION_MODE=api_server
 ```
 
 ##### Remote DSMR Datalogger - Optional Settings
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#other-settings-env)
+For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
 DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
