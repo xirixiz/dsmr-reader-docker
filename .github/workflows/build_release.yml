@@ -11,6 +11,11 @@ on:
         description: "Target architectures (comma-separated: amd64,arm64,armv7). Leave empty for all."
         required: false
         default: ""
+      skip_tests:
+        description: "Skip test job (not recommended for production)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: docker-build-${{ github.ref }}
@@ -252,45 +257,166 @@ jobs:
           provenance: false
 
       ################################################
-      # METRICS & SUMMARY
+      # IMAGE SIZE TRACKING
       ################################################
-      - name: "📊 Generate build summary"
-        if: always()
+      - name: "📊 Track image sizes"
+        id: size_tracking
+        shell: bash
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-          ## 🐳 Docker Build Summary
+          set -euo pipefail
 
-          | Metric | Value |
-          |--------|-------|
-          | **DSMR Version** | `${{ steps.dsmr_version.outputs.version }}` |
-          | **Docker Release** | `${{ steps.docker_release.outputs.release }}` |
-          | **Branch** | `${{ steps.branch_guard.outputs.branch }}` |
-          | **Platforms** | `${{ steps.docker_platforms.outputs.platforms }}` |
-          | **Build Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |
-          | **Image Digest** | `${{ steps.docker_build.outputs.digest }}` |
-          | **Run Number** | `#${{ github.run_number }}` |
-          | **Triggered By** | @${{ github.actor }} |
+          echo "🔍 Fetching image sizes for all platforms..."
 
-          ### 🏷️ Published Tags
-          EOF
+          # Create size tracking file
+          mkdir -p .metrics
+          TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          SIZE_FILE=".metrics/image-sizes-${TIMESTAMP}.json"
 
-          echo "${{ steps.docker_tags.outputs.tags }}" | while IFS= read -r tag; do
-            echo "- \`${DOCKER_TARGET_REPO}:${tag}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- \`ghcr.io/${DOCKER_TARGET_REPO}:${tag}\`" >> $GITHUB_STEP_SUMMARY
+          # Get image sizes for each platform
+          TAGS="${{ steps.meta.outputs.tags }}"
+          FIRST_TAG=$(echo "${TAGS}" | head -n1)
+
+          echo "{" > "${SIZE_FILE}"
+          echo "  \"timestamp\": \"${TIMESTAMP}\"," >> "${SIZE_FILE}"
+          echo "  \"version\": \"${{ steps.dsmr_version.outputs.version }}\"," >> "${SIZE_FILE}"
+          echo "  \"branch\": \"${{ steps.branch_guard.outputs.branch }}\"," >> "${SIZE_FILE}"
+          echo "  \"commit\": \"${{ github.sha }}\"," >> "${SIZE_FILE}"
+          echo "  \"platforms\": {" >> "${SIZE_FILE}"
+
+          IFS=',' read -ra PLATFORMS <<< "${{ steps.docker_platforms.outputs.platforms }}"
+          PLATFORM_COUNT=${#PLATFORMS[@]}
+          CURRENT=0
+
+          TOTAL_SIZE=0
+
+          for PLATFORM in "${PLATFORMS[@]}"; do
+            ((CURRENT++))
+            PLATFORM_CLEAN=$(echo "${PLATFORM}" | tr '/' '-')
+
+            echo "  Checking ${PLATFORM}..."
+
+            # Pull manifest for specific platform
+            SIZE=$(docker manifest inspect --verbose "${FIRST_TAG}" 2>/dev/null | \
+                   jq -r --arg platform "${PLATFORM}" \
+                   '.[] | select(.Descriptor.platform.os + "/" + .Descriptor.platform.architecture + (.Descriptor.platform.variant // "") == $platform) | .SchemaV2Manifest.config.size + ([.SchemaV2Manifest.layers[].size] | add)' 2>/dev/null || echo "0")
+
+            # Convert to MB
+            SIZE_MB=$(echo "scale=2; ${SIZE} / 1024 / 1024" | bc)
+            TOTAL_SIZE=$(echo "${TOTAL_SIZE} + ${SIZE}" | bc)
+
+            echo "    \"${PLATFORM_CLEAN}\": {" >> "${SIZE_FILE}"
+            echo "      \"bytes\": ${SIZE}," >> "${SIZE_FILE}"
+            echo "      \"megabytes\": ${SIZE_MB}" >> "${SIZE_FILE}"
+
+            if [[ ${CURRENT} -lt ${PLATFORM_COUNT} ]]; then
+              echo "    }," >> "${SIZE_FILE}"
+            else
+              echo "    }" >> "${SIZE_FILE}"
+            fi
+
+            echo "  ✅ ${PLATFORM}: ${SIZE_MB} MB"
           done
 
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          echo "  }," >> "${SIZE_FILE}"
 
-          ### 📦 Pull Commands
-          ```bash
-          docker pull ${{ env.DOCKER_TARGET_REPO }}:${{ steps.dsmr_version.outputs.version }}
-          # or
-          docker pull ghcr.io/${{ env.DOCKER_TARGET_REPO }}:${{ steps.dsmr_version.outputs.version }}
+          TOTAL_SIZE_MB=$(echo "scale=2; ${TOTAL_SIZE} / 1024 / 1024" | bc)
+          echo "  \"total_size_bytes\": ${TOTAL_SIZE}," >> "${SIZE_FILE}"
+          echo "  \"total_size_mb\": ${TOTAL_SIZE_MB}" >> "${SIZE_FILE}"
+          echo "}" >> "${SIZE_FILE}"
+
+          echo "📦 Total multi-arch size: ${TOTAL_SIZE_MB} MB"
+
+          # Save metrics artifact
+          echo "size_file=${SIZE_FILE}" >> "$GITHUB_OUTPUT"
+          echo "total_size_mb=${TOTAL_SIZE_MB}" >> "$GITHUB_OUTPUT"
+
+      - name: "💾 Upload size metrics"
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-size-metrics-${{ github.run_number }}
+          path: .metrics/
+          retention-days: 90
+
+      ################################################
+      # POST-BUILD SUMMARY
+      ################################################
+      - name: "📊 Build Summary"
+        shell: bash
+        run: |
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          ## 🎉 Docker Build Complete
+
+          ### Build Information
+          - **DSMR Version**: ${{ steps.dsmr_version.outputs.version }}
+          - **Docker Release**: ${{ steps.docker_release.outputs.release }}
+          - **Platforms**: ${{ steps.docker_platforms.outputs.platforms }}
+          - **Branch**: ${{ steps.branch_guard.outputs.branch }}
+          - **Total Size**: ${{ steps.size_tracking.outputs.total_size_mb }} MB
+
+          ### Published Tags
           ```
+          ${{ steps.meta.outputs.tags }}
+          ```
+
+          ### Image Digest
+          ```
+          ${{ steps.build.outputs.digest }}
+          ```
+
+          ### Registries
+          - 🐳 [Docker Hub](https://hub.docker.com/r/${{ env.DOCKER_TARGET_REPO }})
+          - 📦 [GitHub Container Registry](https://github.com/${{ github.repository }}/pkgs/container/${{ env.DOCKER_TARGET_REPO }})
+
+          ### Next Steps
+          - Images pushed successfully
+          - Running tests before final approval
+          - Security scanning in progress
           EOF
 
-      - name: "📈 Report build metrics"
-        if: success()
-        run: |
-          echo "::notice title=Build Complete::Successfully built DSMR Reader v${{ steps.dsmr_version.outputs.version }} for ${{ steps.docker_platforms.outputs.platforms }}"
-          echo "::notice title=Image Digest::${{ steps.docker_build.outputs.digest }}"
+  ################################################
+  # SECURITY SCANNING
+  ################################################
+  security_scan:
+    runs-on: ubuntu-latest
+    needs: [build_release]
+    if: |
+      github.event.inputs.skip_tests != 'true' &&
+      needs.build_release.result == 'success'
+
+    steps:
+      - name: "🔓 Docker: Login (Docker Hub)"
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "🔍 Run Trivy vulnerability scanner"
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_TARGET_REPO }}:${{ needs.build_release.outputs.branch == 'development' && 'development' || 'latest' }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # Don't fail on vulnerabilities, just report
+
+      - name: "📤 Upload Trivy results to GitHub Security"
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: "📊 Generate vulnerability report"
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_TARGET_REPO }}:${{ needs.build_release.outputs.branch == 'development' && 'development' || 'latest' }}
+          format: 'table'
+          output: 'trivy-report.txt'
+
+      - name: "💾 Upload vulnerability report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-${{ github.run_number }}
+          path: trivy-report.txt
+          retention-days: 90

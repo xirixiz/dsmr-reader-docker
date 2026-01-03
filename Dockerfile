@@ -230,11 +230,4 @@ RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
 
-# Container metadata
-LABEL org.opencontainers.image.title="DSMR Reader" \
-      org.opencontainers.image.description="DSMR Reader - Smart Meter Data Logger" \
-      org.opencontainers.image.source="https://github.com/dsmrreader/dsmr-reader" \
-      org.opencontainers.image.version="${DOCKER_TARGET_RELEASE}" \
-      org.opencontainers.image.vendor="DSMR Reader Project"
-
 ENTRYPOINT ["/init"]

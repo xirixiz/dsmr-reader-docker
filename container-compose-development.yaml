@@ -25,10 +25,12 @@ services:
     restart: always
     depends_on:
       - dsmrdb
-    cap_add:
-      - NET_BIND_SERVICE
-      - NET_ADMIN
+    tmpfs:
+      - /run:rw,exec,nosuid,nodev,size=64m
+      - /tmp:rw,exec,nosuid,nodev,size=256m
     networks: [dsmrnet]
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "7980:80"
     volumes:
