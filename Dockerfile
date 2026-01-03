@@ -10,10 +10,12 @@ FROM --platform=$BUILDPLATFORM ${PYTHON_IMAGE} AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION=development
-ARG S6_OVERLAY_VERSION
 ENV DSMR_VERSION="${DSMR_VERSION}"
+ARG S6_OVERLAY_VERSION
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-RUN <<'EOF'
+RUN <<EOF
 set -euo pipefail
 
 apt-get update
@@ -40,13 +42,12 @@ if [ -d /app/src ]; then
   rm -rf /app/src
 fi
 
-# --- 2. Download S6 Overlay ---
-ARCH="$(dpkg --print-architecture)"
-case "${ARCH}" in
-  amd64)  S6_ARCH="x86_64" ;;   # x86_64
-  arm64)  S6_ARCH="aarch64" ;;  # ARMv8+
-  armhf)  S6_ARCH="armhf" ;;    # ARMv7
-  *) echo "Unsupported arch: ${ARCH}"; exit 1 ;;
+# --- Download S6 Overlay ---
+case "${TARGETARCH}/${TARGETVARIANT}" in
+  "amd64/")  S6_ARCH="x86_64" ;;
+  "arm64/")  S6_ARCH="aarch64" ;;
+  "arm/v7")  S6_ARCH="armhf" ;;
+  *) echo "Unsupported TARGETARCH/TARGETVARIANT: ${TARGETARCH}/${TARGETVARIANT}" ; exit 1 ;;
 esac
 
 echo "Downloading S6 Overlay for ${S6_ARCH}"
