@@ -23,7 +23,7 @@ apt-get install -y --no-install-recommends \
   curl ca-certificates tar gzip xz-utils
 rm -rf /var/lib/apt/lists/*
 
-# --- 1. Download DSMR Reader ---
+# --- Download DSMR Reader ---
 RAW_VERSION="${DSMR_VERSION#v}"
 if [ "${RAW_VERSION}" = "development" ]; then
   ARCHIVE_PATH="refs/heads/development.tar.gz"
@@ -73,20 +73,25 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc g++ make \
+    build-essential \
+    gcc \
+    g++ \
+    make \
     pkg-config \
     libffi-dev \
     libjpeg-dev \
     zlib1g-dev \
     libpng-dev \
     libpq-dev \
-    curl ca-certificates \
+    curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 ENV VENV_PATH="/opt/venv"
 RUN python -m venv "${VENV_PATH}"
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
+# Copy only dependency files first for better caching
 COPY --from=staging /app/pyproject.toml /app/poetry.lock /app/
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -95,8 +100,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     . /opt/venv/bin/activate &&poetry install --only main --no-root --no-interaction --no-ansi && \
     pip uninstall -y poetry
 
+# Aggressive cleanup of Python packages
 RUN find /opt/venv -type d -name '__pycache__' -prune -exec rm -rf {} + && \
-    find /opt/venv -type f -name '*.pyc' -delete
+    find /opt/venv -type d -name 'tests' -prune -exec rm -rf {} + && \
+    find /opt/venv -type d -name '*.dist-info' -exec rm -rf {}/tests {} + 2>/dev/null || true && \
+    find /opt/venv -type f -name '*.pyc' -delete && \
+    find /opt/venv -type f -name '*.pyo' -delete && \
+    find /opt/venv -type f -name '*.so*' -exec strip --strip-unneeded {} + 2>/dev/null || true
 
 #######################################################################
 # FINAL: Runtime image
@@ -109,14 +119,11 @@ ENV VENV_PATH=/opt/venv
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 ENV PYTHONPATH=/app
 
+# Copy compiled dependencies
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=staging /s6-dist /
-COPY --from=staging /app /app
 
-RUN find /opt/venv -name "tests" -type d -exec rm -rf {} + \
-    && find /opt/venv -name "*.pyc" -delete \
-    && rm -rf /opt/venv/lib/python*/site-packages/*-info/tests \
-    && rm -rf /root/.cache/pip
+# Copy S6 overlay
+COPY --from=staging /s6-dist /
 
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION="${DSMR_VERSION}"
@@ -125,25 +132,43 @@ ENV DOCKER_TARGET_RELEASE="${DOCKER_TARGET_RELEASE}"
 ARG S6_OVERLAY_VERSION
 ENV S6_OVERLAY_VERSION="${S6_OVERLAY_VERSION}"
 
+# S6 Security Settings
+ENV S6_READ_ONLY_ROOT=1 \
+    S6_KEEP_ENV=1 \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+
+# System Environment
 ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     TERM="xterm" \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
+    PYTHONUNBUFFERED=1
+
+# Django Database Configuration
+ENV DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
     DJANGO_DATABASE_NAME="dsmrreader" \
     DJANGO_DATABASE_USER="dsmrreader" \
-    DJANGO_DATABASE_PASSWORD="dsmrreader" \
-    DJANGO_SECRET_KEY="dsmrreader" \
+    DJANGO_DATABASE_PASSWORD="" \
+    DJANGO_SECRET_KEY="" \
     DJANGO_DATABASE_HOST="dsmrdb" \
-    DJANGO_DATABASE_PORT="5432" \
-    DSMRREADER_ADMIN_USER="admin" \
+    DJANGO_DATABASE_PORT="5432"
+
+# DSMR Reader Configuration
+ENV DSMRREADER_ADMIN_USER="admin" \
+    DSMRREADER_ADMIN_PASSWORD="" \
     DSMRREADER_OPERATION_MODE="standalone" \
     DSMRREADER_LOGLEVEL="ERROR" \
-    ENABLE_NGINX_ACCESS_LOGS="false" \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="true"
+
+# Feature Flags
+ENV ENABLE_NGINX_ACCESS_LOGS="false" \
     ENABLE_VACUUM_DB_ON_STARTUP="false" \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="true" \
-    DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
+    ENABLE_NGINX_SSL="false" \
+    ENABLE_HTTP_AUTH="false" \
+    ENABLE_CLIENTCERT_AUTH="false" \
+    ENABLE_IFRAME="false"
+
+# Datalogger Configuration
+ENV DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
     DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT="/dev/ttyUSB0" \
     DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE="115200" \
     DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE="8" \
@@ -151,8 +176,15 @@ ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST="127.0.0.1" \
     DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="23"
 
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash ca-certificates curl jq nginx openssl tzdata \
+    bash \
+    ca-certificates \
+    curl \
+    jq \
+    nginx \
+    openssl \
+    tzdata \
     netcat-openbsd \
     postgresql-client \
     passwd \
@@ -162,23 +194,47 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim-tiny \
     && rm -rf /var/lib/apt/lists/*
 
-RUN rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/locale/*
+# Aggressive system cleanup
+RUN rm -rf \
+    /usr/share/doc/* \
+    /usr/share/man/* \
+    /usr/share/locale/* \
+    /usr/share/info/* \
+    /var/cache/debconf/* \
+    /usr/share/lintian/* \
+    /usr/share/linda/* \
+    /root/.cache/* \
+    /tmp/* \
+    /var/tmp/*
 
-RUN find /opt/venv -name '*.so' -exec strip --strip-unneeded {} \; || true \
-  && rm -rf /root/.cache/pip /tmp/* /var/tmp/* \
-  && rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/locale/*
+# Copy application code (do this late for better caching)
+COPY --from=staging /app /app
 
+# Copy rootfs configuration
 COPY rootfs /
 
-RUN rm -f /etc/nginx/sites-enabled/default || true
+# Remove default nginx site
+RUN rm -f /etc/nginx/sites-enabled/default
 
+# Create app user with proper permissions
 RUN useradd -r -u 803 -U -d /app -s /usr/sbin/nologin app && \
     usermod -a -G dialout,audio app && \
-    mkdir -p /run/nginx/tmp && chown -R 803:803 /run/nginx && chmod -R 755 /run/nginx
+    mkdir -p /run/nginx/tmp /run/nginx/conf.d /run/nginx/server-snippets && \
+    chown -R app:app /run/nginx && \
+    chmod -R 755 /run/nginx
 
+# Allow nginx to bind to privileged ports without root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
-HEALTHCHECK --interval=15s --timeout=3s --retries=10 \
+# Enhanced healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
+
+# Container metadata
+LABEL org.opencontainers.image.title="DSMR Reader" \
+      org.opencontainers.image.description="DSMR Reader - Smart Meter Data Logger" \
+      org.opencontainers.image.source="https://github.com/dsmrreader/dsmr-reader" \
+      org.opencontainers.image.version="${DOCKER_TARGET_RELEASE}" \
+      org.opencontainers.image.vendor="DSMR Reader Project"
 
 ENTRYPOINT ["/init"]

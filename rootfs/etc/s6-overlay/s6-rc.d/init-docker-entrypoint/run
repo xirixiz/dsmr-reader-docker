@@ -2,24 +2,40 @@
 # shellcheck shell=bash
 
 #---------------------------------------------------------------------------------------------------------------------------
+# STRICT MODE
+#---------------------------------------------------------------------------------------------------------------------------
+set -euo pipefail
+IFS=$'\n\t'
+
+#---------------------------------------------------------------------------------------------------------------------------
 # VARIABLES
 #---------------------------------------------------------------------------------------------------------------------------
 : "${DEBUG:=false}"
 
 #---------------------------------------------------------------------------------------------------------------------------
-# FUNCTIONS
+# LOGGING FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
-function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
-function _warn()  { printf "\r\033[2K[ \033[0;33mWARN\033[0m ] %s\n" "$@"; }
-function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
-function _debug() { printf "\r[ \033[00;37mDBUG\033[0m ] %s\n" "$@"; }
+function _log() {
+    local level="$1"
+    local color="$2"
+    shift 2
+    printf "\r[ \033[00;%sm%s\033[0m ] %s\n" "${color}" "${level}" "$*" >&2
+}
+
+function _info()     { _log "INFO" "34" "$@"; }
+function _warn()     { _log "WARN" "33" "$@"; }
+function _error()    { _log "FAIL" "31" "$@"; }
+function _debug()    { _log "DBUG" "37" "$@"; }
+function _success()  { _log "OKAY" "32" "$@"; }
 function _progress() { printf "\r[ \033[00;34mINFO\033[0m ] %s" "$@"; }
 
+#---------------------------------------------------------------------------------------------------------------------------
+# UTILITY FUNCTIONS
+#---------------------------------------------------------------------------------------------------------------------------
 function _normalize_bool_env() {
-    # normalizes an ENV var in place, defaults to false
     local var="$1"
     local val
-    val="$(printenv "${var}" 2>/dev/null || true)"
+    val="$(printenv "${var}" 2>/dev/null || echo "false")"
 
     case "${val,,}" in
         true|1|yes|y|on) export "${var}=true" ;;
@@ -28,61 +44,11 @@ function _normalize_bool_env() {
 }
 
 function _normalize_all_enable_vars() {
-    # normalize all ENABLE_* vars from the environment
     local var
     while IFS='=' read -r var _; do
         [[ "${var}" == ENABLE_* ]] || continue
         _normalize_bool_env "${var}"
     done < <(printenv)
-}
-
-function _pre_reqs() {
-    _info "DSMR Reader Reader release: ${DSMR_VERSION}"
-    _info "DSMR Reader Reader Docker release: ${DOCKER_TARGET_RELEASE}"
-
-    DUID=${DUID:-803}
-    DGID=${DGID:-803}
-
-    groupmod -o -g "${DGID}" app >/dev/null 2>&1 || true
-    usermod -o -u "${DUID}" app >/dev/null 2>&1 || true
-
-    cat /etc/s6-overlay/s6-rc.d/init-docker-entrypoint/branding
-    echo "
-    User UID: $(id -u app)
-    User GID: $(id -g app)
-    ───────────────────────────────────────────────────
-    "
-
-    time32="$(date +%Y)"
-    if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [[ "$(uname -m)" == "armv7l" ]]; then
-        echo 'Your DockerHost is running an outdated version of libseccomp. Search internet to fix this!'
-        sleep infinity
-    fi
-
-    _info "Ensure permissions..."
-    mkdir -p \
-      /defaults \
-      /var/www/dsmrreader
-
-    chown -R app:app /defaults \
-      /var/www/dsmrreader
-
-    touch /app/.env
-    chown app:app /app/.env
-
-    if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-false}" == "true" ]]; then
-        _info "Clean .env settings on container (re)start..."
-        : > /app/.env
-    else
-        touch /app/.env
-    fi
-
-    _normalize_all_enable_vars
-    _detect_architecture
-
-    # Prepare runtime nginx snippet dirs (writable for app user)
-    mkdir -p /run/nginx/conf.d /run/nginx/server-snippets
-    chown -R app:app /run/nginx
 }
 
 function _detect_architecture() {
@@ -92,154 +58,368 @@ function _detect_architecture() {
 
     case "${arch}" in
         x86_64)
-            if [[ "${longbit}" == "32" ]]; then _info "Using architecture: X32"; else _info "Using architecture: X64"; fi
+            if [[ "${longbit}" == "32" ]]; then
+                _info "Architecture: X32"
+            else
+                _info "Architecture: X64"
+            fi
             ;;
-        armv7l) _info "Using architecture: ARM" ;;
-        aarch64) _info "Using architecture: ARM64" ;;
-        unknown) _info "Using architecture: X64" ;;
-        *) _info "Using architecture: ${arch}" ;;
+        armv7l)  _info "Architecture: ARM" ;;
+        aarch64) _info "Architecture: ARM64" ;;
+        *)       _info "Architecture: ${arch}" ;;
     esac
 }
 
-function _dsmr_datalogger_mode() {
-    touch /app/.env
-    if [[ "${DSMRREADER_OPERATION_MODE}" != @(standalone|api_server|api_client) ]]; then
-        _error "DSMRREADER_OPERATION_MODE required value is incorrect. Exiting..."
+function _check_y2038_issue() {
+    local time32
+    time32="$(date +%Y)"
+
+    if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [[ "$(uname -m)" == "armv7l" ]]; then
+        _error "Y2038 issue detected: Your Docker host has an outdated libseccomp version"
+        _error "Please update libseccomp on your host system"
+        _error "See: https://docs.linuxserver.io/faq#libseccomp"
         exit 1
-    else
-        if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
-            _info "Configuring DSMR Reader to run all processes in a single container with a serial or ipv4 datalogger..."
-
-            if [[ "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}" = serial ]]; then
-                _info "Using a serial connection for the DSMR Reader remote datalogger..."
-                if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}" || -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE}" || -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE}" ]]; then
-                    _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT and/or DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE and/or DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE required values are not set. Exiting..."
-                    exit 1
-                else
-                    _info "Fixing ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT} security..."
-                    if ls "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}" 1>/dev/null 2>&1; then
-                        chmod 666 "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
-                    fi
-                    _info "Adding serial input method configuration settings..."
-                    {
-                        echo DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY}"
-                    } >>/app/.env
-                fi
-            fi
-
-            if [[ "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}" = ipv4 ]]; then
-                _info "Using an ipv4 network socket for the datalogger..."
-                if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST}" || -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT}" ]]; then
-                    _error "DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST and/or DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT required values are not set. Exiting..."
-                    exit 1
-                else
-                    _info "Adding ipv4 input method configuration settings..."
-                    {
-                        echo DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST="${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST}"
-                        echo DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT}"
-                    } >>/app/.env
-                fi
-            fi
-        fi
-
-        if [[ "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-            _info "Configuring DSMR Reader to run without the datalogger process. A remote datalogger (api_client) is required..."
-        fi
-
-        if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
-            _info "Configuring DSMR Reader to only start the api client datalogger (API_CLIENT), which sends the P1 telegrams to the server (API_SERVER)..."
-            if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}" || -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS}" ]]; then
-                _error "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS and/or DSMRREADER_REMOTE_DATALOGGER_API_KEYS required values are not set. Exiting..."
-                exit 1
-            else
-                _info "Adding remote datalogger (api_client) configuration settings..."
-                {
-                    echo DSMRREADER_REMOTE_DATALOGGER_API_HOSTS="${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}"
-                    echo DSMRREADER_REMOTE_DATALOGGER_API_KEYS="${DSMRREADER_REMOTE_DATALOGGER_API_KEYS}"
-                } >>/app/.env
-            fi
-        fi
     fi
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION FUNCTIONS
+#---------------------------------------------------------------------------------------------------------------------------
+function _validate_credentials() {
+    local errors=0
+
+    # Check admin credentials
+    if [[ -z "${DSMRREADER_ADMIN_USER:-}" ]]; then
+        _error "DSMRREADER_ADMIN_USER is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
+        _error "DSMRREADER_ADMIN_PASSWORD is not set"
+        ((errors++))
+    elif [[ "${DSMRREADER_ADMIN_PASSWORD}" == "dsmrreader" ]]; then
+        _warn "Default DSMRREADER_ADMIN_PASSWORD detected - this is a security risk! Please set a secure password"
+    fi
+
+    # Check database credentials
+    if [[ -z "${DJANGO_DATABASE_PASSWORD:-}" ]]; then
+        _error "DJANGO_DATABASE_PASSWORD is not set"
+        ((errors++))
+    elif [[ "${DJANGO_DATABASE_PASSWORD}" == "dsmrreader" ]]; then
+        _warn "Using default DJANGO_DATABASE_PASSWORD - this is a security risk! Please set a secure password"
+    fi
+
+    if [[ -z "${DJANGO_SECRET_KEY:-}" ]]; then
+        _error "DJANGO_SECRET_KEY is not set"
+        ((errors++))
+    elif [[ "${DJANGO_SECRET_KEY}" == "dsmrreader" ]]; then
+        _warn "Default DJANGO_SECRET_KEY detected - this is a security risk! Please set a secure password"
+    fi
+
+    [[ $errors -gt 0 ]] && exit 1
+    return 0
+}
+
+function _validate_operation_mode() {
+    local mode="${DSMRREADER_OPERATION_MODE}"
+
+    case "${mode}" in
+        standalone|api_server|api_client)
+            _info "Operation mode: ${mode}"
+            ;;
+        *)
+            _error "Invalid DSMRREADER_OPERATION_MODE: ${mode}"
+            _error "Valid options: standalone, api_server, api_client"
+            exit 1
+            ;;
+    esac
+}
+
+function _validate_serial_config() {
+    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
+
+    if [[ -z "${port:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT is not set"
+        return 1
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE is not set"
+        return 1
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE is not set"
+        return 1
+    fi
+
+    return 0
+}
+
+function _validate_network_config() {
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST is not set"
+        return 1
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT is not set"
+        return 1
+    fi
+
+    return 0
+}
+
+function _validate_api_client_config() {
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS is not set"
+        return 1
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS:-}" ]]; then
+        _error "DSMRREADER_REMOTE_DATALOGGER_API_KEYS is not set"
+        return 1
+    fi
+
+    return 0
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# SETUP FUNCTIONS
+#---------------------------------------------------------------------------------------------------------------------------
+function _pre_reqs() {
+    _info "DSMR Reader version: ${DSMR_VERSION}"
+    _info "Docker image version: ${DOCKER_TARGET_RELEASE}"
+
+    _check_y2038_issue
+
+    local DUID=${DUID:-803}
+    local DGID=${DGID:-803}
+
+    if ! groupmod -o -g "${DGID}" app 2>/dev/null; then
+        _warn "Could not modify app group GID to ${DGID}"
+    fi
+
+    if ! usermod -o -u "${DUID}" app 2>/dev/null; then
+        _warn "Could not modify app user UID to ${DUID}"
+    fi
+
+    cat /etc/s6-overlay/s6-rc.d/init-docker-entrypoint/branding
+    echo "
+    User UID: $(id -u app)
+    User GID: $(id -g app)
+    ───────────────────────────────────────────────────
+    "
+
+    _normalize_all_enable_vars
+    _detect_architecture
+
+    # Create required directories with proper permissions
+    _info "Setting up directories and permissions..."
+    mkdir -p \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx/conf.d \
+        /run/nginx/server-snippets
+
+    chown -R app:app \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx
+
+    # Handle .env file
+    if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-false}" == "true" ]]; then
+        _info "Resetting .env file on startup..."
+        : > /app/.env
+    else
+        touch /app/.env
+    fi
+
+    chown app:app /app/.env
+    chmod 600 /app/.env
+}
+
+function _configure_serial_port() {
+    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
+
+    _info "Configuring serial port: ${port}"
+
+    if [[ ! -e "${port}" ]]; then
+        _warn "Serial port ${port} does not exist yet (may appear after device is plugged in)"
+        return 0
+    fi
+
+    # Secure permissions: owner=app, group=dialout, mode=660
+    if ! chown app:dialout "${port}" 2>/dev/null; then
+        _error "Failed to set ownership on ${port}"
+        _error "Ensure the device is accessible and container has --device or --privileged"
+        exit 1
+    fi
+
+    if ! chmod 660 "${port}" 2>/dev/null; then
+        _error "Failed to set permissions on ${port}"
+        exit 1
+    fi
+
+    _success "Serial port configured securely (owner: app, group: dialout, mode: 660)"
+}
+
+function _dsmr_datalogger_mode() {
+    _validate_operation_mode
+
+    local mode="${DSMRREADER_OPERATION_MODE}"
+
+    case "${mode}" in
+        standalone)
+            _info "Configuring standalone mode with datalogger..."
+
+            local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
+
+            case "${input_method}" in
+                serial)
+                    _info "Using serial connection for datalogger"
+
+                    if ! _validate_serial_config; then
+                        exit 1
+                    fi
+
+                    _configure_serial_port
+
+                    cat >> /app/.env <<EOF
+DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE}
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE}
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY}
+EOF
+                    ;;
+
+                ipv4)
+                    _info "Using IPv4 network socket for datalogger"
+
+                    if ! _validate_network_config; then
+                        exit 1
+                    fi
+
+                    cat >> /app/.env <<EOF
+DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}
+DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST}
+DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT}
+EOF
+                    ;;
+
+                *)
+                    _error "Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+                    _error "Valid options: serial, ipv4"
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        api_server)
+            _info "Configuring API server mode (no local datalogger)"
+            ;;
+
+        api_client)
+            _info "Configuring API client mode (remote datalogger only)"
+
+            if ! _validate_api_client_config; then
+                exit 1
+            fi
+
+            cat >> /app/.env <<EOF
+DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}
+DSMRREADER_REMOTE_DATALOGGER_API_KEYS=${DSMRREADER_REMOTE_DATALOGGER_API_KEYS}
+EOF
+            ;;
+    esac
 }
 
 function _optional_settings() {
-    if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_TIMEOUT}" ]]; then
-        _info "Adding DSMRREADER_REMOTE_DATALOGGER_TIMEOUT to the DSMR Reader remote datalogger configuration..."
-        echo DSMRREADER_REMOTE_DATALOGGER_TIMEOUT="${DSMRREADER_REMOTE_DATALOGGER_TIMEOUT}" >>/app/.env
-    fi
+    [[ -n "${DSMRREADER_REMOTE_DATALOGGER_TIMEOUT:-}" ]] && \
+        echo "DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=${DSMRREADER_REMOTE_DATALOGGER_TIMEOUT}" >> /app/.env
 
-    if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_SLEEP}" ]]; then
-        _info "Adding DSMRREADER_REMOTE_DATALOGGER_SLEEP to the DSMR Reader remote datalogger configuration..."
-        echo DSMRREADER_REMOTE_DATALOGGER_SLEEP="${DSMRREADER_REMOTE_DATALOGGER_SLEEP}" >>/app/.env
-    fi
+    [[ -n "${DSMRREADER_REMOTE_DATALOGGER_SLEEP:-}" ]] && \
+        echo "DSMRREADER_REMOTE_DATALOGGER_SLEEP=${DSMRREADER_REMOTE_DATALOGGER_SLEEP}" >> /app/.env
 
-    if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING}" ]]; then
-        _info "Adding DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING to the DSMR Reader remote datalogger configuration..."
-        echo DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING="${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING^^}" >>/app/.env
-    fi
+    [[ -n "${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING:-}" ]] && \
+        echo "DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=${DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING^^}" >> /app/.env
 
-    if [[ -n "${DSMRREADER_LOGLEVEL}" ]]; then
-        _info "Adding DSMRREADER_LOGLEVEL to the DSMR Reader configuration..."
-        echo DSMRREADER_LOGLEVEL="${DSMRREADER_LOGLEVEL^^}" >>/app/.env
-    fi
+    [[ -n "${DSMRREADER_LOGLEVEL:-}" ]] && \
+        echo "DSMRREADER_LOGLEVEL=${DSMRREADER_LOGLEVEL^^}" >> /app/.env
 }
 
 function _check_db_availability() {
-    _info "Verifying if the DSMR Reader web credential variables have been set..."
-    if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
-        _error "DSMR Reader web credentials (DSMRREADER_ADMIN_USER or DSMRREADER_ADMIN_PASSWORD) not set. Exiting..."
-        exit 1
-    fi
-    if [[ -n "${DJANGO_DATABASE_ENGINE}" ]]; then
-        _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
-        for i in {1..10}; do
-            if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}" > /dev/null 2>&1; then
-                _progress "Testing database connectivity: ${i} second(s) of 10 seconds..."
-                sleep 1
-                if [[ $i == 10 ]]; then
-                    _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
-                    exit 1
-                fi
-            else
-                _info "Database connectivity successfully verified!"
-                if [[ "${ENABLE_VACUUM_DB_ON_STARTUP}" = true ]]; then
-                    _cleandb
-                fi
-                break
+    _info "Checking database credentials..."
+    _validate_credentials
+
+    local host="${DJANGO_DATABASE_HOST}"
+    local port="${DJANGO_DATABASE_PORT}"
+    local max_attempts=30
+    local timeout=2
+
+    _info "Connecting to database: ${host}:${port}"
+
+    for i in $(seq 1 ${max_attempts}); do
+        if timeout "${timeout}" nc -z "${host}" "${port}" 2>/dev/null; then
+            _success "Database connection established after ${i} attempt(s)"
+
+            if [[ "${ENABLE_VACUUM_DB_ON_STARTUP}" == "true" ]]; then
+                _cleandb
             fi
-        done
-    fi
+
+            return 0
+        fi
+
+        _progress "Waiting for database... (${i}/${max_attempts})"
+        sleep 1
+    done
+
+    _error "Database connection failed after ${max_attempts} attempts"
+    _error "Check DJANGO_DATABASE_HOST and DJANGO_DATABASE_PORT settings"
+    exit 1
 }
 
 function _run_post_config() {
-    _info "Running post configuration..."
-    /opt/venv/bin/python /app/manage.py migrate --noinput
-    /opt/venv/bin/python /app/manage.py collectstatic --noinput
-    /opt/venv/bin/python /app/manage.py dsmr_superuser
+    _info "Running Django post-configuration..."
+
+    if ! /opt/venv/bin/python /app/manage.py migrate --noinput; then
+        _error "Database migration failed"
+        exit 1
+    fi
+
+    if ! /opt/venv/bin/python /app/manage.py collectstatic --noinput; then
+        _error "Static file collection failed"
+        exit 1
+    fi
+
+    if ! /opt/venv/bin/python /app/manage.py dsmr_superuser; then
+        _error "Superuser creation failed"
+        exit 1
+    fi
+
+    _success "Django configuration completed"
 }
 
 function _nginx_listen_port() {
     mkdir -p /run/nginx/server-snippets
     local port="${NGINX_LISTEN_PORT:-80}"
-    _info "NGINX listen port set to ${port}..."
+
+    _info "Configuring NGINX to listen on port ${port}"
     printf 'listen %s;\n' "${port}" > /run/nginx/server-snippets/10-listen.conf
 }
 
 function _nginx_disable_access_logs() {
     mkdir -p /run/nginx/conf.d
-    if [[ "${ENABLE_NGINX_ACCESS_LOGS}" = false ]]; then
-        _info "Disabling NGINX access logs via override config..."
+
+    if [[ "${ENABLE_NGINX_ACCESS_LOGS}" == "false" ]]; then
+        _info "Disabling NGINX access logs"
         cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log off;
 error_log  /proc/self/fd/2 warn;
 EOF
     else
-        _info "Routing NGINX access and error logs to stdout/stderr..."
+        _info "Enabling NGINX access and error logs"
         cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log /proc/self/fd/1;
 error_log  /proc/self/fd/2 warn;
@@ -251,140 +431,183 @@ function _nginx_ssl_configuration() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/20-ssl.conf
 
-    if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
-        _info "Enabling NGINX SSL..."
+    if [[ "${ENABLE_NGINX_SSL}" != "true" ]]; then
+        _info "SSL disabled"
+        return 0
+    fi
 
-        if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
-            _error "SSL enabled but /etc/ssl/private/fullchain.pem and/or /etc/ssl/private/privkey.pem are missing!"
-            exit 1
-        fi
+    _info "Enabling NGINX SSL..."
 
-        cat > /run/nginx/server-snippets/20-ssl.conf <<'EOF'
+    if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
+        _error "SSL certificates not found!"
+        _error "Required: /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem"
+        exit 1
+    fi
+
+    cat > /run/nginx/server-snippets/20-ssl.conf <<'EOF'
 listen 443 ssl;
 ssl_certificate /etc/ssl/private/fullchain.pem;
 ssl_certificate_key /etc/ssl/private/privkey.pem;
 ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers on;
+ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
 EOF
 
-        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
-            _info "NGINX SSL configured and enabled"
-        else
-            _error "NGINX configuration error"
-            nginx -c /etc/nginx/nginx.conf -t || true
-            exit 1
-        fi
-    else
-        _info "ENABLE_NGINX_SSL is disabled, nothing to configure."
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "NGINX SSL configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
     fi
+
+    _success "SSL configured successfully"
 }
 
 function _generate_auth_configuration() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/30-auth.conf /run/nginx/htpasswd
 
-    _info "Checking for HTTP AUTHENTICATION configuration..."
-    if [[ "${ENABLE_HTTP_AUTH}" = true ]]; then
-        _info "ENABLE_HTTP_AUTH is enabled, generating htpasswd..."
+    if [[ "${ENABLE_HTTP_AUTH}" != "true" ]]; then
+        _info "HTTP authentication disabled"
+        return 0
+    fi
 
-        if [[ -z "${HTTP_AUTH_USERNAME}" || -z "${HTTP_AUTH_PASSWORD}" ]]; then
-            _error "ENABLE_HTTP_AUTH is true but HTTP_AUTH_USERNAME and/or HTTP_AUTH_PASSWORD are missing."
-            exit 1
-        fi
+    _info "Enabling HTTP basic authentication..."
 
-        local crypt_pw
-        crypt_pw="$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")"
-        printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${crypt_pw}" > /run/nginx/htpasswd
+    if [[ -z "${HTTP_AUTH_USERNAME:-}" || -z "${HTTP_AUTH_PASSWORD:-}" ]]; then
+        _error "HTTP_AUTH_USERNAME and HTTP_AUTH_PASSWORD must be set when ENABLE_HTTP_AUTH=true"
+        exit 1
+    fi
 
-        cat > /run/nginx/server-snippets/30-auth.conf <<'EOF'
-auth_basic "Restricted application";
+    local crypt_pw
+    crypt_pw="$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")"
+    printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${crypt_pw}" > /run/nginx/htpasswd
+    chmod 600 /run/nginx/htpasswd
+
+    cat > /run/nginx/server-snippets/30-auth.conf <<'EOF'
+auth_basic "Restricted Access";
 auth_basic_user_file /run/nginx/htpasswd;
 EOF
 
-        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
-            _info "HTTP AUTHENTICATION configured and enabled"
-        else
-            _error "NGINX configuration error"
-            nginx -c /etc/nginx/nginx.conf -t || true
-            exit 1
-        fi
-    else
-        _info "ENABLE_HTTP_AUTH is disabled, continuing..."
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "NGINX authentication configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
     fi
+
+    _success "HTTP authentication configured"
 }
 
 function _generate_clientcert_auth_configuration() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/40-clientcert.conf
 
-    _info "Checking for CLIENT CERTIFICATE AUTHENTICATION configuration..."
-    if [[ "${ENABLE_CLIENTCERT_AUTH}" = true ]]; then
-        _info "ENABLE_CLIENTCERT_AUTH is enabled, configuring client cert auth..."
+    if [[ "${ENABLE_CLIENTCERT_AUTH}" != "true" ]]; then
+        _info "Client certificate authentication disabled"
+        return 0
+    fi
 
-        if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
-            _error "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem"
-            exit 1
-        fi
+    _info "Enabling client certificate authentication..."
 
-        cat > /run/nginx/server-snippets/40-clientcert.conf <<'EOF'
+    if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
+        _error "Client certificate CA not found at /etc/nginx/client_cert/cacert.pem"
+        exit 1
+    fi
+
+    cat > /run/nginx/server-snippets/40-clientcert.conf <<'EOF'
 ssl_client_certificate /etc/nginx/client_cert/cacert.pem;
 ssl_verify_client on;
+ssl_verify_depth 2;
 EOF
 
-        if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
-            echo "ssl_crl /etc/nginx/client_cert/ca.crl;" >> /run/nginx/server-snippets/40-clientcert.conf
-        fi
-
-        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
-            _info "CLIENT CERT AUTHENTICATION configured and enabled"
-        else
-            _error "NGINX configuration error!"
-            nginx -c /etc/nginx/nginx.conf -t || true
-            exit 1
-        fi
-    else
-        _info "ENABLE_CLIENTCERT_AUTH is disabled, continuing..."
+    if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
+        _info "Using certificate revocation list"
+        echo "ssl_crl /etc/nginx/client_cert/ca.crl;" >> /run/nginx/server-snippets/40-clientcert.conf
     fi
+
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "NGINX client certificate configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
+    fi
+
+    _success "Client certificate authentication configured"
 }
 
-function _docker_secrets {
-    if find /run/s6/container_environment -maxdepth 1 -name 'FILE__*' -print -quit | grep -q .; then
-        _info "Enabling Docker secrets..."
-        for FILENAME in /run/s6/container_environment/FILE__*; do
-            SECRETFILE=$(cat "${FILENAME}")
-            if [[ -f ${SECRETFILE} ]]; then
-                FILESTRIP=${FILENAME//FILE__/}
-                if [[ $(tail -n1 "${SECRETFILE}" | wc -l) != 0 ]]; then
-                    _info "Docker secret: ${FILENAME##*/} contains a trailing newline and may not work as expected!"
-                fi
-                cat "${SECRETFILE}" >"${FILESTRIP}"
-                _info "Docker secret ${FILESTRIP##*/} set from ${FILENAME##*/}..."
-            else
-                _info "Cannot find Docker secret in ${FILENAME##*/}..."
-            fi
-        done
+function _docker_secrets() {
+    if ! find /run/s6/container_environment -maxdepth 1 -name 'FILE__*' -print -quit 2>/dev/null | grep -q .; then
+        return 0
     fi
+
+    _info "Processing Docker secrets..."
+
+    for FILENAME in /run/s6/container_environment/FILE__*; do
+        [[ -f "${FILENAME}" ]] || continue
+
+        local SECRETFILE
+        SECRETFILE=$(cat "${FILENAME}")
+
+        if [[ ! -f "${SECRETFILE}" ]]; then
+            _warn "Secret file not found: ${SECRETFILE} (referenced by ${FILENAME##*/})"
+            continue
+        fi
+
+        if [[ $(tail -c1 "${SECRETFILE}" | wc -l) -ne 0 ]]; then
+            _warn "Docker secret ${FILENAME##*/} contains trailing newline - may cause issues"
+        fi
+
+        local FILESTRIP="${FILENAME//FILE__/}"
+        cat "${SECRETFILE}" > "${FILESTRIP}"
+
+        _success "Loaded Docker secret: ${FILESTRIP##*/}"
+    done
 }
 
-function _iframe {
-    if [[ "${ENABLE_IFRAME}" = true ]]; then
-        _info "Enabling IFrame..."
+function _iframe() {
+    if [[ "${ENABLE_IFRAME}" != "true" ]]; then
+        return 0
+    fi
+
+    _info "Enabling IFrame support..."
+
+    if ! grep -q "X_FRAME_OPTIONS" /app/dsmrreader/settings.py 2>/dev/null; then
         sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /app/dsmrreader/settings.py
+        _success "IFrame support enabled"
+    else
+        _info "IFrame support already configured"
     fi
 }
 
-function _cleandb {
-    _info "Vacuum cleaning enabled. Vacuming database..."
-    /app/cleandb.sh
+function _cleandb() {
+    _info "Running database vacuum..."
+
+    if [[ -x /app/cleandb.sh ]]; then
+        /app/cleandb.sh
+        _success "Database vacuum completed"
+    else
+        _warn "Database vacuum script not found or not executable"
+    fi
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
-# MAIN
+# MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
-[[ "${DEBUG}" = true ]] && set -o xtrace
+function main() {
+    [[ "${DEBUG}" == "true" ]] && set -x
 
-_pre_reqs
+    _info "Starting DSMR Reader initialization..."
 
-if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
+    _pre_reqs
+
+    # API client mode only needs datalogger configuration
+    if [[ "${DSMRREADER_OPERATION_MODE}" == "api_client" ]]; then
+        _info "API client mode detected - skipping web application setup"
+        _dsmr_datalogger_mode
+        _optional_settings
+        _success "API client initialization complete"
+        return 0
+    fi
+
+    # Full setup for standalone and api_server modes
     _docker_secrets
     _check_db_availability
     _iframe
@@ -396,4 +619,9 @@ if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
     _generate_auth_configuration
     _dsmr_datalogger_mode
     _optional_settings
-fi
+
+    _success "DSMR Reader initialization complete"
+}
+
+# Execute main function
+main "$@"
