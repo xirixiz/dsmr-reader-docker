@@ -151,7 +151,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   postgresql-client mariadb-client \
   passwd \
   locales \
-  libjpeg62-turbo libpng16-16 zlib1g \
+  libjpeg62-turbo libpng16-16t64 zlib1g \
   xz-utils \
   libcap2-bin \
   vim-tiny \
