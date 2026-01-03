@@ -62,7 +62,7 @@ function _pre_reqs() {
     _info "Ensure permissions..."
     mkdir -p \
       /defaults \
-      /run/nginx \
+      /run/nginx/tmp \
       /var/www/dsmrreader/static
 
     chown -R app:app /defaults \
