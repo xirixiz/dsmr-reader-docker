@@ -72,16 +72,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  build-essential gcc g++ make \
-  pkg-config \
-  libffi-dev \
-  libjpeg-dev \
-  zlib1g-dev \
-  libpng-dev \
-  libpq-dev \
-  default-libmysqlclient-dev \
-  curl ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+    build-essential gcc g++ make \
+    pkg-config \
+    libffi-dev \
+    curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV VENV_PATH="/opt/venv"
 RUN python -m venv "${VENV_PATH}"
@@ -112,6 +107,11 @@ ENV PYTHONPATH=/app
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=staging /s6-dist /
 COPY --from=staging /app /app
+
+RUN find /opt/venv -name "tests" -type d -exec rm -rf {} + \
+    && find /opt/venv -name "*.pyc" -delete \
+    && rm -rf /opt/venv/lib/python*/site-packages/*-info/tests \
+    && rm -rf /root/.cache/pip
 
 ARG DSMR_VERSION=development
 ENV DSMR_VERSION="${DSMR_VERSION}"
@@ -146,16 +146,21 @@ ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="23"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  bash ca-certificates curl jq nginx openssl tzdata \
-  netcat-openbsd \
-  postgresql-client mariadb-client \
-  passwd \
-  locales \
-  libjpeg62-turbo libpng16-16t64 zlib1g \
-  xz-utils \
-  libcap2-bin \
-  vim-tiny \
-  && rm -rf /var/lib/apt/lists/*
+    bash ca-certificates curl jq nginx openssl tzdata \
+    netcat-openbsd \
+    postgresql-client \
+    passwd \
+    locales \
+    xz-utils \
+    libcap2-bin \
+    vim-tiny \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/locale/*
+
+RUN find /opt/venv -name '*.so' -exec strip --strip-unneeded {} \; || true \
+  && rm -rf /root/.cache/pip /tmp/* /var/tmp/* \
+  && rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/locale/*
 
 COPY rootfs /
 
