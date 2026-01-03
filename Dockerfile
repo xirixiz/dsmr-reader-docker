@@ -129,6 +129,7 @@ ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     DJANGO_DATABASE_NAME="dsmrreader" \
     DJANGO_DATABASE_USER="dsmrreader" \
     DJANGO_DATABASE_PASSWORD="dsmrreader" \
+    DJANGO_SECRET_KEY="dsmrreader" \
     DJANGO_DATABASE_HOST="dsmrdb" \
     DJANGO_DATABASE_PORT="5432" \
     DSMRREADER_ADMIN_USER="admin" \
