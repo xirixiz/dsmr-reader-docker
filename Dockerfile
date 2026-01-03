@@ -131,15 +131,13 @@ ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-ENV DJANGO_SECRET_KEY="dsmrreader" \
-    DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
+ENV DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
     DJANGO_DATABASE_NAME="dsmrreader" \
     DJANGO_DATABASE_USER="dsmrreader" \
     DJANGO_DATABASE_PASSWORD="dsmrreader" \
     DJANGO_DATABASE_HOST="dsmrdb" \
     DJANGO_DATABASE_PORT="5432" \
     DSMRREADER_ADMIN_USER="admin" \
-    DSMRREADER_ADMIN_PASSWORD="admin" \
     DSMRREADER_OPERATION_MODE="standalone" \
     DSMRREADER_LOGLEVEL="ERROR" \
     ENABLE_NGINX_ACCESS_LOGS="false" \
@@ -206,6 +204,6 @@ HEALTHCHECK \
   --interval=15s \
   --timeout=3s \
   --retries=10 \
-  CMD curl -fsSL http://127.0.0.1/about -o /dev/null || exit 1
+  CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]

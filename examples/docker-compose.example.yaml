@@ -4,10 +4,11 @@ services:
   dsmrdb:
     # When using Postgres, release 14.x, 15.x, 16.x and 17.x are supported only
     # due to the limited availability of client packages, especially for arm32v7
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: dsmrdb
     restart: always
     volumes:
+      # Future heads up: PostgreSQL version 18 requires a different volume mapping: /var/lib/postgresql/18/docker
       - ./dsmrdb:/var/lib/postgresql/data
     environment:
       - TZ=Europe/Amsterdam
@@ -16,16 +17,16 @@ services:
       - POSTGRES_PASSWORD=dsmrreader
       - POSTGRES_DB=dsmrreader
     healthcheck:
-      # postgres is the default user, please update with
-      # the DJANGO_DATABASE_USER used for dsmr-reader-docker
-      # default for DSMR Reader is dsmrreader
-      test: [ "CMD-SHELL", "pg_isready -U dsmrreader" ]
+      # Must match below with POSTGRES_USER (-U) and POSTGRES_DB (-d) above
+      test: [ "CMD-SHELL", "pg_isready -U dsmrreader -d dsmrreader" ]
       interval: 10s
       timeout: 5s
       retries: 10
 
   dsmr:
-    image: ghcr.io/xirixiz/dsmr-reader-docker:latest
+    # This will always use the latest minor release within the major DSMR-reader
+    # version specified below (e.g. "dsmr-reader-docker:6" for DSMR-reader v6.x).
+    image: ghcr.io/xirixiz/dsmr-reader-docker:6
     depends_on:
       dsmrdb:
         condition: service_healthy
@@ -39,11 +40,14 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/app/backups
     environment:
-      - DJANGO_SECRET_KEY=somerandomvalue
       - TZ=Europe/Amsterdam
       - DJANGO_TIME_ZONE=Europe/Amsterdam
       - VIRTUAL_HOST=localhost
       - FILE__SECRET=/run/secrets/a_secret_file
+      # Set a random value for DJANGO_SECRET_KEY. E.g. by using https://www.lastpass.com/features/password-generator - 50 characters and NO symbols
+      - DJANGO_SECRET_KEY=
+      # Set an admin interface password to your liking - make it a extra strong one if you host DSMR-reader publicly facing the Internet
+      - DSMRREADER_ADMIN_PASSWORD=
     secrets:
       - a_secret_file
     ports:
@@ -54,17 +58,7 @@ services:
     # healthcheck:
     #   disable: true
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-Lsf",
-          "http://127.0.0.1/about",
-          "-o",
-          "/dev/null",
-          "-w",
-          "HTTP_%{http_code}"
-        ]
+      test: ["CMD", "curl", "-Lsf", "http://127.0.0.1/healthcheck", "-o", "/dev/null", "-w", "HTTP_%{http_code}"]
       interval: 10s
       timeout: 5s
       retries: 10

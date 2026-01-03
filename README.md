@@ -49,7 +49,7 @@ You will need a cable and hardware that can run Docker.
 ---
 
 #### General Info
-The purpose of this project is to provide a simplified installation of DSMR-reader using all the benefits of Docker.
+This project provides the containers for DSMR-reader installations.
 
 #### Contribution
 Special thanks to the following persons for their great contribution(s):
@@ -57,6 +57,13 @@ Special thanks to the following persons for their great contribution(s):
 - [@bjw-s](https://github.com/bjw-s)
 - [@Caroga](https://github.com/Caroga)
 - [mchangsp](https://github.com/mchangsp)
+
+---
+
+#### Recent incompatible changes
+
+- ``DJANGO_SECRET_KEY`` no longer has a *default value* and must be set by the user. You can use [this generator](https://www.lastpass.com/features/password-generator) to create one (e.g. 50 characters and NO symbols)
+- ``DSMRREADER_ADMIN_PASSWORD`` no longer has a *default value* and must be set by the user. Please make up your own password instead and configure it.
 
 ---
 
@@ -79,7 +86,7 @@ Special thanks to the following persons for their great contribution(s):
 This is a multi-arch image and will also run on a Raspberry Pi or other Docker-enabled ARMv7/8 devices.
 
 | Image Tag   | Architectures           | Image OS     |
-| :---------- | :---------------------- | :------------|
+|:------------|:------------------------|:-------------|
 | latest      | amd64, arm32v7, arm64v8 | Debian Linux |
 | development | amd64, arm32v7, arm64v8 | Debian Linux |
 
@@ -102,7 +109,7 @@ Example: 6.2.0-build-20260102.44
 On top of that, the following **floating tags** are updated to point to the latest compatible build:
 
 | Tag      | Meaning                   |
-| -------- | --------------------------|
+|----------|---------------------------|
 | `6.2.0`  | Exact DSMR Reader version |
 | `6.2`    | Latest `6.2.x` release    |
 | `6`      | Latest `6.x.x` release    |
@@ -168,10 +175,10 @@ Exposing your DSMR-reader installation to the Internet?
 Consider additionally using HTTP Auth (see below) or enabling *"Force password login everywhere"* in the Frontend settings in DSMR-reader, to prevent public access.
 
 ##### Settings
-For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/nl/v5/reference/env-settings.html)
+For DSMR Reader specific environment settings, please refer to: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 
 It's possible to set the following settings as environment variables, for example:
-```properties
+```yaml
 # Required (defaults are shown as value):
 - DJANGO_TIME_ZONE=Europe/Amsterdam
 - VIRTUAL_HOST=localhost
@@ -229,11 +236,11 @@ NGINX_LISTEN_PORT
 # Webinterface user:
 DSMRREADER_ADMIN_USER=admin
 # Webinterface user password:
-DSMRREADER_ADMIN_PASSWORD=admin
+DSMRREADER_ADMIN_PASSWORD=
 # Loglevel. Valid values are: "DEBUG", "WARNING", "ERROR". Default: "ERROR"
 DSMRREADER_LOGLEVEL=ERROR
-# Secret key for encryption:
-DJANGO_SECRET_KEY=dsmrreader
+# Secret key for security purposes:
+DJANGO_SECRET_KEY=
 # Ignore database size notifications:
 DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=true
 # Plugins (custom) setup:
@@ -272,8 +279,6 @@ Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogg
 ![Configuration Image 3](https://user-images.githubusercontent.com/11210639/207313567-f4068dba-a352-4628-b873-d824e0724c54.png)
 
 ##### DSMR Reader Datalogger - Standalone - Serial (default)
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#a-serial-port-env)
-
 The default startup values for DSMR Reader standalone are:
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
@@ -294,8 +299,6 @@ DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=E
 ```
 
 ##### DSMR Reader Datalogger - Standalone - IPv4
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#b-network-socket-env)
-
 Instead of a serial connection, it's also possible to use a network socket. Define the following variables:
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4
@@ -304,7 +307,7 @@ DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 # default
 ```
 
 ##### Remote DSMR Datalogger - API Client
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
+For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
 # Required. Instructs dsmr reader to start in api_client mode
 DSMRREADER_OPERATION_MODE=api_client
@@ -315,8 +318,6 @@ DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
 ```
 
 ##### Remote DSMR Datalogger - API Server
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#api-config-env)
-
 The configured `api_client` will push data to the `api_server`. The only difference between `standalone` and `api_server` is that the datalogger process isn't running.
 ```properties
 # Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
@@ -325,7 +326,7 @@ DSMRREADER_OPERATION_MODE=api_server
 ```
 
 ##### Remote DSMR Datalogger - Optional Settings
-More info: [DSMR-reader remote datalogger installation docs](https://dsmr-reader.readthedocs.io/nl/v5/how-to/installation/remote-datalogger.html#other-settings-env)
+For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_TIMEOUT=x
 DSMRREADER_REMOTE_DATALOGGER_SLEEP=x
@@ -333,7 +334,7 @@ DSMRREADER_REMOTE_DATALOGGER_DEBUG_LOGGING=false
 ```
 
 ##### Run with Docker Compose
-An example `docker-compose.yaml` file can be found [here](https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/main/examples/docker-compose.example.yaml).
+An example `docker-compose.yaml` file can be found [here](/examples/docker-compose.example.yaml).
 
 Modify the `docker-compose` file with parameters that suit your environment, then run:
 ```bash
@@ -424,25 +425,25 @@ Your `docker-compose.yaml` file is in the folder `/home/pi/dsmr`
 1. Create a folder `/home/pi/dsmr/plugins`
 2. Inside the folder `/home/pi/dsmr/plugins`, create a file `homewizard_p1.py` with the following contents (replace `1.2.3.4` with the Homewizard P1 meter IP address):
 
-    ```python
-    import requests
-    from django.dispatch import receiver
-    from dsmr_backend.signals import backend_called
-    import dsmr_datalogger.services.datalogger
+```python
+import requests
+from django.dispatch import receiver
+from dsmr_backend.signals import backend_called
+import dsmr_datalogger.services.datalogger
 
-    HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
-    HOMEWIZARD_TIMEOUT = 5
+HOMEWIZARD_ENDPOINT = 'http://1.2.3.4:80/api/v1/telegram'
+HOMEWIZARD_TIMEOUT = 5
 
-    @receiver(backend_called)
-    def handle_backend_called(**kwargs):
-        response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
+@receiver(backend_called)
+def handle_backend_called(**kwargs):
+    response = requests.get(HOMEWIZARD_ENDPOINT, timeout=HOMEWIZARD_TIMEOUT)
 
-        if response.status_code != 200:
-            print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
-            return
+    if response.status_code != 200:
+        print(' [!] HomeWizard plugin: v1 telegram endpoint failed (HTTP {}): {}'.format(response.status_code, response.text))
+        return
 
-        dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
-    ```
+    dsmr_datalogger.services.datalogger.telegram_to_reading(data=response.text)
+```
 
 ##### Docker Setup
 
@@ -633,6 +634,5 @@ Project inspired by the hard work and effort of [@dennissiemensma](https://githu
 #### Contact
 Created by [@xirixiz](https://github.com/xirixiz) - feel free to contact me!
 
-</font>
 
 ---
