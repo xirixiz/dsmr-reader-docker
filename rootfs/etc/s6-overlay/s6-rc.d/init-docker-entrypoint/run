@@ -9,10 +9,11 @@
 #---------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
-function _info() { printf "\\r[ \\033[00;34mINFO\\033[0m ] %s\\n" "$@"; }
-function _warn() { printf "\\r\\033[2K[ \\033[0;33mWARN\\033[0m ] %s\\n" "$@"; }
-function _error() { printf "\\r\\033[2K[ \\033[0;31mFAIL\\033[0m ] %s\\n" "$@"; }
-function _debug() { printf "\\r[ \\033[00;37mDBUG\\033[0m ] %s\\n" "$@"; }
+function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
+function _warn()  { printf "\r\033[2K[ \033[0;33mWARN\033[0m ] %s\n" "$@"; }
+function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
+function _debug() { printf "\r[ \033[00;37mDBUG\033[0m ] %s\n" "$@"; }
+function _progress() { printf "\r[ \033[00;34mINFO\033[0m ] %s" "$@"; }
 
 function _normalize_bool_env() {
     # normalizes an ENV var in place, defaults to false
@@ -59,19 +60,31 @@ function _pre_reqs() {
     fi
 
     _info "Ensure permissions..."
-    chown -R app:app /app /config /defaults
+    mkdir -p \
+      /defaults \
+      /run/nginx \
+      /var/www/dsmrreader/static
 
-    # Optional: only wipe .env if explicitly enabled
+    chown -R app:app /defaults \
+      /run/nginx \
+      /var/www/dsmrreader
+
+    touch /app/.env
+    chown app:app /app/.env
+
     if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-false}" == "true" ]]; then
         _info "Clean .env settings on container (re)start..."
         : > /app/.env
     else
-        # Ensure it exists, do not wipe
         touch /app/.env
     fi
 
     _normalize_all_enable_vars
     _detect_architecture
+
+    # Prepare runtime nginx snippet dirs (writable for app user)
+    mkdir -p /run/nginx/conf.d /run/nginx/server-snippets
+    chown -R app:app /run/nginx
 }
 
 function _detect_architecture() {
@@ -81,24 +94,12 @@ function _detect_architecture() {
 
     case "${arch}" in
         x86_64)
-            if [[ "${longbit}" == "32" ]]; then
-                _info "Using architecture: X32"
-            else
-                _info "Using architecture: X64"
-            fi
+            if [[ "${longbit}" == "32" ]]; then _info "Using architecture: X32"; else _info "Using architecture: X64"; fi
             ;;
-        armv7l)
-            _info "Using architecture: ARM"
-            ;;
-        aarch64)
-            _info "Using architecture: ARM64"
-            ;;
-        unknown)
-            _info "Using architecture: X64"
-            ;;
-        *)
-            _info "Using architecture: ${arch}"
-            ;;
+        armv7l) _info "Using architecture: ARM" ;;
+        aarch64) _info "Using architecture: ARM64" ;;
+        unknown) _info "Using architecture: X64" ;;
+        *) _info "Using architecture: ${arch}" ;;
     esac
 }
 
@@ -108,14 +109,9 @@ function _dsmr_datalogger_mode() {
         _error "DSMRREADER_OPERATION_MODE required value is incorrect. Exiting..."
         exit 1
     else
-        ################################################
-        ## STANDALONE
-        ################################################
         if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
             _info "Configuring DSMR Reader to run all processes in a single container with a serial or ipv4 datalogger..."
-            ################################################
-            ## STANDALONE - SERIAL
-            ################################################
+
             if [[ "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}" = serial ]]; then
                 _info "Using a serial connection for the DSMR Reader remote datalogger..."
                 if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}" || -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE}" || -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE}" ]]; then
@@ -136,9 +132,7 @@ function _dsmr_datalogger_mode() {
                     } >>/app/.env
                 fi
             fi
-            ################################################
-            ## STANDALONE - IPV4
-            ################################################
+
             if [[ "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}" = ipv4 ]]; then
                 _info "Using an ipv4 network socket for the datalogger..."
                 if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST}" || -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT}" ]]; then
@@ -154,16 +148,11 @@ function _dsmr_datalogger_mode() {
                 fi
             fi
         fi
-        ################################################
-        ## API_SERVER
-        ################################################
+
         if [[ "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
             _info "Configuring DSMR Reader to run without the datalogger process. A remote datalogger (api_client) is required..."
         fi
 
-        ################################################
-        ## API_CLIENT
-        ################################################
         if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
             _info "Configuring DSMR Reader to only start the api client datalogger (API_CLIENT), which sends the P1 telegrams to the server (API_SERVER)..."
             if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}" || -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS}" ]]; then
@@ -205,15 +194,15 @@ function _optional_settings() {
 function _check_db_availability() {
     _info "Verifying if the DSMR Reader web credential variables have been set..."
     if [[ -z "${DSMRREADER_ADMIN_USER}" ]] || [[ -z "${DSMRREADER_ADMIN_PASSWORD}" ]]; then
-        _error "DSMR Reader web credentials not set. Exiting..."
+        _error "DSMR Reader web credentials (DSMRREADER_ADMIN_USER or DSMRREADER_ADMIN_PASSWORD) not set. Exiting..."
         exit 1
     fi
     if [[ -n "${DJANGO_DATABASE_ENGINE}" ]]; then
         _info "Verifying database connectivity to host: ${DJANGO_DATABASE_HOST} with port: ${DJANGO_DATABASE_PORT}..."
         for i in {1..10}; do
             if ! nc -z "${DJANGO_DATABASE_HOST}" "${DJANGO_DATABASE_PORT}" > /dev/null 2>&1; then
+                _progress "Testing database connectivity: ${i} second(s) of 10 seconds..."
                 sleep 1
-                printf "\\rTesting database connectivity: %s second(s) of 10 seconds..." "$i"
                 if [[ $i == 10 ]]; then
                     _error "Database connectivity couldn't be verified! Please verify your settings. Exiting..."
                     exit 1
@@ -236,29 +225,24 @@ function _run_post_config() {
     /opt/venv/bin/python /app/manage.py dsmr_superuser
 }
 
-function _nginx_change_listen_port() {
-    if [[ -z "${ENABLE_NGINX_SSL}" ]]; then
-        if [[ -n "${NGINX_LISTEN_PORT}" ]]; then
-            _info "Changing the default internal NGINX listen port to ${NGINX_LISTEN_PORT}..."
-            sed -i "s/listen\s*80/listen ${NGINX_LISTEN_PORT}/g" /etc/nginx/conf.d/dsmr-webinterface.conf
-        fi
-    fi
+function _nginx_listen_port() {
+    mkdir -p /run/nginx/server-snippets
+    local port="${NGINX_LISTEN_PORT:-80}"
+    _info "NGINX listen port set to ${port}..."
+    printf 'listen %s;\n' "${port}" > /run/nginx/server-snippets/10-listen.conf
 }
 
 function _nginx_disable_access_logs() {
-    LOGCONF="/etc/nginx/conf.d/00-nginx-logging.conf"
-
+    mkdir -p /run/nginx/conf.d
     if [[ "${ENABLE_NGINX_ACCESS_LOGS}" = false ]]; then
-        _info "Disabling NGINX access logs via override config, keeping error logs via s6..."
-        cat > "${LOGCONF}" <<'EOF'
-# Docker override: disable access logs, keep error logs via s6
+        _info "Disabling NGINX access logs via override config..."
+        cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log off;
 error_log  /proc/self/fd/2 warn;
 EOF
     else
-        _info "Routing NGINX access and error logs via s6..."
-        cat > "${LOGCONF}" <<'EOF'
-# Docker override: route nginx logs via s6
+        _info "Routing NGINX access and error logs to stdout/stderr..."
+        cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log /proc/self/fd/1;
 error_log  /proc/self/fd/2 warn;
 EOF
@@ -266,123 +250,119 @@ EOF
 }
 
 function _nginx_ssl_configuration() {
-    _info "Checking for NGINX SSL configuration..."
-    if [[ -z "${NGINX_LISTEN_PORT}" ]]; then
-        if [[ -n "${ENABLE_NGINX_SSL}" ]]; then
-            if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
-                if [[ ! -f "/etc/ssl/private/fullchain.pem" ]] && [[ ! -f "/etc/ssl/private/privkey.pem" ]]; then
-                    _error "Make sure /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem are mounted in the Docker container and exist!"
-                    exit 1
-                else
-                    _info "Required files /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem exists."
-                fi
-                if grep -q "443" /etc/nginx/conf.d/dsmr-webinterface.conf; then
-                    _info "SSL has already been enabled..."
-                else
-                    sed -i '/listen\s*80/r '<(
-                        cat <<-END_HEREDOC
-          listen 443 ssl;
-          ssl_certificate /etc/ssl/private/fullchain.pem;
-          ssl_certificate_key /etc/ssl/private/privkey.pem;
-          ssl_protocols TLSv1.2 TLSv1.3;
-END_HEREDOC
-                    ) /etc/nginx/conf.d/dsmr-webinterface.conf
-                fi
-                if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-                    _info "NGINX SSL configured and enabled"
-                    return
-                else
-                    _error "NGINX configuration error"
-                    exit 1
-                fi
-            fi
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/20-ssl.conf
+
+    if [[ "${ENABLE_NGINX_SSL}" = true ]]; then
+        _info "Enabling NGINX SSL..."
+
+        if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
+            _error "SSL enabled but /etc/ssl/private/fullchain.pem and/or /etc/ssl/private/privkey.pem are missing!"
+            exit 1
         fi
+
+        cat > /run/nginx/server-snippets/20-ssl.conf <<'EOF'
+listen 443 ssl;
+ssl_certificate /etc/ssl/private/fullchain.pem;
+ssl_certificate_key /etc/ssl/private/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+EOF
+
+        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+            _info "NGINX SSL configured and enabled"
+        else
+            _error "NGINX configuration error"
+            nginx -c /etc/nginx/nginx.conf -t || true
+            exit 1
+        fi
+    else
+        _info "ENABLE_NGINX_SSL is disabled, nothing to configure."
     fi
-    _info "ENABLE_NGINX_SSL is disabled, nothing to see here. Continuing..."
 }
 
 function _generate_auth_configuration() {
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/30-auth.conf /run/nginx/htpasswd
+
     _info "Checking for HTTP AUTHENTICATION configuration..."
-    if [[ -n "${ENABLE_HTTP_AUTH}" ]]; then
-        if [[ "${ENABLE_HTTP_AUTH}" = true ]]; then
-            _info "ENABLE_HTTP_AUTH is enabled, let's secure this!"
-            canWeContinue=true
-            if [[ -z "${HTTP_AUTH_USERNAME}" ]]; then
-                _warn "Please provide a HTTP_AUTH_USERNAME"
-                canWeContinue=false
-            fi
-            if [[ -z "${HTTP_AUTH_PASSWORD}" ]]; then
-                _warn "Please provide a HTTP_AUTH_PASSWORD"
-                canWeContinue=false
-            fi
-            if [[ "${canWeContinue}" = false ]]; then
-                _error "Cannot generate a valid .htpasswd file, please check above warnings."
-                exit 1
-            fi
-            _info "Generating htpasswd..."
-            HTTP_AUTH_CRYPT_PASSWORD=$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")
-            printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${HTTP_AUTH_CRYPT_PASSWORD}" >/etc/nginx/htpasswd
-            _info "Done! Enabling the configuration in NGINX..."
-            sed -i "s/##    auth_basic/    auth_basic/" /etc/nginx/conf.d/dsmr-webinterface.conf
-            if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-                _info "HTTP AUTHENTICATION configured and enabled"
-                return
-            else
-                _error "NGINX configuration error"
-                exit 1
-            fi
+    if [[ "${ENABLE_HTTP_AUTH}" = true ]]; then
+        _info "ENABLE_HTTP_AUTH is enabled, generating htpasswd..."
+
+        if [[ -z "${HTTP_AUTH_USERNAME}" || -z "${HTTP_AUTH_PASSWORD}" ]]; then
+            _error "ENABLE_HTTP_AUTH is true but HTTP_AUTH_USERNAME and/or HTTP_AUTH_PASSWORD are missing."
+            exit 1
         fi
+
+        local crypt_pw
+        crypt_pw="$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")"
+        printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${crypt_pw}" > /run/nginx/htpasswd
+
+        cat > /run/nginx/server-snippets/30-auth.conf <<'EOF'
+auth_basic "Restricted application";
+auth_basic_user_file /run/nginx/htpasswd;
+EOF
+
+        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+            _info "HTTP AUTHENTICATION configured and enabled"
+        else
+            _error "NGINX configuration error"
+            nginx -c /etc/nginx/nginx.conf -t || true
+            exit 1
+        fi
+    else
+        _info "ENABLE_HTTP_AUTH is disabled, continuing..."
     fi
-    _info "ENABLE_HTTP_AUTH is disabled, nothing to see here. Continuing..."
 }
 
 function _generate_clientcert_auth_configuration() {
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/40-clientcert.conf
+
     _info "Checking for CLIENT CERTIFICATE AUTHENTICATION configuration..."
-    if [[ -n "${ENABLE_CLIENTCERT_AUTH}" ]]; then
-        if [[ "${ENABLE_CLIENTCERT_AUTH}" = true ]]; then
-            _info "ENABLE_CLIENTCERT_AUTH is enabled, let's secure this!"
-            canWeContinue=true
-            if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
-                _warn "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem"
-                canWeContinue=false
-            fi
-            if [[ "${canWeContinue}" = false ]]; then
-                _error "Sorry, something failed. Please check above warnings."
-                exit 1
-            fi
-            _info "Enabling the configuration in NGINX..."
-            sed -i '/server_name _;/a\\tssl_client_certificate /etc/nginx/client_cert/cacert.pem;\n\tssl_verify_client on;' /etc/nginx/conf.d/dsmr-webinterface.conf
-            if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
-                _info "Found CRL file, adding to configuration..."
-                sed -i '/server_name _;/a\\tssl_crl /etc/nginx/client_cert/ca.crl;' /etc/nginx/conf.d/dsmr-webinterface.conf
-            fi
-            if nginx -c /etc/nginx/nginx.conf -t 2>/dev/null; then
-                _info "CLIENT CERT AUTHENTICATION configured and enabled"
-                return
-            else
-                _error "NGINX configuration error!"
-                exit 1
-            fi
+    if [[ "${ENABLE_CLIENTCERT_AUTH}" = true ]]; then
+        _info "ENABLE_CLIENTCERT_AUTH is enabled, configuring client cert auth..."
+
+        if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
+            _error "Please map a CA.pem file to /etc/nginx/client_cert/cacert.pem"
+            exit 1
         fi
+
+        cat > /run/nginx/server-snippets/40-clientcert.conf <<'EOF'
+ssl_client_certificate /etc/nginx/client_cert/cacert.pem;
+ssl_verify_client on;
+EOF
+
+        if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
+            echo "ssl_crl /etc/nginx/client_cert/ca.crl;" >> /run/nginx/server-snippets/40-clientcert.conf
+        fi
+
+        if nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+            _info "CLIENT CERT AUTHENTICATION configured and enabled"
+        else
+            _error "NGINX configuration error!"
+            nginx -c /etc/nginx/nginx.conf -t || true
+            exit 1
+        fi
+    else
+        _info "ENABLE_CLIENTCERT_AUTH is disabled, continuing..."
     fi
-    _info "ENABLE_CLIENTCERT_AUTH is disabled, nothing to see here. Continuing..."
 }
 
 function _docker_secrets {
     if find /run/s6/container_environment -maxdepth 1 -name 'FILE__*' -print -quit | grep -q .; then
         _info "Enabling Docker secrets..."
         for FILENAME in /run/s6/container_environment/FILE__*; do
-                SECRETFILE=$(cat "${FILENAME}")
-                if [[ -f ${SECRETFILE} ]]; then
-                    FILESTRIP=${FILENAME//FILE__/}
-                    if [[ $(tail -n1 "${SECRETFILE}" | wc -l) != 0 ]]; then
-                        _info "Docker secret: ${FILENAME##*/} contains a trailing newline and may not work as expected!"
-                    fi
-                    cat "${SECRETFILE}" >"${FILESTRIP}"
-                    _info "Docker secret ${FILESTRIP##*/} set from ${FILENAME##*/}..."
-                else
-                    _info "Cannot find Docker secret in ${FILENAME##*/}..."
+            SECRETFILE=$(cat "${FILENAME}")
+            if [[ -f ${SECRETFILE} ]]; then
+                FILESTRIP=${FILENAME//FILE__/}
+                if [[ $(tail -n1 "${SECRETFILE}" | wc -l) != 0 ]]; then
+                    _info "Docker secret: ${FILENAME##*/} contains a trailing newline and may not work as expected!"
                 fi
+                cat "${SECRETFILE}" >"${FILESTRIP}"
+                _info "Docker secret ${FILESTRIP##*/} set from ${FILENAME##*/}..."
+            else
+                _info "Cannot find Docker secret in ${FILENAME##*/}..."
+            fi
         done
     fi
 }
@@ -411,7 +391,7 @@ if [[ "${DSMRREADER_OPERATION_MODE}" != api_client ]]; then
     _check_db_availability
     _iframe
     _run_post_config
-    _nginx_change_listen_port
+    _nginx_listen_port
     _nginx_disable_access_logs
     _generate_clientcert_auth_configuration
     _nginx_ssl_configuration

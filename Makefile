@@ -2,7 +2,7 @@ OUTPUT := output
 OUTPUT := $(abspath $(OUTPUT))
 
 IMAGE ?= dsmr_test_image
-DSMR_VERSION ?= 6.0rc7
+DSMR_VERSION ?= 6.0rc8
 PLATFORM ?= linux/amd64
 
 COMPOSE ?= podman compose
@@ -17,8 +17,10 @@ build:
 		--platform="$(PLATFORM)" \
 		-t "$(IMAGE)" .
 
-test: build
-	exec podman run --rm --name dsmr --network host "$(IMAGE)"
+test: build container-up
+
+container-run:
+	exec podman run --rm --name dsmr --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
 
 container-up:
 	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up

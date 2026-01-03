@@ -1,8 +1,10 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
 
+function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
+
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    echo "Starting DSMR Reader - webinterface..."
+    _info "Starting DSMR Reader - webinterface..."
     cd /app || exit
     s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi --timeout 120 --max-requests 1000 --bind unix:/tmp/gunicorn--dsmr_webinterface.socket
 else

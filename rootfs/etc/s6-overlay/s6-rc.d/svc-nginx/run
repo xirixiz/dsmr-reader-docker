@@ -1,20 +1,34 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
 
+function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
+function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
+function _progress() { printf "\r[ \033[00;34mINFO\033[0m ] %s" "$@"; }
+
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     for i in {1..10}; do
-        if [ -e "/tmp/gunicorn--dsmr_webinterface.socket" ]; then
-            echo "Starting DSMR Reader - nginx..."
+        if [[ -e "/tmp/gunicorn--dsmr_webinterface.socket" ]]; then
+            _info "Starting DSMR Reader - nginx..."
             sleep 2
-            cd /app || exit
-            /usr/sbin/nginx -g 'daemon off;'
-        else
-            sleep 1
-            printf "\\rTesting webservice socket connectivity: %s second(s) of 10 seconds..." "$i"
-            if [[ $i == 10 ]]; then
-                echo "Webinterface socket couldn't be verified! Please verify the webinterface log files. Exiting..."
+            cd /app || exit 1
+
+            if ! nginx -c /etc/nginx/nginx.conf -t; then
+                _error "NGINX configuration test failed. Exiting..."
                 exit 1
             fi
+
+            mkdir -p /run/nginx/tmp
+            chown -R 803:803 /run/nginx || true
+            chmod -R 755 /run/nginx || true
+
+            exec s6-setuidgid app /usr/sbin/nginx -g 'daemon off; pid /tmp/nginx.pid;'
+        fi
+
+        _progress "Testing webservice socket connectivity: ${i} second(s) of 10 seconds..."
+        sleep 1
+        if [[ $i == 10 ]]; then
+            _error "Webinterface socket couldn't be verified. Exiting..."
+            exit 1
         fi
     done
 else
