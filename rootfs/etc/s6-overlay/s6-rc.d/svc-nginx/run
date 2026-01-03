@@ -16,12 +16,7 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
                 _error "NGINX configuration test failed. Exiting..."
                 exit 1
             fi
-
-            mkdir -p /run/nginx/tmp
-            chown -R 803:803 /run/nginx || true
-            chmod -R 755 /run/nginx || true
-
-            exec s6-setuidgid app /usr/sbin/nginx -g 'daemon off; pid /tmp/nginx.pid;'
+            exec /usr/sbin/nginx -g 'daemon off;'
         fi
 
         _progress "Testing webservice socket connectivity: ${i} second(s) of 10 seconds..."
