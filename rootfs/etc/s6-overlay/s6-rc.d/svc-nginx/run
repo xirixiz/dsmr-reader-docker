@@ -7,7 +7,7 @@ function _progress() { printf "\r[ \033[00;34mINFO\033[0m ] %s" "$@"; }
 
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     for i in {1..10}; do
-        if [[ -e "/tmp/gunicorn--dsmr_webinterface.socket" ]]; then
+        if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
             _info "Starting DSMR Reader - nginx..."
             sleep 2
             cd /app || exit 1
