@@ -7,7 +7,7 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
     _info "Starting DSMR Reader - webinterface..."
     cd /app || exit
     exec s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi:application \
-        --bind unix:/tmp/gunicorn--dsmr_webinterface.socket \
+        --bind unix:/run/gunicorn/dsmr_webinterface.socket \
         --workers 2 \
         --threads 2 \
         --worker-class gthread \

@@ -245,12 +245,16 @@ function _pre_reqs() {
         /defaults \
         /var/www/dsmrreader \
         /run/nginx/conf.d \
-        /run/nginx/server-snippets
+        /run/nginx/server-snippets \
+        /run/gunicorn
 
     chown -R app:app \
         /defaults \
         /var/www/dsmrreader \
-        /run/nginx
+        /run/nginx \
+        /run/gunicorn
+
+    chmod 755 /run/gunicorn
 
     # Handle .env file
     if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-true}" == "true" ]]; then
