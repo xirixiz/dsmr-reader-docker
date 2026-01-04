@@ -6,7 +6,7 @@ function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
     _info "Starting DSMR Reader - webinterface..."
     cd /app || exit
-    exec s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi:application \
+    exec s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
         --bind unix:/tmp/gunicorn--dsmr_webinterface.socket \
         --workers 2 \
         --threads 2 \
@@ -19,5 +19,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
         --error-logfile -
 else
     _info "svc-dsmr-webinterface disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    sleep infinity
+    exec sleep infinity
 fi
