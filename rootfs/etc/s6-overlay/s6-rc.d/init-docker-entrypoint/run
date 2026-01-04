@@ -216,7 +216,7 @@ function _validate_api_client_config() {
 }
 
 function _check_devices() {
-    _info "Fixing /dev/ttyUSB* permissions..."
+    _info "Fixing /dev/ttyUSB* permissions"
 
     local found=0
     for device in /dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM*; do
@@ -271,7 +271,7 @@ function _pre_reqs() {
     _check_devices
 
     # Create required directories with proper permissions
-    _info "Setting up directories and permissions..."
+    _info "Setting up directories and permissions"
     mkdir -p \
         /defaults \
         /var/www/dsmrreader \
@@ -289,7 +289,7 @@ function _pre_reqs() {
 
     # Handle .env file
     if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-true}" == "true" ]]; then
-        _info "Resetting .env file on startup..."
+        _info "Resetting .env file on startup"
         : > /app/.env
     else
         touch /app/.env
@@ -409,7 +409,7 @@ function _optional_settings() {
 }
 
 function _check_db_availability() {
-    _info "Checking database credentials..."
+    _info "Checking database credentials"
     _validate_credentials
 
     local host="${DJANGO_DATABASE_HOST}"
@@ -429,8 +429,7 @@ function _check_db_availability() {
 
             return 0
         fi
-
-        _progress "Waiting for database... (${i}/${max_attempts})"
+        _info "Waiting for database... (${i}/${max_attempts})"
         sleep 1
     done
 
@@ -440,7 +439,7 @@ function _check_db_availability() {
 }
 
 function _run_post_config() {
-    _info "Running Django post-configuration..."
+    _info "Running Django post-configuration"
 
     if ! /opt/venv/bin/python /app/manage.py migrate --noinput; then
         _error "Database migration failed"
@@ -495,7 +494,7 @@ function _nginx_ssl_configuration() {
         return 0
     fi
 
-    _info "Enabling NGINX SSL..."
+    _info "Enabling NGINX SSL"
 
     if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
         _error "SSL certificates not found!"
@@ -530,7 +529,7 @@ function _generate_auth_configuration() {
         return 0
     fi
 
-    _info "Enabling HTTP basic authentication..."
+    _info "Enabling HTTP basic authentication"
 
     if [[ -z "${HTTP_AUTH_USERNAME:-}" || -z "${HTTP_AUTH_PASSWORD:-}" ]]; then
         _error "HTTP_AUTH_USERNAME and HTTP_AUTH_PASSWORD must be set when ENABLE_HTTP_AUTH=true"
@@ -565,7 +564,7 @@ function _generate_clientcert_auth_configuration() {
         return 0
     fi
 
-    _info "Enabling client certificate authentication..."
+    _info "Enabling client certificate authentication"
 
     if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
         _error "Client certificate CA not found at /etc/nginx/client_cert/cacert.pem"
@@ -597,7 +596,7 @@ function _docker_secrets() {
         return 0
     fi
 
-    _info "Processing Docker secrets..."
+    _info "Processing Docker secrets"
 
     for FILENAME in /run/s6/container_environment/FILE__*; do
         [[ -f "${FILENAME}" ]] || continue
@@ -626,7 +625,7 @@ function _iframe() {
         return 0
     fi
 
-    _info "Enabling IFrame support..."
+    _info "Enabling IFrame support"
 
     if ! grep -q "X_FRAME_OPTIONS" /app/dsmrreader/settings.py 2>/dev/null; then
         sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /app/dsmrreader/settings.py
@@ -637,7 +636,7 @@ function _iframe() {
 }
 
 function _cleandb() {
-    _info "Running database vacuum..."
+    _info "Running database vacuum cleaning"
 
     if [[ -x /app/cleandb.sh ]]; then
         /app/cleandb.sh
@@ -653,7 +652,7 @@ function _cleandb() {
 function main() {
     [[ "${DEBUG}" == "true" ]] && set -x
 
-    _info "Starting DSMR Reader initialization..."
+    _info "Starting DSMR Reader initialization"
 
     _pre_reqs
 

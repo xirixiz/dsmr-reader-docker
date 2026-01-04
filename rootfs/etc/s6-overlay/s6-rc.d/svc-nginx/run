@@ -3,26 +3,26 @@
 
 function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
 function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
-function _progress() { printf "\r[ \033[00;34mINFO\033[0m ] %s" "$@"; }
 
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    for i in {1..10}; do
+    local max_attempts=10
+    for i in $(seq 1 ${max_attempts}); do
         if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
-            _info "Starting DSMR Reader - nginx..."
+            _info "Starting DSMR Reader - nginx"
             sleep 2
             cd /app || exit 1
 
             if ! nginx -c /etc/nginx/nginx.conf -t; then
-                _error "NGINX configuration test failed. Exiting..."
+                _error "NGINX configuration test failed"
                 exit 1
             fi
             exec /usr/sbin/nginx -g 'daemon off;'
         fi
 
-        _progress "Testing webservice socket connectivity: ${i} second(s) of 10 seconds..."
+        _info "Waiting for webinterface socket... (${i}/${max_attempts})"
         sleep 1
-        if [[ $i == 10 ]]; then
-            _error "Webinterface socket couldn't be verified. Exiting..."
+        if [[ $i == ${max_attempts} ]]; then
+            _error "Webinterface connection failed after ${max_attempts} attempts"
             exit 1
         fi
     done
