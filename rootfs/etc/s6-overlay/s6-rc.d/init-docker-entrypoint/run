@@ -224,7 +224,7 @@ function _check_devices() {
         [[ -e "${device}" ]] || continue
 
         _info "Setting permissions on ${device}"
-        if chmod 666 "${device}" 2>/dev/null; then
+        if chmod 660 "${device}" 2>/dev/null; then
             chown app:dialout "${device}" 2>/dev/null || true
             ((found++))
         else
