@@ -12,31 +12,6 @@ IFS=$'\n\t'
 #---------------------------------------------------------------------------------------------------------------------------
 : "${DEBUG:=false}"
 
-# ------------------------------------------------------------------------------
-# Default Django / Database environment (production-safe)
-# ------------------------------------------------------------------------------
-
-: "${DSMRREADER_OPERATION_MODE:=standalone}"
-: "${DJANGO_DATABASE_ENGINE:=django.db.backends.postgresql}"
-: "${DJANGO_DATABASE_HOST:=dsmrdb}"
-: "${DJANGO_DATABASE_PORT:=5432}"
-: "${DJANGO_DATABASE_NAME:=dsmrreader}"
-: "${DJANGO_DATABASE_USER:=dsmrreader}"
-
-# Secrets must EXIST but may be empty (for set -u safety)
-: "${DJANGO_DATABASE_PASSWORD:=}"
-: "${DJANGO_SECRET_KEY:=}"
-
-export \
-  DSMRREADER_OPERATION_MODE \
-  DJANGO_DATABASE_ENGINE \
-  DJANGO_DATABASE_HOST \
-  DJANGO_DATABASE_PORT \
-  DJANGO_DATABASE_NAME \
-  DJANGO_DATABASE_USER \
-  DJANGO_DATABASE_PASSWORD \
-  DJANGO_SECRET_KEY
-
 #---------------------------------------------------------------------------------------------------------------------------
 # LOGGING FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -122,16 +97,36 @@ function _validate_credentials() {
     if [[ -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
         _error "DSMRREADER_ADMIN_PASSWORD is not set"
         ((errors++))
-    elif [[ "${DSMRREADER_ADMIN_PASSWORD}" == "dsmrreader" ]]; then
+    elif [[ "${DSMRREADER_ADMIN_PASSWORD}" == "admin" ]]; then
         _warn "Default DSMRREADER_ADMIN_PASSWORD detected - this is a security risk! Please set a secure password"
     fi
 
     # Check database credentials
+    if [[ -z "${DJANGO_DATABASE_NAME:-}" ]]; then
+        _error "DJANGO_DATABASE_NAME is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_HOST:-}" ]]; then
+        _error "DJANGO_DATABASE_HOST is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_USER:-}" ]]; then
+        _error "DJANGO_DATABASE_USER is not set"
+        ((errors++))
+    fi
+
     if [[ -z "${DJANGO_DATABASE_PASSWORD:-}" ]]; then
         _error "DJANGO_DATABASE_PASSWORD is not set"
         ((errors++))
     elif [[ "${DJANGO_DATABASE_PASSWORD}" == "dsmrreader" ]]; then
         _warn "Using default DJANGO_DATABASE_PASSWORD - this is a security risk! Please set a secure password"
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_PORT:-}" ]]; then
+        _error "DJANGO_DATABASE_PORT is not set"
+        ((errors++))
     fi
 
     if [[ -z "${DJANGO_SECRET_KEY:-}" ]]; then
@@ -141,7 +136,18 @@ function _validate_credentials() {
         _warn "Default DJANGO_SECRET_KEY detected - this is a security risk! Please set a secure password"
     fi
 
-    [[ $errors -gt 0 ]] && exit 1
+    # Check operation mode
+    if [[ -z "${DSMRREADER_OPERATION_MODE:-}" ]]; then
+        _error "DSMRREADER_OPERATION_MODE is not set"
+        ((errors++))
+    fi
+
+    if [[ $errors -gt 0 ]]; then
+        _error "Missing ${errors} required environment variable(s)"
+        _error "Please ensure all mandatory variables are set in your docker-compose.yml or docker run command"
+        exit 1
+    fi
+
     return 0
 }
 

@@ -25,9 +25,6 @@ services:
     restart: always
     depends_on:
       - dsmrdb
-    cap_add:
-      - NET_BIND_SERVICE
-      - NET_ADMIN
     networks: [dsmrnet]
     ports:
       - "7980:80"
@@ -37,14 +34,14 @@ services:
     environment:
       ENABLE_VACUUM_DB_ON_STARTUP: true
       DJANGO_DATABASE_NAME: dsmrreader
-      DJANGO_DATABASE_HOST: dsmrdb
+      # DJANGO_DATABASE_HOST: dsmrdb
       DJANGO_DATABASE_USER: dsmrreader
       DJANGO_DATABASE_PASSWORD: dsmrreader
       DJANGO_SECRET_KEY: dsmrreader
       DJANGO_DATABASE_PORT: 5432
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
-      DSMRREADER_OPERATION_MODE: standalone
+      # DSMRREADER_OPERATION_MODE: standalone
 
 networks:
   dsmrnet:
