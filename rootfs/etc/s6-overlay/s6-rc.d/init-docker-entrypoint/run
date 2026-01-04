@@ -121,7 +121,7 @@ function _validate_credentials() {
         _error "DJANGO_DATABASE_PASSWORD is not set"
         ((errors++))
     elif [[ "${DJANGO_DATABASE_PASSWORD}" == "dsmrreader" ]]; then
-        _warn "Using default DJANGO_DATABASE_PASSWORD - this is a security risk! Please set a secure password"
+        _warn "Default DJANGO_DATABASE_PASSWORD detected - this is a security risk! Please set a secure password"
     fi
 
     if [[ -z "${DJANGO_DATABASE_PORT:-}" ]]; then
@@ -215,6 +215,11 @@ function _validate_api_client_config() {
     return 0
 }
 
+function _check_device() {
+  _info "Fixing /dev/ttyUSB* security..."
+  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+}
+
 #---------------------------------------------------------------------------------------------------------------------------
 # SETUP FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -244,6 +249,7 @@ function _pre_reqs() {
 
     _normalize_all_enable_vars
     _detect_architecture
+    _check_device
 
     # Create required directories with proper permissions
     _info "Setting up directories and permissions..."
