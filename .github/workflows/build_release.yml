@@ -253,7 +253,7 @@ jobs:
             DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
             DOCKER_TARGET_RELEASE=${{ steps.docker_release.outputs.release }}
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-to: type=gha,mode=inline
           provenance: false
 
       ################################################
