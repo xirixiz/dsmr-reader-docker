@@ -5,7 +5,7 @@ function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
 function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
 
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    local max_attempts=10
+    max_attempts=10
     for i in $(seq 1 ${max_attempts}); do
         if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
             _info "Starting DSMR Reader - nginx"
