@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dsmr_version:
-        description: "Optional DSMR Reader version (e.g. v6.0rc7, 6.0rc7, 6.0.0). Leave empty to auto-detect."
+        description: "Optional DSMR Reader version (e.g. v6.0rc8, 6.0rc8, 6.0.0). Leave empty to auto-detect."
         required: false
         default: ""
       architectures:
