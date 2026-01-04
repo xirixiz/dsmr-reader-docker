@@ -136,9 +136,9 @@ function _validate_operation_mode() {
 }
 
 function _validate_serial_config() {
-    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
+    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT:-}"
 
-    if [[ -z "${port:-}" ]]; then
+    if [[ -z "${port}" ]]; then
         _error "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT is not set"
         return 1
     fi
@@ -228,7 +228,7 @@ function _pre_reqs() {
         /run/nginx
 
     # Handle .env file
-    if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-false}" == "true" ]]; then
+    if [[ "${ENABLE_RESET_ENV_ON_STARTUP:-true}" == "true" ]]; then
         _info "Resetting .env file on startup..."
         : > /app/.env
     else
@@ -240,7 +240,7 @@ function _pre_reqs() {
 }
 
 function _configure_serial_port() {
-    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
+    local port="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT:-}"
 
     _info "Configuring serial port: ${port}"
 
@@ -266,23 +266,26 @@ function _configure_serial_port() {
 
 function _dsmr_datalogger_mode() {
     _validate_operation_mode
-
     local mode="${DSMRREADER_OPERATION_MODE}"
 
     case "${mode}" in
         standalone)
-            _info "Configuring standalone mode with datalogger..."
+            _info "Standalone mode: local datalogger enabled"
 
-            local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
+            # In standalone mode DSMR Reader can use configuration stored in the database.
+            # Only write REMOTE_DATALOGGER settings to /app/.env when user explicitly provided them.
+            local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
+
+            if [[ -z "${input_method}" ]]; then
+                _info "No DSMRREADER_REMOTE_DATALOGGER_* overrides provided; using configuration from the database/UI"
+                return 0
+            fi
 
             case "${input_method}" in
                 serial)
-                    _info "Using serial connection for datalogger"
+                    _info "Using serial overrides for datalogger"
 
-                    if ! _validate_serial_config; then
-                        exit 1
-                    fi
-
+                    _validate_serial_config || exit 1
                     _configure_serial_port
 
                     cat >> /app/.env <<EOF
@@ -290,16 +293,14 @@ DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=${DSMRREADER_REMOTE_DATALOGGER_INPUT_M
 DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}
 DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE}
 DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE}
-DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY}
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY:-N}
 EOF
                     ;;
 
                 ipv4)
-                    _info "Using IPv4 network socket for datalogger"
+                    _info "Using IPv4 overrides for datalogger"
 
-                    if ! _validate_network_config; then
-                        exit 1
-                    fi
+                    _validate_network_config || exit 1
 
                     cat >> /app/.env <<EOF
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}
@@ -317,15 +318,13 @@ EOF
             ;;
 
         api_server)
-            _info "Configuring API server mode (no local datalogger)"
+            _info "API server mode: no local datalogger"
             ;;
 
         api_client)
-            _info "Configuring API client mode (remote datalogger only)"
+            _info "API client mode: remote datalogger only"
 
-            if ! _validate_api_client_config; then
-                exit 1
-            fi
+            _validate_api_client_config || exit 1
 
             cat >> /app/.env <<EOF
 DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS}

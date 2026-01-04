@@ -118,6 +118,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV VENV_PATH=/opt/venv
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Copy compiled dependencies
 COPY --from=builder /opt/venv /opt/venv
@@ -138,43 +140,23 @@ ENV S6_READ_ONLY_ROOT=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # System Environment
-ENV PS1="\$(whoami)@dsmr_reader:\$(pwd)\\$ " \
-    TERM="xterm" \
+ENV TERM="xterm" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Django Database Configuration
-ENV DJANGO_DATABASE_ENGINE="django.db.backends.postgresql" \
-    DJANGO_DATABASE_NAME="dsmrreader" \
-    DJANGO_DATABASE_USER="dsmrreader" \
-    DJANGO_DATABASE_PASSWORD="" \
-    DJANGO_SECRET_KEY="" \
-    DJANGO_DATABASE_HOST="dsmrdb" \
-    DJANGO_DATABASE_PORT="5432"
-
 # DSMR Reader Configuration
-ENV DSMRREADER_ADMIN_USER="admin" \
-    DSMRREADER_ADMIN_PASSWORD="" \
-    DSMRREADER_OPERATION_MODE="standalone" \
-    DSMRREADER_LOGLEVEL="ERROR" \
+ENV DSMRREADER_LOGLEVEL="ERROR" \
     DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="true"
 
 # Feature Flags
 ENV ENABLE_NGINX_ACCESS_LOGS="false" \
-    ENABLE_VACUUM_DB_ON_STARTUP="false" \
     ENABLE_NGINX_SSL="false" \
+    ENABLE_NGINX_ENABLE_HSTS="false" \
+    ENABLE_NGINX_SSL_REDIRECT="false" \
     ENABLE_HTTP_AUTH="false" \
     ENABLE_CLIENTCERT_AUTH="false" \
-    ENABLE_IFRAME="false"
-
-# Datalogger Configuration
-ENV DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD="serial" \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT="/dev/ttyUSB0" \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE="115200" \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE="8" \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY="N" \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST="127.0.0.1" \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT="23"
+    ENABLE_IFRAME="false" \
+    ENABLE_VACUUM_DB_ON_STARTUP="true"
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -182,7 +164,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     jq \
-    nginx \
+    nginx-light \
     openssl \
     tzdata \
     netcat-openbsd \
@@ -229,12 +211,5 @@ RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 # Enhanced healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
-
-# Container metadata
-LABEL org.opencontainers.image.title="DSMR Reader" \
-      org.opencontainers.image.description="DSMR Reader - Smart Meter Data Logger" \
-      org.opencontainers.image.source="https://github.com/dsmrreader/dsmr-reader" \
-      org.opencontainers.image.version="${DOCKER_TARGET_RELEASE}" \
-      org.opencontainers.image.vendor="DSMR Reader Project"
 
 ENTRYPOINT ["/init"]
