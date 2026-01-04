@@ -6,7 +6,8 @@ function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
 if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
     _info "Starting DSMR Reader - datalogger..."
     cd /app || exit
-    s6-setuidgid app /opt/venv/bin/python -u /app/manage.py dsmr_datalogger
+    exec s6-setuidgid app /opt/venv/bin/python -u /app/manage.py dsmr_datalogger
 else
+    _info "svc-dsmr-datalogger disabled for mode ${DSMRREADER_OPERATION_MODE}"
     sleep infinity
 fi

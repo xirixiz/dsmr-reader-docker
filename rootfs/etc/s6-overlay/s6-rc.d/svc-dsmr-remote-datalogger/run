@@ -1,12 +1,12 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
-
 function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
 
 if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
     _info "Starting DSMR Reader - remote datalogger (api_client)..."
     cd /app || exit
-    s6-setuidgid app /opt/venv/bin/python -u /app/dsmr_datalogger_api_client.py
+    exec s6-setuidgid app /opt/venv/bin/python -u /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 else
+    _info "svc-dsmr-remote-datlogger disabled for mode ${DSMRREADER_OPERATION_MODE}"
     sleep infinity
 fi

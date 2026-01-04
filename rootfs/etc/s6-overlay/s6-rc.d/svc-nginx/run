@@ -27,5 +27,6 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
         fi
     done
 else
+    _info "svc-nginx disabled for mode ${DSMRREADER_OPERATION_MODE}"
     sleep infinity
 fi
