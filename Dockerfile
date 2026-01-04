@@ -211,7 +211,6 @@ RUN rm -f /etc/nginx/sites-enabled/default
 
 # Create app user with proper permissions
 RUN useradd -r -u 803 -U -d /app -s /usr/sbin/nologin app && \
-    groupadd -g 20 dialout || true && \
     usermod -a -G dialout,audio app && \
     mkdir -p /run/nginx/tmp /run/nginx/conf.d /run/nginx/server-snippets && \
     chown -R app:app /run/nginx && \
