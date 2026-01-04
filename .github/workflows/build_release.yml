@@ -11,6 +11,11 @@ on:
         description: "Target architectures (comma-separated: amd64,arm64,armv7). Leave empty for all."
         required: false
         default: ""
+      skip_tests:
+        description: "Skip test job (not recommended for production)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: docker-build-${{ github.ref }}
@@ -248,49 +253,89 @@ jobs:
             DSMR_VERSION=${{ steps.dsmr_version.outputs.version }}
             DOCKER_TARGET_RELEASE=${{ steps.docker_release.outputs.release }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
           provenance: false
 
       ################################################
-      # METRICS & SUMMARY
+      # POST-BUILD SUMMARY
       ################################################
-      - name: "📊 Generate build summary"
-        if: always()
+      - name: "📊 Build Summary"
+        shell: bash
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-          ## 🐳 Docker Build Summary
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          ## 🎉 Docker Build Complete
 
-          | Metric | Value |
-          |--------|-------|
-          | **DSMR Version** | `${{ steps.dsmr_version.outputs.version }}` |
-          | **Docker Release** | `${{ steps.docker_release.outputs.release }}` |
-          | **Branch** | `${{ steps.branch_guard.outputs.branch }}` |
-          | **Platforms** | `${{ steps.docker_platforms.outputs.platforms }}` |
-          | **Build Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |
-          | **Image Digest** | `${{ steps.docker_build.outputs.digest }}` |
-          | **Run Number** | `#${{ github.run_number }}` |
-          | **Triggered By** | @${{ github.actor }} |
+          ### Build Information
+          - **DSMR Version**: ${{ steps.dsmr_version.outputs.version }}
+          - **Docker Release**: ${{ steps.docker_release.outputs.release }}
+          - **Platforms**: ${{ steps.docker_platforms.outputs.platforms }}
+          - **Branch**: ${{ steps.branch_guard.outputs.branch }}
+          - **Total Size**: ${{ steps.size_tracking.outputs.total_size_mb }} MB
 
-          ### 🏷️ Published Tags
-          EOF
-
-          echo "${{ steps.docker_tags.outputs.tags }}" | while IFS= read -r tag; do
-            echo "- \`${DOCKER_TARGET_REPO}:${tag}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- \`ghcr.io/${DOCKER_TARGET_REPO}:${tag}\`" >> $GITHUB_STEP_SUMMARY
-          done
-
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-
-          ### 📦 Pull Commands
-          ```bash
-          docker pull ${{ env.DOCKER_TARGET_REPO }}:${{ steps.dsmr_version.outputs.version }}
-          # or
-          docker pull ghcr.io/${{ env.DOCKER_TARGET_REPO }}:${{ steps.dsmr_version.outputs.version }}
+          ### Published Tags
           ```
+          ${{ steps.meta.outputs.tags }}
+          ```
+
+          ### Image Digest
+          ```
+          ${{ steps.build.outputs.digest }}
+          ```
+
+          ### Registries
+          - 🐳 [Docker Hub](https://hub.docker.com/r/${{ env.DOCKER_TARGET_REPO }})
+          - 📦 [GitHub Container Registry](https://github.com/${{ github.repository }}/pkgs/container/${{ env.DOCKER_TARGET_REPO }})
+
+          ### Next Steps
+          - Images pushed successfully
+          - Running tests before final approval
+          - Security scanning in progress
           EOF
 
-      - name: "📈 Report build metrics"
-        if: success()
-        run: |
-          echo "::notice title=Build Complete::Successfully built DSMR Reader v${{ steps.dsmr_version.outputs.version }} for ${{ steps.docker_platforms.outputs.platforms }}"
-          echo "::notice title=Image Digest::${{ steps.docker_build.outputs.digest }}"
+  ################################################
+  # SECURITY SCANNING
+  ################################################
+  security_scan:
+    runs-on: ubuntu-latest
+    needs: [build_release]
+    if: |
+      github.event.inputs.skip_tests != 'true' &&
+      needs.build_release.result == 'success'
+
+    steps:
+      - name: "🔓 Docker: Login (Docker Hub)"
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "🔍 Run Trivy vulnerability scanner"
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_TARGET_REPO }}:${{ needs.build_release.outputs.branch == 'development' && 'development' || 'latest' }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # Don't fail on vulnerabilities, just report
+
+      - name: "📤 Upload Trivy results to GitHub Security"
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: "📊 Generate vulnerability report"
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_TARGET_REPO }}:${{ needs.build_release.outputs.branch == 'development' && 'development' || 'latest' }}
+          format: 'table'
+          output: 'trivy-report.txt'
+
+      - name: "💾 Upload vulnerability report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-${{ github.run_number }}
+          path: trivy-report.txt
+          retention-days: 90

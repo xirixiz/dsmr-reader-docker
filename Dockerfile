@@ -140,29 +140,39 @@ ENV S6_READ_ONLY_ROOT=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # System Environment
-ENV TERM="xterm" \
+ENV TERM=xterm \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # DSMR Reader Configuration
-ENV DSMRREADER_LOGLEVEL="ERROR" \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS="true"
+ENV DSMRREADER_LOGLEVEL=WARNING \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=true
+
+# DJANGO Configuration
+ENV DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
+    DJANGO_DATABASE_NAME=dsmrreader \
+    DJANGO_DATABASE_USER=dsmrreader \
+    DJANGO_DATABASE_PASSWORD="" \
+    DJANGO_SECRET_KEY="" \
+    DJANGO_DATABASE_HOST=dsmrdb \
+    DJANGO_DATABASE_PORT=5432
 
 # Feature Flags
-ENV ENABLE_NGINX_ACCESS_LOGS="false" \
-    ENABLE_NGINX_SSL="false" \
-    ENABLE_NGINX_ENABLE_HSTS="false" \
-    ENABLE_NGINX_SSL_REDIRECT="false" \
-    ENABLE_HTTP_AUTH="false" \
-    ENABLE_CLIENTCERT_AUTH="false" \
-    ENABLE_IFRAME="false" \
-    ENABLE_VACUUM_DB_ON_STARTUP="true"
+ENV ENABLE_NGINX_ACCESS_LOGS=false \
+    ENABLE_NGINX_SSL=false \
+    ENABLE_NGINX_ENABLE_HSTS=false \
+    ENABLE_NGINX_SSL_REDIRECT=false \
+    ENABLE_HTTP_AUTH=false \
+    ENABLE_CLIENTCERT_AUTH=false \
+    ENABLE_IFRAME=false \
+    ENABLE_VACUUM_DB_ON_STARTUP=true
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
     curl \
+    procps \
     jq \
     nginx-light \
     openssl \

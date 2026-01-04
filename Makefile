@@ -11,7 +11,7 @@ COMPOSE_FILE ?= container-compose-development.yaml
 .PHONY: build test podman-up podman-down shell \
         clean-image clean-stages clean-build-cache clean-volumes clean
 
-build:
+build: clean-containers
 	exec podman build --pull --rm --format docker \
 		--build-arg DSMR_VERSION="$(DSMR_VERSION)" \
 		--platform="$(PLATFORM)" \
@@ -19,14 +19,13 @@ build:
 
 test: build container-up
 
-container-run:
+container-run: clean-containers
 	exec podman run --rm --name dsmr --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
 
-container-up:
+container-up: clean-containers
 	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up
 
-container-down:
-	exec $(COMPOSE) -f "$(COMPOSE_FILE)" down
+container-down: clean-containers
 
 shell:
 	exec podman exec -ti dsmr bash

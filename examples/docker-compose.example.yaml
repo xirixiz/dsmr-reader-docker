@@ -1,72 +1,127 @@
-version: '3'
+# --------------------------------------------------------------------
+# DSMR Reader + PostgreSQL (Docker / Podman Compose)
+# --------------------------------------------------------------------
 
 services:
+  # ------------------------------------------------------------
+  # PostgreSQL database for DSMR Reader
+  # ------------------------------------------------------------
   dsmrdb:
-    # When using Postgres, release 14.x, 15.x, 16.x and 17.x are supported only
-    # due to the limited availability of client packages, especially for arm32v7
     image: postgres:17-alpine
     container_name: dsmrdb
-    restart: always
-    volumes:
-      # Future heads up: PostgreSQL version 18 requires a different volume mapping: /var/lib/postgresql/18/docker
-      - ./dsmrdb:/var/lib/postgresql/data
-    environment:
-      - TZ=Europe/Amsterdam
-      - PG_TZ=Europe/Amsterdam
-      - POSTGRES_USER=dsmrreader
-      - POSTGRES_PASSWORD=dsmrreader
-      - POSTGRES_DB=dsmrreader
-    healthcheck:
-      # Must match below with POSTGRES_USER (-U) and POSTGRES_DB (-d) above
-      test: [ "CMD-SHELL", "pg_isready -U dsmrreader -d dsmrreader" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
-  dsmr:
-    # This will always use the latest minor release within the major DSMR-reader
-    # version specified below (e.g. "dsmr-reader-docker:6" for DSMR-reader v6.x).
-    image: ghcr.io/xirixiz/dsmr-reader-docker:6
-    depends_on:
-      dsmrdb:
-        condition: service_healthy
-    container_name: dsmr
-    links:
-      - dsmrdb
-    cap_add:
-      - NET_ADMIN
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./dsmr_backups:/app/backups
+    # Automatically restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Timezone configuration
     environment:
-      - TZ=Europe/Amsterdam
-      - DJANGO_TIME_ZONE=Europe/Amsterdam
-      - VIRTUAL_HOST=localhost
-      - FILE__SECRET=/run/secrets/a_secret_file
-      # Set a random value for DJANGO_SECRET_KEY. E.g. by using https://www.lastpass.com/features/password-generator - 50 characters and NO symbols
-      - DJANGO_SECRET_KEY=
-      # Set an admin interface password to your liking - make it a extra strong one if you host DSMR-reader publicly facing the Internet
-      - DSMRREADER_ADMIN_PASSWORD=
+      TZ: Europe/Amsterdam
+      PG_TZ: Europe/Amsterdam
+
+      # Database initialization
+      POSTGRES_DB: dsmrreader
+      POSTGRES_USER: dsmrreader
+      POSTGRES_PASSWORD: dsmrreader
+
+    # Persistent database storage
+    volumes:
+      - dsmrdb_data:/var/lib/postgresql/data
+
+    # Internal network
+    networks:
+      - dsmrnet
+
+  # ------------------------------------------------------------
+  # DSMR Reader application
+  # ------------------------------------------------------------
+  dsmr:
+    image: ghcr.io/xirixiz/dsmr-reader-docker:6
+    container_name: dsmr
+
+    # Automatically restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Ensure database container is started first
+    depends_on:
+      - dsmrdb
+
+    # s6-overlay requires executable tmpfs mounts
+    tmpfs:
+      - /run:rw,exec,nosuid,nodev,size=64m
+      - /tmp:rw,exec,nosuid,nodev,size=256m
+
+    # Expose HTTP and HTTPS ports
+    ports:
+      - "7777:80"
+      - "7779:443"
+
+    # Persistent backups directory
+    volumes:
+      - dsmr_backups:/app/backups
+
+    # Application configuration
+    environment:
+      # Timezone
+      TZ: Europe/Amsterdam
+      DJANGO_TIME_ZONE: Europe/Amsterdam
+
+      # DSMR Reader operantion mode
+      DSMRREADER_OPERATION_MODE: standalone
+
+      # Database connection
+      DJANGO_DATABASE_HOST: dsmrdb
+      DJANGO_DATABASE_PORT: 5432
+      DJANGO_DATABASE_NAME: dsmrreader
+      DJANGO_DATABASE_USER: dsmrreader
+      DJANGO_DATABASE_PASSWORD: dsmrreader
+
+      # Django / DSMR credentials
+      DJANGO_SECRET_KEY: dsmrreader
+      DSMRREADER_ADMIN_USER: admin
+      DSMRREADER_ADMIN_PASSWORD: admin
+
+      # Optional maintenance
+      ENABLE_VACUUM_DB_ON_STARTUP: true
+
+      # File-based secret injection (s6-overlay)
+      FILE__SECRET: /run/secrets/a_secret_file
+
+    # Docker / Podman secrets
     secrets:
       - a_secret_file
-    ports:
-      - 7777:80
-      - 7779:443
+
+    # Serial device mapping for P1 meter
     devices:
       - "/dev/ttyUSB1:/dev/ttyUSB0"
-    # healthcheck:
-    #   disable: true
-    healthcheck:
-      test: ["CMD", "curl", "-Lsf", "http://127.0.0.1/healthcheck", "-o", "/dev/null", "-w", "HTTP_%{http_code}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+
+    # Basic container hardening
+    security_opt:
+      - no-new-privileges:true
+
+    # Internal network
+    networks:
+      - dsmrnet
+
+# --------------------------------------------------------------------
+# Networks
+# --------------------------------------------------------------------
+
+networks:
+  dsmrnet:
+    name: dsmrnet
+
+# --------------------------------------------------------------------
+# Secrets
+# --------------------------------------------------------------------
 
 secrets:
-    a_secret_file:
-        file : somedir/my_secret.txt
+  a_secret_file:
+    file: ./somedir/my_secret.txt
+
+# --------------------------------------------------------------------
+# Volumes
+# --------------------------------------------------------------------
 
 volumes:
-  dsmrdb: null
-  dsmrdb_backups: null
+  dsmrdb_data:
+  dsmr_backups:

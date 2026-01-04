@@ -12,6 +12,31 @@ IFS=$'\n\t'
 #---------------------------------------------------------------------------------------------------------------------------
 : "${DEBUG:=false}"
 
+# ------------------------------------------------------------------------------
+# Default Django / Database environment (production-safe)
+# ------------------------------------------------------------------------------
+
+: "${DSMRREADER_OPERATION_MODE:=standalone}"
+: "${DJANGO_DATABASE_ENGINE:=django.db.backends.postgresql}"
+: "${DJANGO_DATABASE_HOST:=dsmrdb}"
+: "${DJANGO_DATABASE_PORT:=5432}"
+: "${DJANGO_DATABASE_NAME:=dsmrreader}"
+: "${DJANGO_DATABASE_USER:=dsmrreader}"
+
+# Secrets must EXIST but may be empty (for set -u safety)
+: "${DJANGO_DATABASE_PASSWORD:=}"
+: "${DJANGO_SECRET_KEY:=}"
+
+export \
+  DSMRREADER_OPERATION_MODE \
+  DJANGO_DATABASE_ENGINE \
+  DJANGO_DATABASE_HOST \
+  DJANGO_DATABASE_PORT \
+  DJANGO_DATABASE_NAME \
+  DJANGO_DATABASE_USER \
+  DJANGO_DATABASE_PASSWORD \
+  DJANGO_SECRET_KEY
+
 #---------------------------------------------------------------------------------------------------------------------------
 # LOGGING FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -266,7 +291,7 @@ function _configure_serial_port() {
 
 function _dsmr_datalogger_mode() {
     _validate_operation_mode
-    local mode="${DSMRREADER_OPERATION_MODE}"
+    local mode="${DSMRREADER_OPERATION_MODE:-standalone}"
 
     case "${mode}" in
         standalone)
