@@ -215,9 +215,28 @@ function _validate_api_client_config() {
     return 0
 }
 
-function _check_device() {
-  _info "Fixing /dev/ttyUSB* security..."
-  [[ -e '/dev/ttyUSB0' ]] && chmod 666 /dev/ttyUSB*
+function _check_devices() {
+    _info "Fixing /dev/ttyUSB* permissions..."
+
+    local found=0
+    for device in /dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM*; do
+        # Check if the glob matched any actual files
+        [[ -e "${device}" ]] || continue
+
+        _info "Setting permissions on ${device}"
+        if chmod 666 "${device}" 2>/dev/null; then
+            chown app:dialout "${device}" 2>/dev/null || true
+            ((found++))
+        else
+            _warn "Failed to set permissions on ${device}"
+        fi
+    done
+
+    if [[ $found -eq 0 ]]; then
+        _warn "No /dev/ttyUSB* devices found"
+    else
+        _success "Fixed permissions on ${found} device(s)"
+    fi
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -249,7 +268,7 @@ function _pre_reqs() {
 
     _normalize_all_enable_vars
     _detect_architecture
-    _check_device
+    _check_devices
 
     # Create required directories with proper permissions
     _info "Setting up directories and permissions..."
