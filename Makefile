@@ -17,7 +17,7 @@ build: clean-containers
 		--platform="$(PLATFORM)" \
 		-t "$(IMAGE)" .
 
-test: build container-up
+test: clean-containers build container-up
 
 container-run: clean-containers
 	exec podman run --rm --name dsmr --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
@@ -35,8 +35,8 @@ clean-containers:
 	@podman stop dsmr 2>/dev/null || true
 	@podman stop dsmrdb 2>/dev/null || true
 	@echo "Removing DSMR containers..."
-	@podman rm dsmr 2>/dev/null || true
-	@podman rm dsmrdb 2>/dev/null || true
+	@podman rm -f dsmr 2>/dev/null || true
+	@podman rm -f dsmrdb 2>/dev/null || true
 	@echo "Done."
 
 clean-image:
