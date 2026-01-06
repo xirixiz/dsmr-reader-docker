@@ -8,13 +8,9 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
     cd /app || exit
     exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
         --bind unix:/run/gunicorn/dsmr_webinterface.socket \
-        --workers 2 \
-        --threads 2 \
-        --worker-class gthread \
         --timeout 120 \
-        --keep-alive 5 \
-        --max-requests 1000 \
-        --max-requests-jitter 100 \
+        --max-requests 5000 \
+        --graceful-timeout 30 \
         --access-logfile - \
         --error-logfile -
 else

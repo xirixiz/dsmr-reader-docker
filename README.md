@@ -118,11 +118,9 @@ docker inspect xirixiz/dsmr-reader-docker:latest | jq '.[0].Config.Labels'
 ```
 
 Key labels:
-- `org.opencontainers.image.version` — Full immutable version
-- `org.opencontainers.image.revision` — Git commit SHA
 - `io.github.dsmrreader.upstream.version` — DSMR Reader version
-- `io.github.dsmrreader.docker.release` — Build identifier
-- `io.github.dsmrreader.branch` — Source branch
+- `io.github.dsmrreader.docker.release` - Full immutable version
+- `org.opencontainers.image.revision` — Git commit SHA
 
 ---
 
