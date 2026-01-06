@@ -613,7 +613,20 @@ sudo apt install libseccomp2 -t buster-backports
 ```
 
 ##### Incorrect Timestamps
-Mounting `/etc/localtime:/etc/localtime` often results in incorrect timestamps in DSMR Reader (+/- 1 hour). Removing the mount usually solves the problem.
+⚠️ Timezone mount warning
+
+Avoid mounting /etc/localtime:/etc/localtime into the DSMR Reader container.
+This setup often results in incorrect timestamps (typically ±1 hour), most noticeably in PostgreSQL.
+Removing this mount usually resolves the issue.
+
+When this happens, you may see errors like the following in the log:
+```
+2026-01-04 16:29:15,497 ERROR    schedule     execute_scheduled_processes      39 | (IntegrityError) dsmr_consumption.services.run errored: null value in column "delivered_1" of relation "dsmr_consumption_electricityconsumption" violates not-null constraint
+
+DETAIL:  Failing row contains (4620631, 2026-01-04 14:23:00+00, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null).
+```
+Recommendation: Let the container handle timezone configuration itself (for example via environment variables) instead of bind-mounting /etc/localtime
+
 
 ##### Synology
 For Synology or other NAS appliances, an additional driver is required:

@@ -15,9 +15,6 @@ services:
 
     # Timezone configuration
     environment:
-      TZ: Europe/Amsterdam
-      PG_TZ: Europe/Amsterdam
-
       # Database initialization
       POSTGRES_DB: dsmrreader
       POSTGRES_USER: dsmrreader
@@ -45,11 +42,6 @@ services:
     depends_on:
       - dsmrdb
 
-    # s6-overlay requires executable tmpfs mounts
-    tmpfs:
-      - /run:rw,exec,nosuid,nodev,size=64m
-      - /tmp:rw,exec,nosuid,nodev,size=256m
-
     # Expose HTTP and HTTPS ports
     ports:
       - "7777:80"
@@ -61,10 +53,6 @@ services:
 
     # Application configuration
     environment:
-      # Timezone
-      TZ: Europe/Amsterdam
-      DJANGO_TIME_ZONE: Europe/Amsterdam
-
       # DSMR Reader operantion mode
       DSMRREADER_OPERATION_MODE: standalone
 
