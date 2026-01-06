@@ -10,7 +10,7 @@
 <br><br>
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/xirixiz)
 
-### DSMR-reader - Docker
+### DSMR-reader - Docker - TO BE UPDATED FOR RELEASE 6!
 
 *DSMR-protocol reader, telegram data storage, and energy consumption visualizer.
 Can be used for reading the smart meter DSMR (Dutch Smart Meter Requirements) P1 port yourself at your home.
@@ -595,22 +595,6 @@ uid=1000(xirixiz) gid=1000(xirixiz) groups=1000(xirixiz) 1001(docker)
 Drill down to find the issue: [dsmrreader/dsmr-reader#909](https://github.com/dsmrreader/dsmr-reader/issues/909)
 
 Resolve by installing timezone info tables in MySQL: [MySQL Timezone Documentation](https://dev.mysql.com/doc/refman/8.0/en/mysql-tzinfo-to-sql.html)
-
-##### Raspberry Pi
-**Issue:** Caused by the upgrade from Alpine 3.12 to 3.13. Alpine 3.13 requires:
-```
-- Docker 19.03.9 or newer
-- libseccomp 2.4.2 or newer
-```
-The `libseccomp` package hasn't been updated for Debian stable yet. Therefore, this image won't run on any Debian (or Raspbian) stable host.
-
-**Fix:**
-```bash
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
-echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
-sudo apt update
-sudo apt install libseccomp2 -t buster-backports
-```
 
 ##### Incorrect Timestamps
 ⚠️ Timezone mount warning
