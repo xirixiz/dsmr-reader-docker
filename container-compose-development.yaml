@@ -11,7 +11,6 @@ services:
     restart: always
     networks: [dsmrnet]
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - dsmrdb_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: dsmrreader
@@ -29,7 +28,6 @@ services:
     ports:
       - "7980:80"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - dsmr_backups:/app/backups
     environment:
       ENABLE_VACUUM_DB_ON_STARTUP: true
