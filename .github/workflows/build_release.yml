@@ -217,6 +217,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get build timestamp
+        id: build_time
+        run: echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
       - name: "📋 Generate Docker metadata"
         id: meta
         uses: docker/metadata-action@v5
@@ -230,11 +234,14 @@ jobs:
             org.opencontainers.image.description=Containerized DSMR Reader for multi-architecture deployment
             org.opencontainers.image.version=${{ steps.dsmr_version.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.repositoryUrl }}
-            org.opencontainers.image.created=${{ steps.docker_release.outputs.release }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.created=${{ steps.build_time.outputs.timestamp }}
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.url=https://github.com/${{ github.repository }}
-            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/README.md
+            org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.documentation=${{ github.server_url }}/${{ github.repository }}/blob/main/README.md
+            io.github.dsmrreader.upstream.version=${{ steps.dsmr_version.outputs.upstream }}
+            io.github.dsmrreader.docker.release=${{ steps.docker_release.outputs.release }}
+            io.github.dsmrreader.branch=${{ github.ref_name }}
 
       ################################################
       # BUILD & PUSH
