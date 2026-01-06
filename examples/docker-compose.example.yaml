@@ -53,6 +53,9 @@ services:
 
     # Application configuration
     environment:
+      # Timezone
+      DJANGO_TIME_ZONE: Europe/Amsterdam
+
       # DSMR Reader operantion mode
       DSMRREADER_OPERATION_MODE: standalone
 

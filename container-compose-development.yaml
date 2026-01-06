@@ -30,6 +30,7 @@ services:
     volumes:
       - dsmr_backups:/app/backups
     environment:
+      DJANGO_TIME_ZONE: Europe/Amsterdam
       ENABLE_VACUUM_DB_ON_STARTUP: true
       DJANGO_DATABASE_NAME: dsmrreader
       DJANGO_DATABASE_HOST: dsmrdb
