@@ -17,7 +17,7 @@ build: clean-containers
 		--platform="$(PLATFORM)" \
 		-t "$(IMAGE)" .
 
-test: clean-containers build container-up
+test: clean-containers build container-up clean-containers
 
 container-run: clean-containers
 	exec podman run --rm --name dsmr --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
