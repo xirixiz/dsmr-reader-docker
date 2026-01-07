@@ -93,10 +93,10 @@ function main() {
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
-    _init_dsmr_and_db_enable_iframe
-    _init_dsmr_and_db_run_db_cleanup
     _init_dsmr_and_db_check_db_availability
     _init_dsmr_and_db_apply_db_scripts
+    _init_dsmr_and_db_run_db_cleanup
+    _init_dsmr_and_db_enable_iframe
 }
 
 main "$@"
