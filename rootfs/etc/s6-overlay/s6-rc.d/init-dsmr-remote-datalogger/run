@@ -62,73 +62,73 @@ function _init_dsmr_remote_datalogger_validate_api_client_config() {
 }
 
 # Main logic
-mode="${DSMRREADER_OPERATION_MODE:-standalone}"
+# mode="${DSMRREADER_OPERATION_MODE:-standalone}"
 
-case "${mode}" in
-    standalone)
-        input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
+# case "${mode}" in
+#     standalone)
+#         input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
 
-        if [[ -z "${input_method}" ]]; then
-            _info "${CURRENT_DIR} | Standalone mode: using datalogger configuration from database/UI"
-            exit 0
-        fi
+#         if [[ -z "${input_method}" ]]; then
+#             _info "${CURRENT_DIR} | Standalone mode: using datalogger configuration from database/UI"
+#             exit 0
+#         fi
 
-        case "${input_method}" in
-            serial)
-                _info "${CURRENT_DIR} | Standalone mode: using serial overrides for datalogger"
-                if ! _validate_serial_config; then
-                    exit 1
-                fi
-                _configure_serial_port
-                ;;
-            ipv4)
-                _info "${CURRENT_DIR} | Standalone mode: using IPv4 overrides for datalogger"
-                if ! _validate_network_config; then
-                    exit 1
-                fi
-                ;;
-            *)
-                _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
-                _error "${CURRENT_DIR} | Valid options: serial, ipv4"
-                exit 1
-                ;;
-        esac
-        ;;
+#         case "${input_method}" in
+#             serial)
+#                 _info "${CURRENT_DIR} | Standalone mode: using serial overrides for datalogger"
+#                 if ! _validate_serial_config; then
+#                     exit 1
+#                 fi
+#                 _configure_serial_port
+#                 ;;
+#             ipv4)
+#                 _info "${CURRENT_DIR} | Standalone mode: using IPv4 overrides for datalogger"
+#                 if ! _validate_network_config; then
+#                     exit 1
+#                 fi
+#                 ;;
+#             *)
+#                 _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+#                 _error "${CURRENT_DIR} | Valid options: serial, ipv4"
+#                 exit 1
+#                 ;;
+#         esac
+#         ;;
 
-    api_server)
-        _info "${CURRENT_DIR} | API server mode: no datalogger configuration needed"
-        exit 0
-        ;;
+#     api_server)
+#         _info "${CURRENT_DIR} | API server mode: no datalogger configuration needed"
+#         exit 0
+#         ;;
 
-    api_client)
-        _info "${CURRENT_DIR} | API client mode: configuring remote datalogger"
-        if ! _validate_api_client_config; then
-            exit 1
-        fi
+#     api_client)
+#         _info "${CURRENT_DIR} | API client mode: configuring remote datalogger"
+#         if ! _validate_api_client_config; then
+#             exit 1
+#         fi
 
-        input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+#         input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
 
-        case "${input_method}" in
-            serial)
-                if ! _validate_serial_config; then
-                    exit 1
-                fi
-                _configure_serial_port
-                ;;
-            ipv4)
-                if ! _validate_network_config; then
-                    exit 1
-                fi
-                ;;
-            *)
-                _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
-                exit 1
-                ;;
-        esac
-        ;;
-esac
+#         case "${input_method}" in
+#             serial)
+#                 if ! _validate_serial_config; then
+#                     exit 1
+#                 fi
+#                 _configure_serial_port
+#                 ;;
+#             ipv4)
+#                 if ! _validate_network_config; then
+#                     exit 1
+#                 fi
+#                 ;;
+#             *)
+#                 _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+#                 exit 1
+#                 ;;
+#         esac
+#         ;;
+# esac
 
-_success "${CURRENT_DIR} | Remote datalogger initialization complete"
+# _success "${CURRENT_DIR} | Remote datalogger initialization complete"
 
 
 #---------------------------------------------------------------------------------------------------------------------------
