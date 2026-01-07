@@ -57,5 +57,6 @@ function main() {
     _init_start_detect_architecture
     _init_start_normalize_bool_vars
     _init_start_normalize_all_enable_vars
+}
 
 main "$@"

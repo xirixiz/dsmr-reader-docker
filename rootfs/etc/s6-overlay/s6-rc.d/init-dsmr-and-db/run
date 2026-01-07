@@ -26,8 +26,8 @@ function _init_dsmr_and_db_enable_iframe() {
 function _init_dsmr_and_db_run_db_cleanup() {
     _info "${CURRENT_DIR} | Running database vacuum cleaning"
 
-    if [[ -x /app/cleandb.sh ]]; then
-        /app/cleandb.sh
+    if [[ -x /app/vacuum_database.sh ]]; then
+        /app/vacuum_database.sh
         _success "${CURRENT_DIR} | Database vacuum cleaning completed"
     else
         _warn "${CURRENT_DIR} | Database vacuum script not found or not executable"

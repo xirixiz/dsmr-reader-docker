@@ -107,8 +107,8 @@ function main() {
     CURRENT_DIR="$(dirname "$0")"
     _info "${CURRENT_DIR} | Starting"
     _init_validate_y2038_issue
-    _init_validate_required_vars
     _init_validate_operation_mode
+    _init_validate_required_vars
 }
 
 main "$@"

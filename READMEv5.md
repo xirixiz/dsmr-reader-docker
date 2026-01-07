@@ -511,12 +511,12 @@ You might receive a notification that the database is growing, like in [this iss
 
 Clean up the Docker database by running the following command from the application container:
 ```bash
-docker exec -ti dsmr bash -c '/app/cleandb.sh'
+docker exec -ti dsmr bash -c '/app/vacuum_database.sh'
 ```
 
 Or, to run verbose:
 ```bash
-docker exec -ti dsmr bash -c '/app/cleandb.sh -v'
+docker exec -ti dsmr bash -c '/app/vacuum_database.sh -v'
 ```
 
 ##### DSMR Reader - Plugins
