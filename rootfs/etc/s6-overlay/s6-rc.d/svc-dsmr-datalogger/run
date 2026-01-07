@@ -9,5 +9,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
     exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/manage.py dsmr_datalogger
 else
     _info "svc-dsmr-datalogger disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exec sleep infinity
+    exit 0
 fi

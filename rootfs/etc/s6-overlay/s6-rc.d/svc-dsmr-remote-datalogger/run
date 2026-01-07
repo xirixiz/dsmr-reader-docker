@@ -8,5 +8,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
     exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
 else
     _info "svc-dsmr-remote-datlogger disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exec sleep infinity
+    exit 0
 fi

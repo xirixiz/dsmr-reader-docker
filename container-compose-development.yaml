@@ -29,6 +29,8 @@ services:
       - "7980:80"
     volumes:
       - dsmr_backups:/app/backups
+    group_add:
+      - keep-groups
     environment:
       DJANGO_TIME_ZONE: Europe/Amsterdam
       ENABLE_VACUUM_DB_ON_STARTUP: true

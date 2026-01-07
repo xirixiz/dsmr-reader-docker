@@ -9,5 +9,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
     exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/manage.py dsmr_backend
 else
     _info "svc-dsmr-backend disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exec sleep infinity
+    exit 0
 fi

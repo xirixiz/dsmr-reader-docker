@@ -15,5 +15,5 @@ if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MOD
         --error-logfile -
 else
     _info "svc-dsmr-webinterface disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exec sleep infinity
+    exit 0
 fi

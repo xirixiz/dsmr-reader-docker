@@ -228,6 +228,29 @@ function _check_devices() {
     return 0
 }
 
+function _check_devices_gid() {
+    DEV_GLOBS="/dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM*"
+
+    for dev in $DEV_GLOBS; do
+    [ -e "$dev" ] || continue
+
+    gid="$(stat -c '%g' "$dev' 2>/dev/null || true)"
+    [ -n "${gid:-}" ] || continue
+
+    if ! getent group "$gid" >/dev/null 2>&1; then
+        groupadd -g "$gid" "serial_$gid" 2>/dev/null || true
+    fi
+
+    gname="$(getent group "$gid" | cut -d: -f1)"
+
+    usermod -a -G "$gname" app 2>/dev/null || true
+
+    echo "Mapped $dev (gid=$gid) -> add app to group $gname"
+    done
+
+    return 0
+fi
+
 #---------------------------------------------------------------------------------------------------------------------------
 # SETUP FUNCTIONS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -258,6 +281,7 @@ function _pre_reqs() {
     _normalize_all_enable_vars
     _detect_architecture
     _check_devices
+    _check_devices_gid
 
     # Create required directories with proper permissions
     _info "Setting up directories and permissions"
@@ -666,7 +690,6 @@ function main() {
     _generate_auth_configuration
     _dsmr_datalogger_mode
     _optional_settings
-
     _success "DSMR Reader initialization complete"
 }
 

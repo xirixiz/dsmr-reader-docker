@@ -85,6 +85,10 @@ services:
     devices:
       - "/dev/ttyUSB1:/dev/ttyUSB0"
 
+    # Use for serial device mapping (dialout group host -> container)
+    group_add:
+      - keep-groups
+
     # Basic container hardening
     security_opt:
       - no-new-privileges:true

@@ -9,6 +9,9 @@ set -eu
 # Writes one udev rule that creates a stable symlink such as /dev/dsmr_p1
 # Reloads udev and triggers it
 
+# Usage example:
+# sudo NAME=dsmr_p1 DEV=/dev/ttyUSB0 GROUP=dialout ./host_dev_preparation.sh
+
 NAME="${NAME:-dsmr_p1}"
 DEV="${DEV:-}"
 GROUP="${GROUP:-dialout}"
