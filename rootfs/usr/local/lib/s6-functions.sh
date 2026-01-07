@@ -28,22 +28,3 @@ function _load_s6_vars() {
         done < <(find /run/s6/container_environment -type f -print0)
     fi
 }
-
-function _normalize_bool_env() {
-    local var="$1"
-    local val
-    val="$(printenv "${var}" 2>/dev/null || echo "false")"
-
-    case "${val,,}" in
-        true|1|yes|y|on) export "${var}=true" ;;
-        *)               export "${var}=false" ;;
-    esac
-}
-
-function _normalize_all_enable_vars() {
-    local var
-    while IFS='=' read -r var _; do
-        [[ "${var}" == ENABLE_* ]] || continue
-        _normalize_bool_env "${var}"
-    done < <(printenv)
-}
