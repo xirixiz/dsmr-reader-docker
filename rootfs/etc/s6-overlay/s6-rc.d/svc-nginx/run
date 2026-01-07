@@ -30,7 +30,7 @@ function svc_nginx_start() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(dirname "$0")"
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
     svc_nginx_start
 }
 

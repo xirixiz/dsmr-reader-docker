@@ -104,7 +104,7 @@ function _init_validate_operation_mode() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(dirname "$0")"
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
     _init_validate_y2038_issue
     _init_validate_operation_mode

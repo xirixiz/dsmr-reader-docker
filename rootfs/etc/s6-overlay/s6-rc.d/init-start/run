@@ -27,7 +27,7 @@ function _init_start_detect_architecture() {
     esac
 }
 
-function _init_start_normalize_bool_vars() {
+function __init_start_normalize_bool_vars() {
     local var="$1"
     local val
     val="$(printenv "${var}" 2>/dev/null || echo "false")"
@@ -42,7 +42,7 @@ function _init_start_normalize_all_enable_vars() {
     local var
     while IFS='=' read -r var _; do
         [[ "${var}" == ENABLE_* ]] || continue
-        _normalize_bool_env "${var}"
+        __init_start_normalize_bool_vars "${var}"
     done < <(printenv)
 }
 
@@ -50,12 +50,14 @@ function _init_start_normalize_all_enable_vars() {
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+
+    # Normalize debug flag first, before checking it
+    __init_start_normalize_bool_vars "DSMRREADER_CONTAINER_DEBUG"
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(dirname "$0")"
     _info "${CURRENT_DIR} | Starting"
     _init_start_detect_architecture
-    _init_start_normalize_bool_vars
     _init_start_normalize_all_enable_vars
 }
 

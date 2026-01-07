@@ -91,7 +91,7 @@ function _init_dsmr_and_db_apply_db_scripts() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(dirname "$0")"
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
     _init_dsmr_and_db_enable_iframe
     _init_dsmr_and_db_run_db_cleanup
