@@ -54,7 +54,7 @@ function _init_useradd_mkdir() {
         /run/nginx \
         /run/gunicorn
 
-    chmod 755 /run/gunicorn
+    chmod 655 /run/gunicorn
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

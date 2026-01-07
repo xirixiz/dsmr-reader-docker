@@ -2,18 +2,11 @@
 # shellcheck shell=bash
 # shellcheck source=/usr/local/lib/s6-functions.sh
 
-#---------------------------------------------------------------------------------------------------------------------------
-# STRICT MODE
-#---------------------------------------------------------------------------------------------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
 
-#---------------------------------------------------------------------------------------------------------------------------
-# VARIABLES
-#---------------------------------------------------------------------------------------------------------------------------
-: "${DSMRREADER_CONTAINER_DEBUG:=false}"
-
 . /usr/local/lib/s6-functions.sh
+_load_s6_vars
 
 function _init_start_detect_architecture() {
     local arch longbit
@@ -34,40 +27,6 @@ function _init_start_detect_architecture() {
     esac
 }
 
-function _init_start_check_devices() {
-    _info "${CURRENT_DIR} | Checking tty devices (/dev/ttyUSB*, /dev/ttyAMA*, /dev/ttyACM*)"
-
-    local device gid gname mode
-    mode="${DEVICE_CHMOD_MODE:-666}"
-
-    shopt -s nullglob
-    for device in /dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM* ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-} ${DSMRREADER_SERIAL_DEVICE:-}; do
-        [[ -e "$device" ]] || continue
-
-        gid="$(stat -c '%g' "$device" 2>/dev/null || true)"
-        [[ -n "${gid:-}" ]] || continue
-
-        if ! getent group "$gid" >/dev/null 2>&1; then
-            groupadd -g "$gid" "serial_${gid}" 2>/dev/null || true
-        fi
-
-        gname="$(getent group "$gid" | cut -d: -f1)"
-        [[ -n "${gname:-}" ]] || continue
-
-        usermod -a -G "$gname" app 2>/dev/null || true
-        _info "${CURRENT_DIR} | Mapped $device (gid=$gid) -> add app to group $gname"
-
-        if chmod "$mode" "$device" 2>/dev/null; then
-            _info "${CURRENT_DIR} | Set permissions on $device to $mode"
-        else
-            _warn "${CURRENT_DIR} | Could not chmod $device to $mode"
-        fi
-    done
-    shopt -u nullglob
-
-    return 0
-}
-
 #---------------------------------------------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
@@ -77,6 +36,5 @@ function main() {
     CURRENT_DIR="$(dirname "$0")"
     _info "${CURRENT_DIR} | Starting"
     _init_start_detect_architecture
-    _init_start_check_devices
 
 main "$@"

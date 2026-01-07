@@ -8,7 +8,7 @@ IFS=$'\n\t'
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-function _init_dsmr_backend_enable_iframe() {
+function _init_dsmr_and_db_enable_iframe() {
     if [[ "${ENABLE_IFRAME}" != "true" ]]; then
         return 0
     fi
@@ -23,7 +23,7 @@ function _init_dsmr_backend_enable_iframe() {
     fi
 }
 
-function _init_dsmr_backend_run_db_cleanup() {
+function _init_dsmr_and_db_run_db_cleanup() {
     _info "${CURRENT_DIR} | Running database vacuum cleaning"
 
     if [[ -x /app/cleandb.sh ]]; then
@@ -34,7 +34,7 @@ function _init_dsmr_backend_run_db_cleanup() {
     fi
 }
 
-function _init_dsmr_backend_check_db_availability() {
+function _init_dsmr_and_db_check_db_availability() {
     _info "${CURRENT_DIR} | Checking database credentials"
     _validate_credentials
 
@@ -64,7 +64,7 @@ function _init_dsmr_backend_check_db_availability() {
     exit 1
 }
 
-function _init_dsmr_backend_apply_db_scripts() {
+function _init_dsmr_and_db_apply_db_scripts() {
     _info "Running Django post-configuration"
 
     if ! /opt/venv/bin/python /app/manage.py migrate --noinput; then
@@ -93,10 +93,10 @@ function main() {
 
     CURRENT_DIR="$(dirname "$0")"
     _info "${CURRENT_DIR} | Starting"
-    _init_dsmr_backend_enable_iframe
-    _init_dsmr_backend_run_db_cleanup
-    _init_dsmr_backend_check_db_availability
-    _init_dsmr_backend_apply_db_scripts
+    _init_dsmr_and_db_enable_iframe
+    _init_dsmr_and_db_run_db_cleanup
+    _init_dsmr_and_db_check_db_availability
+    _init_dsmr_and_db_apply_db_scripts
 }
 
 main "$@"
