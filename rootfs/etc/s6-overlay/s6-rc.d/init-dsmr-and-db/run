@@ -35,9 +35,6 @@ function _init_dsmr_and_db_run_db_cleanup() {
 }
 
 function _init_dsmr_and_db_check_db_availability() {
-    _info "${CURRENT_DIR} | Checking database credentials"
-    _validate_credentials
-
     local host="${DJANGO_DATABASE_HOST}"
     local port="${DJANGO_DATABASE_PORT}"
     local max_attempts=30
