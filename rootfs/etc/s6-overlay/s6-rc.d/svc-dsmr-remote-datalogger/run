@@ -5,7 +5,7 @@
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-function svc_dmsr_remote_datalogger_start() {
+function _svc_dmsr_remote_datalogger_start() {
     if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = api_client ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
@@ -20,7 +20,7 @@ function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
-    svc_dmsr_remote_datalogger_start
+    _svc_dmsr_remote_datalogger_start
 }
 
 main "$@"
