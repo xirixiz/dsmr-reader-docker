@@ -29,8 +29,6 @@ services:
       - "7980:80"
     volumes:
       - dsmr_backups:/app/backups
-    group_add:
-      - keep-groups
     environment:
       DJANGO_TIME_ZONE: Europe/Amsterdam
       ENABLE_VACUUM_DB_ON_STARTUP: true
@@ -43,6 +41,7 @@ services:
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
       DSMRREADER_OPERATION_MODE: standalone
+      NGINX_LISTEN_PORT: 90
 
 networks:
   dsmrnet:

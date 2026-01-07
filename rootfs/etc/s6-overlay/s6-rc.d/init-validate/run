@@ -1,0 +1,114 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_validate_y2038_issue() {
+    local time32
+    time32="$(date +%Y)"
+
+    if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [[ "$(uname -m)" == "armv7l" ]]; then
+        _error "Y2038 issue detected: Your Docker host has an outdated libseccomp version"
+        _error "Please update libseccomp on your host system"
+        _error "See: https://docs.linuxserver.io/faq#libseccomp"
+        exit 1
+    fi
+}
+
+function _init_validate_required_vars() {
+    local errors=0
+
+    if [[ -z "${DSMRREADER_ADMIN_USER:-}" ]]; then
+        _error "DSMRREADER_ADMIN_USER is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
+        _error "DSMRREADER_ADMIN_PASSWORD is not set"
+        ((errors++))
+    elif [[ "${DSMRREADER_ADMIN_PASSWORD}" == "admin" ]]; then
+        _warn "Default DSMRREADER_ADMIN_PASSWORD detected - this is a security risk! Please set a secure password"
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_NAME:-}" ]]; then
+        _error "DJANGO_DATABASE_NAME is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_HOST:-}" ]]; then
+        _error "DJANGO_DATABASE_HOST is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_USER:-}" ]]; then
+        _error "DJANGO_DATABASE_USER is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_PASSWORD:-}" ]]; then
+        _error "DJANGO_DATABASE_PASSWORD is not set"
+        ((errors++))
+    elif [[ "${DJANGO_DATABASE_PASSWORD}" == "dsmrreader" ]]; then
+        _warn "Default DJANGO_DATABASE_PASSWORD detected - this is a security risk! Please set a secure password"
+    fi
+
+    if [[ -z "${DJANGO_DATABASE_PORT:-}" ]]; then
+        _error "DJANGO_DATABASE_PORT is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DJANGO_SECRET_KEY:-}" ]]; then
+        _error "DJANGO_SECRET_KEY is not set"
+        ((errors++))
+    elif [[ "${DJANGO_SECRET_KEY}" == "dsmrreader" ]]; then
+        _warn "Default DJANGO_SECRET_KEY detected - this is a security risk! Please set a secure password"
+    fi
+
+    if [[ -z "${DSMRREADER_OPERATION_MODE:-}" ]]; then
+        _error "DSMRREADER_OPERATION_MODE is not set"
+        ((errors++))
+    fi
+
+    if [[ $errors -gt 0 ]]; then
+        _error "Missing ${errors} required environment variable(s)"
+        _error "Please ensure all mandatory variables are set in your docker-compose.yml or docker run command"
+        exit 1
+    fi
+
+    return 0
+}
+
+function _init_validate_operation_mode() {
+    local mode="${DSMRREADER_OPERATION_MODE}"
+
+    case "${mode}" in
+        standalone|api_server|api_client)
+            _info "${CURRENT_DIR} | Operation mode: ${mode}"
+            ;;
+        *)
+            _error "${CURRENT_DIR} | Invalid DSMRREADER_OPERATION_MODE: ${mode}"
+            _error "${CURRENT_DIR} | Valid options: standalone, api_server, api_client"
+            exit 1
+            ;;
+    esac
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    _info "${CURRENT_DIR} | Starting"
+    _init_validate_y2038_issue
+    _init_validate_required_vars
+    _init_validate_operation_mode
+}
+
+main "$@"

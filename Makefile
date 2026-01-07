@@ -37,7 +37,7 @@ clean-containers:
 	@echo "Removing DSMR containers..."
 	@podman rm -f dsmr 2>/dev/null || true
 	@podman rm -f dsmrdb 2>/dev/null || true
-	@echo "Removing DSMR volumes...""
+	@echo "Removing DSMR volumes..."
 	@podman system prune -a -f --volumes 2>/dev/null || true
 	@echo "Done."
 

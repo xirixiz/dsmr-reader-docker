@@ -1,32 +1,37 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
 
-function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
-function _error() { printf "\r\033[2K[ \033[0;31mFAIL\033[0m ] %s\n" "$@"; }
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
 
-if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    max_attempts=10
-    for i in $(seq 1 ${max_attempts}); do
-        if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
-            _info "Starting DSMR Reader - nginx"
-            sleep 2
-            cd /app || exit 1
+function svc_nginx_start() {
+    if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
+        for i in {1..10}; do
+            if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
+                _success "${CURRENT_DIR} webinterface socket ready"
+                sleep 2
 
-            if ! nginx -c /etc/nginx/nginx.conf -t; then
-                _error "NGINX configuration test failed"
-                exit 1
+                exec /usr/sbin/nginx -g 'daemon off;'
             fi
-            exec /usr/sbin/nginx -g 'daemon off;'
-        fi
 
-        _info "Waiting for webinterface socket... (${i}/${max_attempts})"
-        sleep 1
-        if [[ $i == ${max_attempts} ]]; then
-            _error "Webinterface connection failed after ${max_attempts} attempts"
-            exit 1
-        fi
-    done
-else
-    _info "svc-nginx disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exit 0
-fi
+            _info "${CURRENT_DIR} is waiting for webinterface socket... (${i}/10)"
+            sleep 1
+        done
+
+        _error "${CURRENT_DIR} webinterface socket not found after 10 attempts"
+        exit 1
+    else
+        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_OPERATION_MODE}"
+        exit 0
+    fi
+}
+
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    svc_nginx_start
+}
+
+main "$@"

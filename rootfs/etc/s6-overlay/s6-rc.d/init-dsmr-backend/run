@@ -1,0 +1,102 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_dsmr_backend_enable_iframe() {
+    if [[ "${ENABLE_IFRAME}" != "true" ]]; then
+        return 0
+    fi
+
+    _info "${CURRENT_DIR} | Enabling IFrame support"
+
+    if ! grep -q "X_FRAME_OPTIONS" /app/dsmrreader/settings.py 2>/dev/null; then
+        sed -i "/^from dsmrreader.*/a X_FRAME_OPTIONS = 'ALLOWALL'" /app/dsmrreader/settings.py
+        _success "${CURRENT_DIR} | IFrame support enabled"
+    else
+        _info "${CURRENT_DIR} | IFrame support already configured"
+    fi
+}
+
+function _init_dsmr_backend_run_db_cleanup() {
+    _info "${CURRENT_DIR} | Running database vacuum cleaning"
+
+    if [[ -x /app/cleandb.sh ]]; then
+        /app/cleandb.sh
+        _success "${CURRENT_DIR} | Database vacuum cleaning completed"
+    else
+        _warn "${CURRENT_DIR} | Database vacuum script not found or not executable"
+    fi
+}
+
+function _init_dsmr_backend_check_db_availability() {
+    _info "${CURRENT_DIR} | Checking database credentials"
+    _validate_credentials
+
+    local host="${DJANGO_DATABASE_HOST}"
+    local port="${DJANGO_DATABASE_PORT}"
+    local max_attempts=30
+    local timeout=2
+
+    _info "${CURRENT_DIR} | Connecting to database: ${host}:${port}"
+
+    for i in $(seq 1 ${max_attempts}); do
+        if timeout "${timeout}" nc -z "${host}" "${port}" 2>/dev/null; then
+            _success "${CURRENT_DIR} | Database connection established after ${i} attempt(s)"
+
+            if [[ "${ENABLE_VACUUM_DB_ON_STARTUP}" == "true" ]]; then
+                _cleandb
+            fi
+
+            return 0
+        fi
+        _info "${CURRENT_DIR} | Waiting for database... (${i}/${max_attempts})"
+        sleep 1
+    done
+
+    _error "${CURRENT_DIR} | Database connection failed after ${max_attempts} attempts"
+    _error "${CURRENT_DIR} | Check DJANGO_DATABASE_HOST and DJANGO_DATABASE_PORT settings"
+    exit 1
+}
+
+function _init_dsmr_backend_apply_db_scripts() {
+    _info "Running Django post-configuration"
+
+    if ! /opt/venv/bin/python /app/manage.py migrate --noinput; then
+        _error "${CURRENT_DIR} | Database migration failed"
+        exit 1
+    fi
+
+    if ! /opt/venv/bin/python /app/manage.py collectstatic --noinput; then
+        _error "${CURRENT_DIR} | Static file collection failed"
+        exit 1
+    fi
+
+    if ! /opt/venv/bin/python /app/manage.py dsmr_superuser; then
+        _error "${CURRENT_DIR} | Superuser creation failed"
+        exit 1
+    fi
+
+    _success "${CURRENT_DIR} | Django configuration completed"
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    _info "${CURRENT_DIR} | Starting"
+    _init_dsmr_backend_enable_iframe
+    _init_dsmr_backend_run_db_cleanup
+    _init_dsmr_backend_check_db_availability
+    _init_dsmr_backend_apply_db_scripts
+}
+
+main "$@"

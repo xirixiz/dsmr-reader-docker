@@ -1,0 +1,145 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_dsmr_remote_datalogger_validate_serial_config() {
+    local errors=0
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+}
+
+function _init_dsmr_remote_datalogger_validate_network_config() {
+    local errors=0
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+}
+
+function _init_dsmr_remote_datalogger_validate_api_client_config() {
+    local errors=0
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_HOSTS is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_KEYS is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+}
+
+# Main logic
+mode="${DSMRREADER_OPERATION_MODE:-standalone}"
+
+case "${mode}" in
+    standalone)
+        input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
+
+        if [[ -z "${input_method}" ]]; then
+            _info "${CURRENT_DIR} | Standalone mode: using datalogger configuration from database/UI"
+            exit 0
+        fi
+
+        case "${input_method}" in
+            serial)
+                _info "${CURRENT_DIR} | Standalone mode: using serial overrides for datalogger"
+                if ! _validate_serial_config; then
+                    exit 1
+                fi
+                _configure_serial_port
+                ;;
+            ipv4)
+                _info "${CURRENT_DIR} | Standalone mode: using IPv4 overrides for datalogger"
+                if ! _validate_network_config; then
+                    exit 1
+                fi
+                ;;
+            *)
+                _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+                _error "${CURRENT_DIR} | Valid options: serial, ipv4"
+                exit 1
+                ;;
+        esac
+        ;;
+
+    api_server)
+        _info "${CURRENT_DIR} | API server mode: no datalogger configuration needed"
+        exit 0
+        ;;
+
+    api_client)
+        _info "${CURRENT_DIR} | API client mode: configuring remote datalogger"
+        if ! _validate_api_client_config; then
+            exit 1
+        fi
+
+        input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+
+        case "${input_method}" in
+            serial)
+                if ! _validate_serial_config; then
+                    exit 1
+                fi
+                _configure_serial_port
+                ;;
+            ipv4)
+                if ! _validate_network_config; then
+                    exit 1
+                fi
+                ;;
+            *)
+                _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+                exit 1
+                ;;
+        esac
+        ;;
+esac
+
+_success "${CURRENT_DIR} | Remote datalogger initialization complete"
+
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    _info "${CURRENT_DIR} | Starting"
+
+}
+
+main "$@"

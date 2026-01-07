@@ -304,7 +304,7 @@ Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogg
 The default startup values for DSMR Reader standalone are:
 ```properties
 DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial
-DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0
+DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE=/dev/ttyUSB0
 
 # DSMR meter version 4/5
 DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200

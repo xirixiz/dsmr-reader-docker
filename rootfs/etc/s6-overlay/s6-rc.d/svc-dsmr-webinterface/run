@@ -1,19 +1,32 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
 
-function _info()  { printf "\r[ \033[00;34mINFO\033[0m ] %s\n" "$@"; }
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
 
-if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    _info "Starting DSMR Reader - webinterface"
-    cd /app || exit
-    exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
-        --bind unix:/run/gunicorn/dsmr_webinterface.socket \
-        --timeout 120 \
-        --max-requests 5000 \
-        --graceful-timeout 30 \
-        --access-logfile - \
-        --error-logfile -
-else
-    _info "svc-dsmr-webinterface disabled for mode ${DSMRREADER_OPERATION_MODE}"
-    exit 0
-fi
+function svc_dmsr_webinterface_start() {
+    if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
+        _info "${CURRENT_DIR} | Starting"
+        cd /app || exit
+        exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
+            --bind unix:/run/gunicorn/dsmr_webinterface.socket \
+            --timeout 120 \
+            --max-requests 5000 \
+            --graceful-timeout 30 \
+            --access-logfile - \
+            --error-logfile -
+    else
+        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_OPERATION_MODE}"
+        exit 0
+    fi
+}
+
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    svc_dmsr_webinterface_start
+}
+
+main "$@"

@@ -1,0 +1,72 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_useradd_uid_gid() {
+    _info "DSMR Reader version: ${DSMR_VERSION}"
+    _info "Docker image version: ${DOCKER_TARGET_RELEASE}"
+
+    local DUID=${DUID:-803}
+    local DGID=${DGID:-803}
+
+    if ! groupmod -o -g "${DGID}" app 2>/dev/null; then
+        _warn "Could not modify app group GID to ${DGID}"
+    fi
+
+    if ! usermod -o -u "${DUID}" app 2>/dev/null; then
+        _warn "Could not modify app user UID to ${DUID}"
+    fi
+
+    cat "/etc/s6-overlay/s6-rc.d/$(CURRENT_DIR)/branding"
+    echo "
+    User UID: $(id -u app)
+    User GID: $(id -g app)
+    ───────────────────────────────────────────────────"
+    if [[ -f /build_version ]]; then
+        cat /build_version
+        echo '
+    ───────────────────────────────────────
+        '
+    fi
+}
+
+function _init_useradd_mkdir() {
+    _info "Setting up directories and permissions"
+    mkdir -p /run/s6/container_environment
+    chmod -R 666 /run/s6/container_environment
+
+    mkdir -p \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx/conf.d \
+        /run/nginx/server-snippets \
+        /run/gunicorn
+
+    chown -R app:app \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx \
+        /run/gunicorn
+
+    chmod 755 /run/gunicorn
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(dirname "$0")"
+    _info "${CURRENT_DIR} | Starting"
+    _init_useradd_uid_gid
+    _init_useradd_mkdir
+}
+
+main "$@"

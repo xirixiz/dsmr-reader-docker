@@ -204,8 +204,11 @@ RUN rm -rf \
 # Copy application code (do this late for better caching)
 COPY --from=staging /app /app
 
-# Copy rootfs configuration
+# Copy `3 configuration
 COPY rootfs /
+
+# Set build version
+RUN printf "DSMR Reader version: ${DSMR_VERSION}\nDSMR Reader Docker version: ${DOCKER_TARGET_RELEASE}\nBuild-date: $(date +%Y%m%d-%H%m)" > /build_version
 
 # Remove default nginx site
 RUN rm -f /etc/nginx/sites-enabled/default
