@@ -6,12 +6,12 @@
 _load_s6_vars
 
 function svc_dsmr_backend_start() {
-    if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = api_server ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
         exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/manage.py dsmr_backend
     else
-        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_OPERATION_MODE}"
+        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
         exit 0
     fi
 }

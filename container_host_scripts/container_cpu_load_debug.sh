@@ -95,7 +95,7 @@ echo ""
 # Check datalogger mode
 echo "1️⃣2️⃣  DSMR Reader operation mode:"
 echo "=========================================="
-docker exec "${CONTAINER_NAME}" sh -c 'echo "DSMRREADER_OPERATION_MODE: ${DSMRREADER_OPERATION_MODE:-not set}"
+docker exec "${CONTAINER_NAME}" sh -c 'echo "DSMRREADER_CONTAINER_RUN_MODE: ${DSMRREADER_CONTAINER_RUN_MODE:-not set}"
 echo "DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-not set}"'
 echo ""
 

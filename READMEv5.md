@@ -289,7 +289,7 @@ DJANGO_DATABASE_CONN_MAX_AGE=60
 When you are connecting to P1 via a network socket, you need to run DSMR Reader in standalone mode.
 Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogger configuration in the admin panel and configure the setting so it matches your environment. More info: [Issue #303](https://github.com/xirixiz/dsmr-reader-docker/issues/303#issuecomment-1345383612)
 
-- `DSMRREADER_OPERATION_MODE` - Run DSMR Reader in one of the following modes (default is standalone with the serial flavor):
+- `DSMRREADER_CONTAINER_RUN_MODE` - Run DSMR Reader in one of the following modes (default is standalone with the serial flavor):
   - `standalone` - Run all processes, including backend, GUI, and datalogger. There are two flavors:
     - `standalone - serial` - Use a serial connection for the datalogger.
     - `standalone - ipv4` - Use a network socket for the datalogger.
@@ -332,7 +332,7 @@ DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 # default
 For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
 # Required. Instructs dsmr reader to start in api_client mode
-DSMRREADER_OPERATION_MODE=api_client
+DSMRREADER_CONTAINER_RUN_MODE=api_client
 # Required. Destination(s) of the DSMR Reader (Docker) host(s)
 DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
 # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
@@ -344,7 +344,7 @@ The configured `api_client` will push data to the `api_server`. The only differe
 ```properties
 # Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
 # All telegrams are coming in through the API
-DSMRREADER_OPERATION_MODE=api_server
+DSMRREADER_CONTAINER_RUN_MODE=api_server
 ```
 
 ##### Remote DSMR Datalogger - Optional Settings
@@ -480,7 +480,7 @@ def handle_backend_called(**kwargs):
 4. Add the following definitions to the `environment:` section:
 
     ```yaml
-    - DSMRREADER_OPERATION_MODE=api_server
+    - DSMRREADER_CONTAINER_RUN_MODE=api_server
     - DSMRREADER_PLUGINS=dsmr_plugins.modules.homewizard_p1
     ```
 

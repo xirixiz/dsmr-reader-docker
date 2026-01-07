@@ -62,14 +62,14 @@ function _init_datalogger_mode_validate_api_client_config() {
 }
 
 function _init_datalogger_mode_startmode() {
-    mode="${DSMRREADER_OPERATION_MODE:-standalone}"
+    mode="${DSMRREADER_CONTAINER_RUN_MODE:-standalone}"
 
     case "${mode}" in
         standalone)
             input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
 
             if [[ -z "${input_method}" ]]; then
-                _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_OPERATION_MODE}"
+                _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_CONTAINER_RUN_MODE}"
                 exit 0
             fi
 
@@ -125,7 +125,7 @@ function _init_datalogger_mode_startmode() {
             esac
             ;;
     esac
-    _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_OPERATION_MODE} with data input mode: ${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
+    _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_CONTAINER_RUN_MODE} with data input mode: ${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
 }
 
 #---------------------------------------------------------------------------------------------------------------------------

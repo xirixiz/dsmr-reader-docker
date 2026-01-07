@@ -69,8 +69,8 @@ function _init_validate_required_vars() {
         _warn "Default DJANGO_SECRET_KEY detected - this is a security risk! Please set a secure password"
     fi
 
-    if [[ -z "${DSMRREADER_OPERATION_MODE:-}" ]]; then
-        _error "DSMRREADER_OPERATION_MODE is not set"
+    if [[ -z "${DSMRREADER_CONTAINER_RUN_MODE:-}" ]]; then
+        _error "DSMRREADER_CONTAINER_RUN_MODE is not set"
         ((errors++))
     fi
 
@@ -84,14 +84,14 @@ function _init_validate_required_vars() {
 }
 
 function _init_validate_operation_mode() {
-    local mode="${DSMRREADER_OPERATION_MODE}"
+    local mode="${DSMRREADER_CONTAINER_RUN_MODE}"
 
     case "${mode}" in
         standalone|api_server|api_client)
             _info "${CURRENT_DIR} | Operation mode: ${mode}"
             ;;
         *)
-            _error "${CURRENT_DIR} | Invalid DSMRREADER_OPERATION_MODE: ${mode}"
+            _error "${CURRENT_DIR} | Invalid DSMRREADER_CONTAINER_RUN_MODE: ${mode}"
             _error "${CURRENT_DIR} | Valid options: standalone, api_server, api_client"
             exit 1
             ;;

@@ -40,7 +40,7 @@ services:
       DJANGO_DATABASE_PORT: 5432
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
-      DSMRREADER_OPERATION_MODE: standalone
+      DSMRREADER_CONTAINER_RUN_MODE: standalone
       NGINX_LISTEN_PORT: 90
 
 networks:

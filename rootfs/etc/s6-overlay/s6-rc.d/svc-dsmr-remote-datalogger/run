@@ -6,12 +6,12 @@
 _load_s6_vars
 
 function svc_dmsr_remote_datalogger_start() {
-    if [[ "${DSMRREADER_OPERATION_MODE}" = api_client ]]; then
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = api_client ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
         exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py
     else
-        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_OPERATION_MODE}"
+        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
         exit 0
     fi
 }
