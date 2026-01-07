@@ -125,7 +125,7 @@ Key labels:
 ---
 
 ## Setup / Parameters
-Refer to upstream DSMR Reader documentation for environment variables.
+Refer to upstream [DSMR Reader documentation](https://dsmr-reader.readthedocs.io/en/v6/) for environment variables.
 
 ---
 
