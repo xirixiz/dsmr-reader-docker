@@ -85,12 +85,12 @@ function _init_validate_operation_mode() {
     local mode="${DSMRREADER_CONTAINER_RUN_MODE}"
 
     case "${mode}" in
-        standalone|api_server|api_client)
+        standalone|server_remote_datalogger|remote_datalogger)
             _info "${CURRENT_DIR} | Operation mode: ${mode}"
             ;;
         *)
             _error "${CURRENT_DIR} | Invalid DSMRREADER_CONTAINER_RUN_MODE: ${mode}"
-            _error "${CURRENT_DIR} | Valid options: standalone, api_server, api_client"
+            _error "${CURRENT_DIR} | Valid options: standalone, server_remote_datalogger, remote_datalogger"
             exit 1
             ;;
     esac

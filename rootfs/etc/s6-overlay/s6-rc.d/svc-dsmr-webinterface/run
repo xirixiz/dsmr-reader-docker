@@ -6,7 +6,7 @@
 _load_s6_vars
 
 function svc_dmsr_webinterface_start() {
-    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = api_server ]]; then
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = server_remote_datalogger ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
         exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \

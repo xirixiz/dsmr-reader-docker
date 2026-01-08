@@ -6,7 +6,7 @@
 _load_s6_vars
 
 function _svc_dmsr_remote_datalogger_start() {
-    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "api_client" ]]; then
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "remote_datalogger" ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
         exec /command/s6-setuidgid app /opt/venv/bin/python -u /app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py

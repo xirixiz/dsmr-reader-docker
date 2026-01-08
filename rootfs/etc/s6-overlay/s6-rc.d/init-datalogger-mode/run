@@ -45,7 +45,7 @@ function _init_datalogger_mode_validate_network_config() {
     return ${errors}
 }
 
-function _init_datalogger_mode_validate_api_client_config() {
+function _init_datalogger_mode_validate_remote_datalogger_config() {
     local errors=0
 
     if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS:-}" ]]; then
@@ -66,20 +66,20 @@ function _init_datalogger_mode_startmode() {
 
     case "${mode}" in
         standalone)
-            _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${DSMRREADER_CONTAINER_RUN_MODE}"
+            _success "${CURRENT_DIR} | Running as STANDALONE (local datalogger + server)"
             exit 0
             ;;
 
-        api_server)
-            _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${DSMRREADER_CONTAINER_RUN_MODE}"
+        server_remote_datalogger)
+            _success "${CURRENT_DIR} | Running as SERVER REMOTE DATALOGGER (expects remote datalogger input)"
             exit 0
             ;;
 
-        api_client)
-            _info "${CURRENT_DIR} | API client mode: configuring remote datalogger"
+        remote_datalogger)
+            _info "${CURRENT_DIR} | Running as REMOTE DATALOGGER (sending telegrams to DSMR-reader server)"
 
             # Validate API configuration
-            if ! _init_datalogger_mode_validate_api_client_config; then
+            if ! _init_datalogger_mode_validate_remote_datalogger_config; then
                 exit 1
             fi
 

@@ -6,7 +6,7 @@
 _load_s6_vars
 
 function svc_nginx_start() {
-    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = api_server ]]; then
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = server_remote_datalogger ]]; then
         for i in {1..10}; do
             if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
                 _success "${CURRENT_DIR} webinterface socket ready"

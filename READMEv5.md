@@ -293,8 +293,8 @@ Ignore the errors about `/dev/ttyUSB*` and head over to the DSMR Reader datalogg
   - `standalone` - Run all processes, including backend, GUI, and datalogger. There are two flavors:
     - `standalone - serial` - Use a serial connection for the datalogger.
     - `standalone - ipv4` - Use a network socket for the datalogger.
-  - `api_server` - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
-  - `api_client` - Only start the datalogger client, which sends the P1 telegrams to the `api_server`. It is required to set up `DATALOGGER_API_*` environment variables.
+  - `server_remote_datalogger` - Run all processes, except the datalogger process. A remote datalogger is required to collect DSMR Reader telegrams.
+  - `remote_datalogger` - Only start the datalogger client, which sends the P1 telegrams to the `server_remote_datalogger`. It is required to set up `DATALOGGER_API_*` environment variables.
 
 ![Configuration Image 1](https://user-images.githubusercontent.com/11210639/207313372-6bffa581-8c3e-4b9f-9ef2-91b6e6b2b3c4.png)
 ![Configuration Image 2](https://user-images.githubusercontent.com/11210639/207313462-94a2a545-87b1-43cc-a9de-eff250a38d11.png)
@@ -331,8 +331,8 @@ DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=2000 # default
 ##### Remote DSMR Datalogger - API Client
 For all remote datalogger settings: [DSMR-reader env settings docs](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/)
 ```properties
-# Required. Instructs dsmr reader to start in api_client mode
-DSMRREADER_CONTAINER_RUN_MODE=api_client
+# Required. Instructs dsmr reader to start in remote_datalogger mode
+DSMRREADER_CONTAINER_RUN_MODE=remote_datalogger
 # Required. Destination(s) of the DSMR Reader (Docker) host(s)
 DSMRREADER_REMOTE_DATALOGGER_API_HOSTS=x
 # Required. Add the API keys of the DSMR Reader (Docker) destination host(s)
@@ -340,11 +340,11 @@ DSMRREADER_REMOTE_DATALOGGER_API_KEYS=x
 ```
 
 ##### Remote DSMR Datalogger - API Server
-The configured `api_client` will push data to the `api_server`. The only difference between `standalone` and `api_server` is that the datalogger process isn't running.
+The configured `remote_datalogger` will push data to the `server_remote_datalogger`. The only difference between `standalone` and `server_remote_datalogger` is that the datalogger process isn't running.
 ```properties
-# Required. Instructs dsmr reader to start in api_server mode, which means no datalogger process.
+# Required. Instructs dsmr reader to start in server_remote_datalogger mode, which means no datalogger process.
 # All telegrams are coming in through the API
-DSMRREADER_CONTAINER_RUN_MODE=api_server
+DSMRREADER_CONTAINER_RUN_MODE=server_remote_datalogger
 ```
 
 ##### Remote DSMR Datalogger - Optional Settings
@@ -480,7 +480,7 @@ def handle_backend_called(**kwargs):
 4. Add the following definitions to the `environment:` section:
 
     ```yaml
-    - DSMRREADER_CONTAINER_RUN_MODE=api_server
+    - DSMRREADER_CONTAINER_RUN_MODE=server_remote_datalogger
     - DSMRREADER_PLUGINS=dsmr_plugins.modules.homewizard_p1
     ```
 
