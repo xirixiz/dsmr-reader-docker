@@ -16,11 +16,11 @@ function _init_useradd_uid_gid() {
     local DGID=${DGID:-803}
 
     if ! groupmod -o -g "${DGID}" app 2>/dev/null; then
-        _warn "Could not modify app group GID to ${DGID}"
+        _warn "${CURRENT_DIR} | Could not modify app group GID to ${DGID}"
     fi
 
     if ! usermod -o -u "${DUID}" app 2>/dev/null; then
-        _warn "Could not modify app user UID to ${DUID}"
+        _warn "${CURRENT_DIR} | Could not modify app user UID to ${DUID}"
     fi
 
     cat "/etc/s6-overlay/s6-rc.d/${CURRENT_DIR}/branding"

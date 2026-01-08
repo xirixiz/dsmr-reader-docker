@@ -78,7 +78,7 @@ EOF
         exit 1
     fi
 
-    _success "SSL configured successfully"
+    _success "${CURRENT_DIR} | SSL configured successfully"
 }
 
 function _init_nginx_auth() {
@@ -113,7 +113,7 @@ EOF
         exit 1
     fi
 
-    _success "HTTP authentication configured"
+    _success "${CURRENT_DIR} | HTTP authentication configured"
 }
 
 function _init_nginx_clientcert_auth() {

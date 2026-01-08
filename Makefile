@@ -23,7 +23,8 @@ container-run: clean-containers
 	exec podman run --rm --name dsmr --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
 
 container-up: clean-containers
-	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up
+	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up -d
+	exec podman logs -f dsmr
 
 container-down: clean-containers
 
