@@ -144,10 +144,10 @@ Use the [symlink script](../container_host_scripts/host_dev_setup.sh) for stable
 wget https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/development/container_host_scripts/host_dev_setup.sh
 
 # Make executable
-chmod +x host_dev_preparation.sh
+chmod +x host_dev_setup.sh
 
 # Create symlink
-sudo ./host_dev_preparation.sh
+sudo ./host_dev_setup.sh
 
 # This creates /dev/dsmr_p1 → /dev/ttyUSB0
 ```
