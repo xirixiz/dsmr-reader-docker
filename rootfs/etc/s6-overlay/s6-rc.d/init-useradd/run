@@ -9,8 +9,8 @@ IFS=$'\n\t'
 _load_s6_vars
 
 function _init_useradd_uid_gid() {
-    _info "DSMR Reader version: ${DSMR_VERSION}"
-    _info "Docker image version: ${DOCKER_TARGET_RELEASE}"
+    _info "${CURRENT_DIR} | DSMR Reader version: ${DSMR_VERSION}"
+    _info "${CURRENT_DIR} | Docker image version: ${DOCKER_TARGET_RELEASE}"
 
     local DUID=${DUID:-803}
     local DGID=${DGID:-803}
@@ -37,7 +37,7 @@ function _init_useradd_uid_gid() {
 }
 
 function _init_useradd_mkdir() {
-    _info "Setting up directories and permissions"
+    _info "${CURRENT_DIR} | Setting up directories and permissions"
     mkdir -p /run/s6/container_environment
     chmod -R 755 /run/s6/container_environment
 
