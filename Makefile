@@ -44,7 +44,8 @@ clean-containers:
 
 clean-image:
 	@echo "Removing DSMR test image..."
-	@podman images -q "$(IMAGE)" | xargs -r podman rmi
+	@podman images -q | xargs -r podman rmi
+# 	@podman images -q "$(IMAGE)" | xargs -r podman rmi
 	@echo "Done."
 
 clean-stages:

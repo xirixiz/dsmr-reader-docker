@@ -6,15 +6,20 @@
 _load_s6_vars
 
 function svc_dmsr_webinterface_start() {
-    _info "${CURRENT_DIR} | Starting"
-    cd /app || exit
-    exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
-        --bind unix:/run/gunicorn/dsmr_webinterface.socket \
-        --timeout 120 \
-        --max-requests 5000 \
-        --graceful-timeout 30 \
-        --access-logfile - \
-        --error-logfile -
+    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = api_server ]]; then
+        _info "${CURRENT_DIR} | Starting"
+        cd /app || exit
+        exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
+            --bind unix:/run/gunicorn/dsmr_webinterface.socket \
+            --timeout 120 \
+            --max-requests 5000 \
+            --graceful-timeout 30 \
+            --access-logfile - \
+            --error-logfile -
+    else
+        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
+        exec sleep infinity
+    fi
 }
 
 function main() {

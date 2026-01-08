@@ -1,11 +1,1 @@
-#!/command/with-contenv bash
-
-. /usr/local/lib/s6-functions.sh
-_load_s6_vars
-
-if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "standalone" ]]; then
-    exit 0
-fi
-
-_info "svc-dsmr-datalogger disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
-exit 125
+/etc/s6-overlay/s6-rc.d/svc-dsmr-remote-datalogger/run
