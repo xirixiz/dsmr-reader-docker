@@ -78,10 +78,6 @@ Access the web interface at `http://localhost` (login: `admin` / `admin`)
 ### Integrations
 - **[HomeWizard P1 Integration](docs/HOMEY_INTEGRATION.md)** - Network-based smart meter reading
 
-### Development
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - Help improve this project
-- **[Development Setup](container_host_scripts/README.md)** - Set up your dev environment
-
 ---
 
 ## Key Features
