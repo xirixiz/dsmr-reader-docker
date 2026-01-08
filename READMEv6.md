@@ -11,6 +11,15 @@ Designed for reading the DSMR (Dutch Smart Meter Requirements) P1 port at home.
 Requires compatible hardware and Docker.
 **Free for non-commercial use**.*
 
+
+**TODO: NEEDS TO BE UPDATED FOR v6!**
+**TODO: NEEDS TO BE UPDATED FOR v6!**
+**TODO: NEEDS TO BE UPDATED FOR v6!**
+**TODO: NEEDS TO BE UPDATED FOR v6!**
+**TODO: NEEDS TO BE UPDATED FOR v6!**
+
+...clear enough I guess ;)
+
 ---
 
 ## Table of Contents
