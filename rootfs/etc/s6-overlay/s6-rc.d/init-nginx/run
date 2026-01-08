@@ -158,8 +158,8 @@ EOF
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(pwd)")"
-    _info "${CURRENT_DIR} | Starting DSMR Reader ${CURRENT_DIR}"
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    _info "${CURRENT_DIR} | Starting ${CURRENT_DIR}"
     _init_nginx_mkdir
     _init_nginx_listen_port
     _init_nginx_access_logs
