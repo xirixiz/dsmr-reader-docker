@@ -3,9 +3,9 @@
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "api_client" ]]; then
+if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "standalone" ]]; then
     exit 0
 fi
 
-_info "svc-dsmr-remote-datalogger disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
+_info "svc-dsmr-datalogger disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
 exit 125

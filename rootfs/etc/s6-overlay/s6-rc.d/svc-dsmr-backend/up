@@ -3,7 +3,9 @@
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" != "standalone" && "${DSMRREADER_CONTAINER_RUN_MODE}" != "api_server" ]]; then
-    _info "svc-dsmr-backend disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
-    exit 125
+if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = "standalone" || "${DSMRREADER_CONTAINER_RUN_MODE}" = "api_server" ]]; then
+    exit 0
 fi
+
+_info "svc-dsmr-backend disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
+exit 125
