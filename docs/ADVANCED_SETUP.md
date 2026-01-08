@@ -232,20 +232,6 @@ See [DSMR Reader Plugin Documentation](https://dsmr-reader.readthedocs.io/en/lat
 
 ---
 
-## Production Checklist
-
-- [ ] Change default admin password
-- [ ] Use strong `DJANGO_SECRET_KEY`
-- [ ] Enable SSL/TLS
-- [ ] Configure backups (see below)
-- [ ] Restrict network access (firewall)
-- [ ] Consider HTTP authentication
-- [ ] Monitor disk space
-- [ ] Set up log rotation
-- [ ] Document your configuration
-
----
-
 ## Backup Strategy
 
 ### Database Backups
