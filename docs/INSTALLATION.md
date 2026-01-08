@@ -141,7 +141,7 @@ Use the symlink script for stable device names:
 
 ```bash
 # Download script
-wget https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/development/container_host_scripts/host_dev_preparation.sh
+wget https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/development/container_host_scripts/host_dev_setup.sh
 
 # Make executable
 chmod +x host_dev_preparation.sh
