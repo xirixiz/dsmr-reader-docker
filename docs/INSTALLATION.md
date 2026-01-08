@@ -137,7 +137,7 @@ dmesg | tail -20
 
 #### Create Stable Symlink (Recommended)
 
-Use the symlink script for stable device names:
+Use the [symlink script](../container_host_scripts/host_dev_setup.sh) for stable device names:
 
 ```bash
 # Download script
