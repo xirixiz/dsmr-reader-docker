@@ -31,9 +31,9 @@ PostgreSQL connection settings (all required).
 |-----------------------------|----------------|------------------------------------------------------------------|
 | `DJANGO_DATABASE_HOST`      | -              | PostgreSQL hostname                                              |
 | `DJANGO_DATABASE_PORT`      | `5432`         | PostgreSQL port                                                  |
-| `DJANGO_DATABASE_NAME`      | -              | Database name                                                    |
-| `DJANGO_DATABASE_USER`      | -              | Database username                                                |
-| `DJANGO_DATABASE_PASSWORD`  | -              | Database password                                                |
+| `DJANGO_DATABASE_NAME`      | `dsmrreader`   | Database name                                                    |
+| `DJANGO_DATABASE_USER`      | `dsmrreader`   | Database username                                                |
+| `DJANGO_DATABASE_PASSWORD`  | `dsmrreader`   | Database password                                                |
 
 ---
 
@@ -43,10 +43,9 @@ Core DSMR Reader settings (all required).
 
 | Variable                    | Default        | Description                                                      |
 |-----------------------------|----------------|------------------------------------------------------------------|
-| `DJANGO_TIME_ZONE`          | -              | Timezone (e.g., `Europe/Amsterdam`)                              |
-| `DJANGO_SECRET_KEY`         | -              | Django secret key (generate secure random string)                |
-| `DSMRREADER_ADMIN_USER`     | -              | Admin username                                                   |
-| `DSMRREADER_ADMIN_PASSWORD` | -              | Admin password                                                   |
+| `DJANGO_SECRET_KEY`         | `dsmrreader`   | Django secret key (generate secure random string)                |
+| `DSMRREADER_ADMIN_USER`     | `admin`        | Admin username                                                   |
+| `DSMRREADER_ADMIN_PASSWORD` | `admin`        | Admin password                                                   |
 
 ---
 
@@ -113,7 +112,7 @@ environment:
   DJANGO_DATABASE_USER: dsmrreader
   DJANGO_DATABASE_PASSWORD: dsmrreader
   DJANGO_TIME_ZONE: Europe/Amsterdam
-  DJANGO_SECRET_KEY: your-secret-here
+  DJANGO_SECRET_KEY: dsmrreader
   DSMRREADER_ADMIN_USER: admin
   DSMRREADER_ADMIN_PASSWORD: admin
 ```
