@@ -104,6 +104,7 @@ services:
 Read smart meters via TCP/IP instead of USB serial.
 
 ### Configuration
+- **Remote datalogger settings** - See [DSMRREADER_REMOTE_DATALOGGER_* env vars in DSMR-reader](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/#dsmr-reader-remote-datalogger-settings)
 
 ```yaml
 environment:
