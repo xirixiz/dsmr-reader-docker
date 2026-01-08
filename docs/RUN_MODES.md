@@ -229,7 +229,7 @@ services:
 **Check network connectivity:**
 ```bash
 # From remote location
-curl http://dsmr-server/about
+curl http://dsmr-server/healthcheck
 ```
 
 **Check API key:**

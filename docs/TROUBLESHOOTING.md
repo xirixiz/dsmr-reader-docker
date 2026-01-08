@@ -309,7 +309,7 @@ docker exec dsmr openssl x509 -in /etc/nginx/ssl/certificate.crt -text -noout
 **Test network connectivity:**
 ```bash
 # From remote location
-curl http://dsmr-server/about
+curl http://dsmr-server/healthcheck
 ```
 
 **Check API key:**

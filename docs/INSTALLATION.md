@@ -362,7 +362,7 @@ Should see:
 
 **Test web interface:**
 ```bash
-curl http://localhost/about
+curl http://localhost/healthcheck
 ```
 
 Should return HTML page.
