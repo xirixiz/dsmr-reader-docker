@@ -6,11 +6,11 @@ DSMR Reader Docker supports three operational modes to fit different deployment 
 
 ## Mode Comparison
 
-| Mode | Smart Meter | Database | Web UI | Use Case |
-|------|-------------|----------|--------|----------|
-| **standalone** | ✅ Local | ✅ Yes | ✅ Yes | All-in-one setup |
-| **server_remote_datalogger** | ❌ Remote | ✅ Yes | ✅ Yes | Central server |
-| **remote_datalogger** | ✅ Local | ❌ Forwards | ❌ No | Remote sensor |
+| Mode                         | Smart Meter | Database   | Web UI  | Use Case         |
+|------------------------------|-------------|------------|---------|------------------|
+| **standalone**               | ✅ Local     | ✅ Yes      | ✅ Yes   | All-in-one setup |
+| **server_remote_datalogger** | ❌ Remote    | ✅ Yes      | ✅ Yes   | Central server   |
+| **remote_datalogger**        | ✅ Local     | ❌ Forwards | ❌ No    | Remote sensor    |
 
 ---
 
