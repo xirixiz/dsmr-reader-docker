@@ -66,7 +66,7 @@ function _init_datalogger_mode_startmode() {
 
     case "${mode}" in
         standalone)
-            _success "${CURRENT_DIR} | Running as STANDALONE (local datalogger + server)"
+            _success "${CURRENT_DIR} | Running as STANDALONE (local server + datalogger)"
             exit 0
             ;;
 
@@ -76,7 +76,7 @@ function _init_datalogger_mode_startmode() {
             ;;
 
         remote_datalogger)
-            _info "${CURRENT_DIR} | Running as REMOTE DATALOGGER (sending telegrams to DSMR-reader server)"
+            _info "${CURRENT_DIR} | Running as REMOTE DATALOGGER (sending telegrams to server remote datalogger)"
 
             # Validate API configuration
             if ! _init_datalogger_mode_validate_remote_datalogger_config; then
