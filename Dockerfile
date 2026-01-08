@@ -173,12 +173,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
     curl \
-    procps \
     jq \
     nginx-light \
     openssl \
     tzdata \
-    netcat-openbsd \
+    netcat-traditional \
     postgresql-client \
     passwd \
     locales \
