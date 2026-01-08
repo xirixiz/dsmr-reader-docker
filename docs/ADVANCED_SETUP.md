@@ -297,9 +297,13 @@ docker-compose start dsmr
 
 ---
 
-## See Also
+## Need Help?
 
-- [Configuration Reference](CONFIGURATION.md) - All environment variables
-- [Run Modes](RUN_MODES.md) - Different operational modes
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues
-- [HomeWizard Integration](HOMEY_INTEGRATION.md) - Network smart meters
+1. **Check this documentation** - Most answers are here
+2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
+3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
+
+---
+
+**Maintained by [@xirixiz](https://github.com/xirixiz)**

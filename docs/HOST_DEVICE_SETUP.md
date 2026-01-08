@@ -595,15 +595,13 @@ A: Yes! Works with any USB serial device (Arduino, Zigbee sticks, etc).
 
 ---
 
-## See Also
+## Need Help?
 
-- [Main README](../README.md) - Quick start guide
-- [Configuration Reference](../docs/CONFIGURATION.md) - Environment variables
-- [Troubleshooting](../docs/TROUBLESHOOTING.md) - Serial device issues
-- [Run Modes](../docs/RUN_MODES.md) - Different operational modes
+1. **Check this documentation** - Most answers are here
+2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
+3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
 
 ---
 
-**Created by [@xirixiz](https://github.com/xirixiz)**
-
-**Last Updated:** January 2026
+**Maintained by [@xirixiz](https://github.com/xirixiz)**

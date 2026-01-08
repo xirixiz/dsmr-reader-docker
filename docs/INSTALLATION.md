@@ -545,22 +545,13 @@ docker exec dsmr ls -l /dev/ttyUSB0
 
 ---
 
-## Next Steps
+## Need Help?
 
-- **[Configuration Reference](CONFIGURATION.md)** - Customize your setup
-- **[Run Modes](RUN_MODES.md)** - Explore different deployment modes
-- **[Advanced Setup](ADVANCED_SETUP.md)** - SSL, backups, monitoring
-- **[Troubleshooting](TROUBLESHOOTING.md)** - Solve common issues
-
----
-
-## Getting Help
-
-1. **Check documentation** - Most issues covered here
+1. **Check this documentation** - Most answers are here
 2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
 4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
 
 ---
 
-**Installation completed successfully? Great! Now configure your smart meter settings in the web interface.**
+**Maintained by [@xirixiz](https://github.com/xirixiz)**
