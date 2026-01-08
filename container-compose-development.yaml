@@ -11,7 +11,7 @@ services:
     restart: always
     networks: [dsmrnet]
     volumes:
-      - dsmrdb_data:/var/lib/postgresql/data
+      - dsmrdb_data:/var/lib/postgresql/data:rw
     environment:
       POSTGRES_USER: dsmrreader
       POSTGRES_PASSWORD: dsmrreader
@@ -28,10 +28,9 @@ services:
     ports:
       - "7980:80"
     volumes:
-      - dsmr_backups:/app/backups
+      - dsmr_backups:/app/backups:rw
     environment:
       DJANGO_TIME_ZONE: Europe/Amsterdam
-      CONTAINER_ENABLE_VACUUM_DB_AT_STATUP: true
       DJANGO_DATABASE_NAME: dsmrreader
       DJANGO_DATABASE_HOST: dsmrdb
       DJANGO_DATABASE_USER: dsmrreader
@@ -41,8 +40,6 @@ services:
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
       CONTAINER_RUN_MODE: standalone
-      NGINX_LISTEN_PORT: 90
-
 networks:
   dsmrnet:
     driver: bridge
