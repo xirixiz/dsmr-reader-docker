@@ -116,7 +116,7 @@ Login with:
 ### Step 7: Configure DSMR Version
 
 1. Navigate to: Configuration → Datalogger
-2. Set your DSMR version (4.x or 5.x)
+2. Set your DSMR version (e.g. 4/5, 2/3, Fluvius, etc)
 3. Save changes
 
 ---
