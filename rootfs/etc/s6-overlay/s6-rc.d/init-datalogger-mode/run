@@ -62,7 +62,7 @@ function _init_datalogger_mode_validate_remote_datalogger_config() {
 }
 
 function _init_datalogger_mode_startmode() {
-    mode="${DSMRREADER_CONTAINER_RUN_MODE:-standalone}"
+    mode="${CONTAINER_RUN_MODE:-standalone}"
 
     case "${mode}" in
         standalone)
@@ -106,7 +106,7 @@ function _init_datalogger_mode_startmode() {
                     ;;
             esac
 
-            _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${DSMRREADER_CONTAINER_RUN_MODE} with input mode: ${input_method}"
+            _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${CONTAINER_RUN_MODE} with input mode: ${input_method}"
             ;;
     esac
 }
@@ -115,7 +115,7 @@ function _init_datalogger_mode_startmode() {
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"

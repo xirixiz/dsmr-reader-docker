@@ -31,7 +31,7 @@ function _init_nginx_listen_port() {
 function _init_nginx_access_logs() {
     mkdir -p /run/nginx/conf.d
 
-    if [[ "${ENABLE_NGINX_ACCESS_LOGS}" == "false" ]]; then
+    if [[ "${CONTAINER_ENABLE_NGINX_ACCESS_LOGS}" == "false" ]]; then
         _info "${CURRENT_DIR} | Disabling NGINX access logs"
         cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log off;
@@ -50,7 +50,7 @@ function _init_nginx_ssl() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/20-ssl.conf
 
-    if [[ "${ENABLE_NGINX_SSL}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_NGINX_SSL}" != "true" ]]; then
         _info "${CURRENT_DIR} | SSL disabled"
         return 0
     fi
@@ -85,7 +85,7 @@ function _init_nginx_auth() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/30-auth.conf /run/nginx/htpasswd
 
-    if [[ "${ENABLE_HTTP_AUTH}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_HTTP_AUTH}" != "true" ]]; then
         _info "${CURRENT_DIR} | HTTP authentication disabled"
         return 0
     fi
@@ -93,7 +93,7 @@ function _init_nginx_auth() {
     _info "${CURRENT_DIR} | Enabling HTTP basic authentication"
 
     if [[ -z "${HTTP_AUTH_USERNAME:-}" || -z "${HTTP_AUTH_PASSWORD:-}" ]]; then
-        _error "${CURRENT_DIR} | HTTP_AUTH_USERNAME and HTTP_AUTH_PASSWORD must be set when ENABLE_HTTP_AUTH=true"
+        _error "${CURRENT_DIR} | HTTP_AUTH_USERNAME and HTTP_AUTH_PASSWORD must be set when CONTAINER_ENABLE_HTTP_AUTH=true"
         exit 1
     fi
 
@@ -120,7 +120,7 @@ function _init_nginx_clientcert_auth() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/40-clientcert.conf
 
-    if [[ "${ENABLE_CLIENTCERT_AUTH}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_CLIENTCERT_AUTH}" != "true" ]]; then
         _info "${CURRENT_DIR} | Client certificate authentication disabled"
         return 0
     fi
@@ -156,7 +156,7 @@ EOF
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting ${CURRENT_DIR}"

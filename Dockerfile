@@ -158,19 +158,15 @@ ENV DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_PORT=5432 \
     DJANGO_DEBUG=false
 
-# Container Configuration
-ENV DSMRREADER_CONTAINER_RUN_MODE=standalone \
-    DSMRREADER_CONTAINER_DEBUG=""
-
-# Feature Configuration
-ENV ENABLE_NGINX_ACCESS_LOGS=false \
-    ENABLE_NGINX_SSL=false \
-    ENABLE_NGINX_ENABLE_HSTS=false \
-    ENABLE_NGINX_SSL_REDIRECT=false \
-    ENABLE_HTTP_AUTH=false \
-    ENABLE_CLIENTCERT_AUTH=false \
-    ENABLE_IFRAME=false \
-    ENABLE_VACUUM_DB_ON_STARTUP=true
+# Configuration specific Configuration
+ENV CONTAINER_RUN_MODE=standalone \
+    CONTAINER_ENABLE_DEBUG=false \
+    CONTAINER_ENABLE_NGINX_ACCESS_LOGS=false \
+    CONTAINER_ENABLE_NGINX_SSL=false \
+    CONTAINER_ENABLE_HTTP_AUTH=false \
+    CONTAINER_ENABLE_CLIENTCERT_AUTH=false \
+    CONTAINER_ENABLE_IFRAME=false \
+    CONTAINER_ENABLE_VACUUM_DB_AT_STATUP=false
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -53,8 +53,8 @@ function main() {
     CURRENT_DIR="$(basename "$(dirname "$0")")"
 
     # Normalize debug flag first, before checking it
-    __init_start_normalize_bool_vars "DSMRREADER_CONTAINER_DEBUG"
-    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+    __init_start_normalize_bool_vars "CONTAINER_ENABLE_DEBUG"
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     _info "${CURRENT_DIR} | Starting"
     _init_start_detect_architecture

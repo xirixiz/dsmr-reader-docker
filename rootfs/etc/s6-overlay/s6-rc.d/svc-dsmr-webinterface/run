@@ -6,7 +6,7 @@
 _load_s6_vars
 
 function svc_dmsr_webinterface_start() {
-    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = server_remote_datalogger ]]; then
+    if [[ "${CONTAINER_RUN_MODE}" = standalone || "${CONTAINER_RUN_MODE}" = server_remote_datalogger ]]; then
         _info "${CURRENT_DIR} | Starting"
         cd /app || exit
         exec /command/s6-setuidgid app /opt/venv/bin/gunicorn dsmrreader.wsgi \
@@ -17,13 +17,13 @@ function svc_dmsr_webinterface_start() {
             --access-logfile - \
             --error-logfile -
     else
-        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
+        _info "${CURRENT_DIR} disabled for mode ${CONTAINER_RUN_MODE}"
         exec sleep infinity
     fi
 }
 
 function main() {
-    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(pwd)")"
     svc_dmsr_webinterface_start

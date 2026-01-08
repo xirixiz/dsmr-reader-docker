@@ -31,7 +31,7 @@ services:
       - dsmr_backups:/app/backups
     environment:
       DJANGO_TIME_ZONE: Europe/Amsterdam
-      ENABLE_VACUUM_DB_ON_STARTUP: true
+      CONTAINER_ENABLE_VACUUM_DB_AT_STATUP: true
       DJANGO_DATABASE_NAME: dsmrreader
       DJANGO_DATABASE_HOST: dsmrdb
       DJANGO_DATABASE_USER: dsmrreader
@@ -40,7 +40,7 @@ services:
       DJANGO_DATABASE_PORT: 5432
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
-      DSMRREADER_CONTAINER_RUN_MODE: standalone
+      CONTAINER_RUN_MODE: standalone
       NGINX_LISTEN_PORT: 90
 
 networks:

@@ -57,7 +57,7 @@ services:
       DJANGO_TIME_ZONE: Europe/Amsterdam
 
       # DSMR Reader operantion mode
-      DSMRREADER_CONTAINER_RUN_MODE: standalone
+      CONTAINER_RUN_MODE: standalone
 
       # Database connection
       DJANGO_DATABASE_HOST: dsmrdb
@@ -72,7 +72,7 @@ services:
       DSMRREADER_ADMIN_PASSWORD: admin
 
       # Optional maintenance
-      ENABLE_VACUUM_DB_ON_STARTUP: true
+      CONTAINER_ENABLE_VACUUM_DB_AT_STATUP: true
 
       # File-based secret injection (s6-overlay)
       FILE__SECRET: /run/secrets/a_secret_file

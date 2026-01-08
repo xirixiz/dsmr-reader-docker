@@ -43,7 +43,7 @@ function _init_container_secrets_add() {
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _init_container_secrets_add
