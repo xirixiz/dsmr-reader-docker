@@ -1,1 +1,9 @@
-/etc/s6-overlay/s6-rc.d/svc-dsmr-webinterface/run
+#!/command/with-contenv bash
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" != "standalone" && "${DSMRREADER_CONTAINER_RUN_MODE}" != "api_server" ]]; then
+    _info "svc-dsmr-webinterface disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
+    exit 125
+fi

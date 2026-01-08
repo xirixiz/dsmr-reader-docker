@@ -6,25 +6,20 @@
 _load_s6_vars
 
 function svc_nginx_start() {
-    if [[ "${DSMRREADER_CONTAINER_RUN_MODE}" = standalone || "${DSMRREADER_CONTAINER_RUN_MODE}" = api_server ]]; then
-        for i in {1..10}; do
-            if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
-                _success "${CURRENT_DIR} webinterface socket ready"
-                sleep 2
+    for i in {1..10}; do
+        if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
+            _success "${CURRENT_DIR} webinterface socket ready"
+            sleep 2
 
-                exec /usr/sbin/nginx -g 'daemon off;'
-            fi
+            exec /usr/sbin/nginx -g 'daemon off;'
+        fi
 
-            _info "${CURRENT_DIR} is waiting for webinterface socket... (${i}/10)"
-            sleep 1
-        done
+        _info "${CURRENT_DIR} is waiting for webinterface socket... (${i}/10)"
+        sleep 1
+    done
 
-        _error "${CURRENT_DIR} webinterface socket not found after 10 attempts"
-        exit 1
-    else
-        _info "${CURRENT_DIR} disabled for mode ${DSMRREADER_CONTAINER_RUN_MODE}"
-        exit 0
-    fi
+    _error "${CURRENT_DIR} webinterface socket not found after 10 attempts"
+    exit 1
 }
 
 function main() {
