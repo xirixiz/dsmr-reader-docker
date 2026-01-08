@@ -45,7 +45,7 @@ function _init_container_secrets_add() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    CURRENT_DIR="$(basename "$(pwd)")"
     _init_container_secrets_add
 }
 

@@ -30,7 +30,7 @@ function _init_useradd_uid_gid() {
     echo "    ───────────────────────────────────────────────────"
 
     if [[ -f /build_version ]]; then
-        cat /build_version
+        cat /build_version | sed 's/^/    /'
         echo "    ───────────────────────────────────────────────────"
         echo ""
     fi
@@ -63,7 +63,7 @@ function _init_useradd_mkdir() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    CURRENT_DIR="$(basename "$(pwd)")"
     _info "${CURRENT_DIR} | Starting"
     _init_useradd_uid_gid
     _init_useradd_mkdir

@@ -210,8 +210,12 @@ COPY --from=staging /app /app
 # Copy `3 configuration
 COPY rootfs /
 
-# Set build version
-RUN printf "    DSMR Reader version: ${DSMR_VERSION}\n    DSMR Reader Docker version: ${DOCKER_TARGET_RELEASE}\n    Build-date: $(date +%Y%m%d-%H%m)" > /build_version
+# Set build version - spaces for outline on print
+RUN { \
+    printf "DSMR Reader version: %s\n" "${DSMR_VERSION}"; \
+    printf "DSMR Reader Docker version: %s\n" "${DOCKER_TARGET_RELEASE}"; \
+    printf "Build-date: %s\n" "$(date +%Y%m%d-%H%M)"; \
+    } > /build_version
 
 # Remove default nginx site
 RUN rm -f /etc/nginx/sites-enabled/default

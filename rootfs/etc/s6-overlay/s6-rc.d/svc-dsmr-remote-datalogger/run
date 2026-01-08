@@ -19,7 +19,7 @@ function _svc_dmsr_remote_datalogger_start() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    CURRENT_DIR="$(basename "$(pwd)")"
     _svc_dmsr_remote_datalogger_start
 }
 

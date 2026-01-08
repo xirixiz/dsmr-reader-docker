@@ -69,7 +69,7 @@ function _init_datalogger_mode_startmode() {
             input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}"
 
             if [[ -z "${input_method}" ]]; then
-                _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_CONTAINER_RUN_MODE}"
+                _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${DSMRREADER_CONTAINER_RUN_MODE}"
                 exit 0
             fi
 
@@ -125,7 +125,7 @@ function _init_datalogger_mode_startmode() {
             esac
             ;;
     esac
-    _success "${CURRENT_DIR} | Datalogger initialization complete. Running mode: ${DSMRREADER_CONTAINER_RUN_MODE} with data input mode: ${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
+    _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${DSMRREADER_CONTAINER_RUN_MODE} with data input mode: ${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ function _init_datalogger_mode_startmode() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    CURRENT_DIR="$(basename "$(pwd)")"
     _info "${CURRENT_DIR} | Starting"
     _init_datalogger_mode_startmode
 

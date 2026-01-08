@@ -48,7 +48,7 @@ function _init_devices_check() {
 function main() {
     [[ "${DSMRREADER_CONTAINER_DEBUG}" == "true" ]] && set -x
 
-    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    CURRENT_DIR="$(basename "$(pwd)")"
     _info "${CURRENT_DIR} | Starting"
     _init_devices_check
 }
