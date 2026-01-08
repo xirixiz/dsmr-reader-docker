@@ -67,6 +67,7 @@ Access the web interface at `http://localhost` (login: `admin` / `admin`)
 ### Getting Started
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
 - **[Configuration Reference](docs/CONFIGURATION.md)** - All environment variables explained
+- **[Host Device Setup](docs/HOST_DEVICE_SETUP.md)** - Setup host device help for telegram readings (f.e. /dev/ttyUSB0)
 - **[Examples](examples/)** - Docker Compose examples for different scenarios
 
 ### Advanced Usage

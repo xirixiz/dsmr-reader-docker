@@ -10,9 +10,9 @@ set -eu
 # Reloads udev and triggers it
 
 # Usage example:
-# sudo NAME=dsmr_p1 DEV=/dev/ttyUSB0 GROUP=dialout ./host_dev_preparation.sh
+# sudo NAME=dsmr_p1 DEV=/dev/ttyUSB0 GROUP=dialout ./host_dev_setup.sh
 # Dry-run mode:
-# sudo DRYRUN=1 NAME=dsmr_p1 DEV=/dev/ttyUSB0 ./host_dev_preparation.sh
+# sudo DRYRUN=1 NAME=dsmr_p1 DEV=/dev/ttyUSB0 ./host_dev_setup.sh
 
 NAME="${NAME:-dsmr_p1}"
 DEV="${DEV:-}"
