@@ -30,7 +30,9 @@ function _init_useradd_uid_gid() {
     echo "    ───────────────────────────────────────────────────"
 
     if [[ -f /build_version ]]; then
-        cat /build_version | sed 's/^/    /'
+        while IFS= read -r line; do
+            echo "    ${line}"
+        done < /build_version
         echo "    ───────────────────────────────────────────────────"
         echo ""
     fi
