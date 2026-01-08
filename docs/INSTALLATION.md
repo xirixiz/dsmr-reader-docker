@@ -158,7 +158,7 @@ devices:
   - /dev/dsmr_p1:/dev/dsmr_p1
 ```
 
-See [USB Symlink Documentation](../container_host_scripts/README.md) for details.
+See [USB Symlink Documentation](./HOST_DEVICE_SETUP.md) for details.
 
 #### Manual Permissions (Alternative)
 
