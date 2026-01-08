@@ -282,7 +282,7 @@ environment:
 | `DSMRREADER_ADMIN_USER` | Yes | - | Admin username for web interface |
 | `DSMRREADER_ADMIN_PASSWORD` | Yes | - | Admin password for web interface |
 
-**Additional DSMR Reader settings:** See [upstream documentation](https://dsmr-reader.readthedocs.io/en/v6/env_settings.html) for all available environment variables.
+**Additional DSMR Reader settings:** See [upstream documentation](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/) for all available environment variables.
 
 ### Remote Datalogger Configuration
 
@@ -659,7 +659,7 @@ Special thanks to:
 
 ## Support
 
-- **Documentation:** [DSMR Reader docs](https://dsmr-reader.readthedocs.io/en/v6/)
+- **Documentation:** [DSMR Reader docs](https://dsmr-reader.readthedocs.io/)
 - **Issues:** [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
 - **Donate:** [PayPal](https://www.paypal.com/donate/?business=9M4P6DGT7U7VU&no_recurring=0&item_name=Open+source+project+development.&currency_code=EUR)

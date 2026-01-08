@@ -104,6 +104,7 @@ services:
 Read smart meters via TCP/IP instead of USB serial.
 
 ### Configuration
+- **Remote datalogger settings** - See [DSMRREADER_REMOTE_DATALOGGER_* env vars in DSMR-reader](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/#dsmr-reader-remote-datalogger-settings)
 
 ```yaml
 environment:
@@ -207,7 +208,7 @@ environment:
   CONTAINER_ENABLE_DEBUG: "true"
 ```
 
-**For DSMR Reader application debug**, see [DSMR Reader documentation](https://dsmr-reader.readthedocs.io/en/v6/env_settings.html).
+**For DSMR Reader application debug**, see [DSMR Reader documentation](https://dsmr-reader.readthedocs.io/en/v6/troubleshooting/logs-debugging/).
 
 ---
 
@@ -228,7 +229,7 @@ environment:
   DSMRREADER_PLUGINS: dsmr_plugins.modules.plugin1,dsmr_plugins.modules.plugin2
 ```
 
-See [DSMR Reader Plugin Documentation](https://dsmr-reader.readthedocs.io/en/latest/plugins.html) for plugin development.
+See [DSMR Reader Plugin Documentation](https://dsmr-reader.readthedocs.io/en/v6/reference/plugins/) for plugin development.
 
 ---
 
@@ -288,7 +289,7 @@ docker-compose start dsmr
 1. **Check this documentation** - Most answers are here
 2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
-4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/)
 
 ---
 

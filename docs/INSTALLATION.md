@@ -116,7 +116,7 @@ Login with:
 ### Step 7: Configure DSMR Version
 
 1. Navigate to: Configuration → Datalogger
-2. Set your DSMR version (4.x or 5.x)
+2. Set your DSMR version (e.g. 4/5, 2/3, Fluvius, etc)
 3. Save changes
 
 ---
@@ -137,11 +137,11 @@ dmesg | tail -20
 
 #### Create Stable Symlink (Recommended)
 
-Use the symlink script for stable device names:
+Use the [symlink script](../container_host_scripts/host_dev_setup.sh) for stable device names:
 
 ```bash
 # Download script
-wget https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/development/container_host_scripts/host_dev_preparation.sh
+wget https://raw.githubusercontent.com/xirixiz/dsmr-reader-docker/development/container_host_scripts/host_dev_setup.sh
 
 # Make executable
 chmod +x host_dev_preparation.sh
@@ -158,7 +158,7 @@ devices:
   - /dev/dsmr_p1:/dev/dsmr_p1
 ```
 
-See [USB Symlink Documentation](../container_host_scripts/README.md) for details.
+See [USB Symlink Documentation](./HOST_DEVICE_SETUP.md) for details.
 
 #### Manual Permissions (Alternative)
 
@@ -362,7 +362,7 @@ Should see:
 
 **Test web interface:**
 ```bash
-curl http://localhost/about
+curl http://localhost/healthcheck
 ```
 
 Should return HTML page.
@@ -550,7 +550,7 @@ docker exec dsmr ls -l /dev/ttyUSB0
 1. **Check this documentation** - Most answers are here
 2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
-4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/)
 
 ---
 

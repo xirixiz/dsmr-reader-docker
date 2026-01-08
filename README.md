@@ -95,7 +95,7 @@ Access the web interface at `http://localhost` (login: `admin` / `admin`)
 - **[Documentation](docs/)** - Comprehensive guides
 - **[Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)** - Report bugs
 - **[Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)** - Ask questions
-- **[DSMR Reader Docs](https://dsmr-reader.readthedocs.io/en/v6/)** - Upstream documentation
+- **[DSMR Reader Docs](https://dsmr-reader.readthedocs.io/)** - Upstream documentation
 
 ---
 

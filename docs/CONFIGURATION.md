@@ -19,7 +19,7 @@ Container-specific settings that control Docker container behavior.
 | `CONTAINER_ENABLE_IFRAME`               | `false`        | Allow embedding in iframes                                       |
 | `CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP` | `false`        | Run database vacuum on startup                                   |
 
-**Note:** For DSMR Reader application debug mode, see [DSMR Reader docs](https://dsmr-reader.readthedocs.io/en/v6/env_settings.html).
+**Note:** For DSMR Reader application debug mode, see [DSMR Reader docs](https://dsmr-reader.readthedocs.io/en/v6/troubleshooting/logs-debugging/).
 
 ---
 
@@ -89,7 +89,7 @@ For `DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=ipv4`:
 
 ## Additional DSMR Reader Settings
 
-DSMR Reader supports many additional environment variables. See the [upstream documentation](https://dsmr-reader.readthedocs.io/en/v6/env_settings.html) for the complete list.
+DSMR Reader supports many additional environment variables. See the [upstream documentation](https://dsmr-reader.readthedocs.io/en/v6/reference/environment-variables/) for the complete list.
 
 Common examples:
 
@@ -148,7 +148,7 @@ environment:
 1. **Check this documentation** - Most answers are here
 2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
-4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/)
 
 ---
 
