@@ -34,7 +34,7 @@
       - [API Configuration](#api-configuration)
       - [Input Method Configuration](#input-method-configuration)
   - [Advanced Setup](#advanced-setup)
-    - [API Server Mode](#api-server-mode)
+    - [Server Remote Datalogger Mode](#server-remote-datalogger-mode)
     - [Remote Datalogger Mode](#remote-datalogger-mode)
     - [Using Network Smart Meters](#using-network-smart-meters)
     - [SSL/TLS Configuration](#ssltls-configuration)
@@ -64,7 +64,7 @@ This project provides Docker container images for [DSMR Reader](https://github.c
 
 - 🚀 **s6-overlay v3** - Advanced process supervision and initialization
 - 🏗️ **Multi-architecture** - Supports amd64, arm32v7, and arm64v8
-- 🔄 **Multiple run modes** - Standalone, API server, and remote datalogger
+- 🔄 **Multiple run modes** - Standalone, Server Remote Datalogger, and Remote Datalogger
 - 📊 **PostgreSQL backend** - Reliable data storage
 - 🎨 **Web interface** - Beautiful dashboards via nginx + Gunicorn
 - 🔌 **Flexible input** - Serial or network smart meter connections
@@ -139,8 +139,8 @@ The container supports three operational modes:
 | Mode | Smart Meter Input | Database | Web UI | Use Case |
 |------|-------------------|----------|--------|----------|
 | **`standalone`** (default) | ✅ Local | ✅ Yes | ✅ Yes | All-in-one setup |
-| **`server_remote_datalogger`** | ❌ Remote only | ✅ Yes | ✅ Yes | Central server receiving from remote dataloggers |
-| **`remote_datalogger`** | ✅ Local | ❌ No (forwards) | ❌ No | Remote location forwarding to API server |
+| **`server_remote_datalogger`** | ❌ Remote only | ✅ Yes | ✅ Yes | Central server receiving from Remote Dataloggers |
+| **`remote_datalogger`** | ✅ Local | ❌ No (forwards) | ❌ No | Remote location forwarding to Server Remote Datalogger |
 
 Set via `CONTAINER_RUN_MODE` environment variable.
 
@@ -287,7 +287,7 @@ environment:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DSMRREADER_REMOTE_DATALOGGER_API_HOSTS` | Yes | Comma-separated API server URLs (e.g., `http://dsmr-server:8000`) |
+| `DSMRREADER_REMOTE_DATALOGGER_API_HOSTS` | Yes | Comma-separated Server Remote Datalogger URLs (e.g., `http://dsmr-server:8000`) |
 | `DSMRREADER_REMOTE_DATALOGGER_API_KEYS` | Yes | Comma-separated API keys (must match server configuration) |
 
 #### Input Method Configuration
@@ -315,9 +315,9 @@ environment:
 
 ## Advanced Setup
 
-### API Server Mode
+### Server Remote Datalogger Mode
 
-Central server receiving data from remote dataloggers:
+Central server receiving data from Remote Dataloggers:
 ```yaml
 services:
   dsmrdb:
@@ -342,7 +342,7 @@ Configure API keys in the web interface: Settings → API → Create API key
 
 ### Remote Datalogger Mode
 
-Remote location forwarding to API server:
+Remote location forwarding to Server Remote Datalogger:
 ```yaml
 services:
   dsmr-remote:
