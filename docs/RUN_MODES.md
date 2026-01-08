@@ -266,7 +266,7 @@ docker-compose logs dsmr-server | grep -i api
 1. **Check this documentation** - Most answers are here
 2. **Search issues** - [GitHub Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)
 3. **Ask community** - [GitHub Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)
-4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/en/v6/)
+4. **Upstream docs** - [DSMR Reader Documentation](https://dsmr-reader.readthedocs.io/)
 
 ---
 
