@@ -24,22 +24,22 @@ function _init_useradd_uid_gid() {
     fi
 
     cat "/etc/s6-overlay/s6-rc.d/${CURRENT_DIR}/branding"
-    echo "
-    User UID: $(id -u app)
-    User GID: $(id -g app)
-    ───────────────────────────────────────────────────"
+    echo ""
+    echo "    User UID: $(id -u app)"
+    echo "    User GID: $(id -g app)"
+    echo "    ───────────────────────────────────────────────────"
+
     if [[ -f /build_version ]]; then
         cat /build_version
-        echo '
-    ───────────────────────────────────────
-        '
+        echo "    ───────────────────────────────────────────────────"
+        echo ""
     fi
 }
 
 function _init_useradd_mkdir() {
     _info "Setting up directories and permissions"
     mkdir -p /run/s6/container_environment
-    chmod -R 666 /run/s6/container_environment
+    chmod -R 755 /run/s6/container_environment
 
     mkdir -p \
         /defaults \
@@ -54,7 +54,7 @@ function _init_useradd_mkdir() {
         /run/nginx \
         /run/gunicorn
 
-    chmod 655 /run/gunicorn
+    chmod 755 /run/gunicorn
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
