@@ -234,7 +234,7 @@ Container-specific settings that control the behavior of the Docker container:
 
 **Examples:**
 
-Enable debug mode:
+Enable **container** debug mode, for DSMR Reader debug mode follow the DSMR Reader docs:
 ```yaml
 environment:
   CONTAINER_ENABLE_DEBUG: "true"
