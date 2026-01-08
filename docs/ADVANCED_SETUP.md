@@ -207,7 +207,7 @@ environment:
   CONTAINER_ENABLE_DEBUG: "true"
 ```
 
-**For DSMR Reader application debug**, see [DSMR Reader documentation](https://dsmr-reader.readthedocs.io/en/v6/env_settings.html).
+**For DSMR Reader application debug**, see [DSMR Reader documentation](https://dsmr-reader.readthedocs.io/en/v6/troubleshooting/logs-debugging/).
 
 ---
 
@@ -228,7 +228,7 @@ environment:
   DSMRREADER_PLUGINS: dsmr_plugins.modules.plugin1,dsmr_plugins.modules.plugin2
 ```
 
-See [DSMR Reader Plugin Documentation](https://dsmr-reader.readthedocs.io/en/latest/plugins.html) for plugin development.
+See [DSMR Reader Plugin Documentation](https://dsmr-reader.readthedocs.io/en/v6/reference/plugins/) for plugin development.
 
 ---
 
