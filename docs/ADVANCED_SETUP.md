@@ -174,14 +174,27 @@ server {
     ssl_certificate /etc/nginx/ssl/cert.pem;
     ssl_certificate_key /etc/nginx/ssl/key.pem;
 
-    location / {
-        proxy_pass http://localhost:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+  location / {
+      proxy_pass http://<doel>:7777;   # or :80 if internal is set to port 80 for example
+
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Forwarded-Host $http_host;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-Port $server_port;
+
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+      proxy_redirect off;
+  }
 }
+```
+
+### Docker Compose
+```
+environment:
+  DJANGO_USE_X_FORWARDED_HOST: "true"
+  DJANGO_USE_X_FORWARDED_PORT: "true"
 ```
 
 ### Traefik
