@@ -199,6 +199,7 @@ environment:
 
 ### Traefik
 
+Add this to your DSMR Reader Docker compose-file if you already have Traefik running.
 ```yaml
 services:
   dsmr:
@@ -208,6 +209,41 @@ services:
       - "traefik.http.routers.dsmr.rule=Host(`dsmr.example.com`)"
       - "traefik.http.routers.dsmr.entrypoints=websecure"
       - "traefik.http.routers.dsmr.tls.certresolver=letsencrypt"
+```
+
+
+Be aware this is just an example of a Traefik compose-file setup, if you don't have it running yet.
+Not supported, just to help out a bit. Double check before use!
+```yaml
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=you@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
 ```
 
 ---
