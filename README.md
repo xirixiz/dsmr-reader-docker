@@ -99,4 +99,6 @@ Access the web interface at `http://localhost` (login: `admin` / `admin`)
 
 ---
 
-**Created by [@xirixiz](https://github.com/xirixiz) | Powered by [DSMR Reader](https://github.com/dsmrreader/dsmr-reader)**
+Project inspired by the hard work and effort of Dennis Siemensma (@dennissiemensma).
+
+Originally created by Bram van Dartel [@xirixiz](https://github.com/xirixiz) | Powered by [DSMR Reader](https://github.com/dsmrreader/dsmr-reader)
