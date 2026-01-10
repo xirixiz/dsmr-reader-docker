@@ -1,87 +1,92 @@
 # --------------------------------------------------------------------
-# DSMR Reader + PostgreSQL (Docker / Podman Compose)
+# DSMR Reader + PostgreSQL
+# Docker / Podman Compose configuration
 # --------------------------------------------------------------------
 
 services:
-  # ------------------------------------------------------------
-  # PostgreSQL database for DSMR Reader
-  # ------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # PostgreSQL database backend for DSMR Reader
+  # ------------------------------------------------------------------
   dsmrdb:
     image: postgres:17-alpine
     container_name: dsmrdb
 
-    # Automatically restart unless explicitly stopped
+    # Restart container unless explicitly stopped by the user
     restart: unless-stopped
 
-    # Timezone configuration
     environment:
-      # Database initialization
+      # Initial database configuration (applied on first startup)
       POSTGRES_DB: dsmrreader
       POSTGRES_USER: dsmrreader
       POSTGRES_PASSWORD: dsmrreader
 
-    # Persistent database storage
+    # Persist database data across container restarts
     volumes:
       - dsmrdb_data:/var/lib/postgresql/data
 
-    # Internal network
+    # Internal application network
     networks:
       - dsmrnet
 
-  # ------------------------------------------------------------
+  # ------------------------------------------------------------------
   # DSMR Reader application
-  # ------------------------------------------------------------
+  # ------------------------------------------------------------------
   dsmr:
     image: ghcr.io/xirixiz/dsmr-reader-docker:6
     container_name: dsmr
 
-    # Automatically restart unless explicitly stopped
+    # Restart container unless explicitly stopped by the user
     restart: unless-stopped
 
-    # Ensure database container is started first
+    # Ensure the database service is started before DSMR Reader
     depends_on:
       - dsmrdb
 
-    # Expose HTTP and HTTPS ports
+    # Expose web interface (HTTP / HTTPS)
     ports:
       - "7777:80"
       - "7779:443"
 
     # Persistent backups directory
+    # Use :z or :Z on SELinux-enabled systems
     volumes:
-      - dsmr_backups:/app/backups
+      - dsmr_backups:/app/backups:Z
 
-    # Application configuration
     environment:
-      # Timezone
+      # Host UID/GID mapping
+      # Ensures files created in mounted volumes have correct ownership
+      PUID: 1000
+      PGID: 1000
+
+      # Application timezone
       DJANGO_TIME_ZONE: Europe/Amsterdam
 
-      # DSMR Reader operantion mode
+      # DSMR Reader runtime mode
       CONTAINER_RUN_MODE: standalone
 
-      # Database connection
+      # PostgreSQL connection settings
       DJANGO_DATABASE_HOST: dsmrdb
       DJANGO_DATABASE_PORT: 5432
       DJANGO_DATABASE_NAME: dsmrreader
       DJANGO_DATABASE_USER: dsmrreader
       DJANGO_DATABASE_PASSWORD: dsmrreader
 
-      # Django / DSMR credentials
+      # Initial Django / DSMR Reader credentials
       DJANGO_SECRET_KEY: dsmrreader
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
 
-      # Optional maintenance
+      # Optional automatic database maintenance
       CONTAINER_ENABLE_VACUUM_DB_AT_STATUP: true
 
-      # File-based secret injection (s6-overlay)
+      # File-based secret injection (s6-overlay convention)
       FILE__SECRET: /run/secrets/a_secret_file
 
     # Docker / Podman secrets
     secrets:
       - a_secret_file
 
-    # Serial device mapping for P1 meter
+    # Serial device mapping for P1 smart meter
     devices:
       - "/dev/ttyUSB1:/dev/ttyUSB0"
 
@@ -89,7 +94,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-    # Internal network
+    # Internal application network
     networks:
       - dsmrnet
 
