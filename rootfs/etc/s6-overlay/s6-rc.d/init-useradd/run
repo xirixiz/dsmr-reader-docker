@@ -9,18 +9,24 @@ IFS=$'\n\t'
 _load_s6_vars
 
 function _init_useradd_uid_gid() {
-    _info "${CURRENT_DIR} | DSMR Reader version: ${DSMR_VERSION}"
-    _info "${CURRENT_DIR} | Docker image version: ${DOCKER_TARGET_RELEASE}"
+    local uid_to_use="${PUID:-${DUID:-1000}}"
+    local gid_to_use="${PGID:-${DGID:-1000}}"
 
-    local DUID=${DUID:-803}
-    local DGID=${DGID:-803}
-
-    if ! groupmod -o -g "${DGID}" app 2>/dev/null; then
-        _warn "${CURRENT_DIR} | Could not modify app group GID to ${DGID}"
+    if [[ ! "$uid_to_use" =~ ^[0-9]+$ ]]; then
+        _warn "${CURRENT_DIR} | Invalid UID: ${uid_to_use}. Falling back to 1000"
+        uid_to_use=1000
+    fi
+    if [[ ! "$gid_to_use" =~ ^[0-9]+$ ]]; then
+        _warn "${CURRENT_DIR} | Invalid GID: ${gid_to_use}. Falling back to 1000"
+        gid_to_use=1000
     fi
 
-    if ! usermod -o -u "${DUID}" app 2>/dev/null; then
-        _warn "${CURRENT_DIR} | Could not modify app user UID to ${DUID}"
+    if ! groupmod -o -g "${gid_to_use}" app 2>/dev/null; then
+        _warn "${CURRENT_DIR} | Could not modify app group GID to ${gid_to_use}"
+    fi
+
+    if ! usermod -o -u "${uid_to_use}" app 2>/dev/null; then
+        _warn "${CURRENT_DIR} | Could not modify app user UID to ${uid_to_use}"
     fi
 
     cat "/etc/s6-overlay/s6-rc.d/${CURRENT_DIR}/branding"
