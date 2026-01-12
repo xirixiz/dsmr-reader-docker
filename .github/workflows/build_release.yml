@@ -230,18 +230,19 @@ jobs:
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}
           tags: ${{ steps.docker_tags.outputs.tags }}
           labels: |
-            org.opencontainers.image.title=DSMR Reader Docker
-            org.opencontainers.image.description=Containerized DSMR Reader for multi-architecture deployment
+            org.opencontainers.image.title=DSMR Reader
+            org.opencontainers.image.description=DSMR Reader packaged as a multi-architecture container
             org.opencontainers.image.version=${{ steps.dsmr_version.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.created=${{ steps.build_time.outputs.timestamp }}
             org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.documentation=${{ github.server_url }}/${{ github.repository }}/blob/main/README.md
             io.github.dsmrreader.upstream.version=${{ steps.dsmr_version.outputs.upstream }}
             io.github.dsmrreader.docker.release=${{ steps.docker_release.outputs.release }}
-            io.github.dsmrreader.branch=${{ github.ref_name }}
+            io.github.dsmrreader.git.branch=${{ github.ref_name }}
+
 
       ################################################
       # BUILD & PUSH
