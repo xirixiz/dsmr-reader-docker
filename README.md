@@ -15,7 +15,7 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 ## Need Help?
 
 - **[DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/)** - DSMR Reader Docker Documentation
-- **[DSMR Reader Docs](https://dsmr-reader.readthedocs.io/)** - DSMR Reader Upstream documentation
+- **[DSMR Reader Docs](https://dsmr-reader.readthedocs.io/en/v6/)** - DSMR Reader Upstream documentation
 - **[Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)** - Report bugs
 - **[Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)** - Ask questions
 
