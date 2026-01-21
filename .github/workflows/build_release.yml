@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dsmr_version:
-        description: "Optional DSMR Reader version (e.g. v6.0rc8, 6.0rc8, 6.0.0). Leave empty to auto-detect."
+        description: "Optional DSMR Reader version (e.g. v6.0rc10, 6.0rc9, 6.0.0). Leave empty to auto-detect."
         required: false
         default: ""
       architectures:
@@ -67,43 +67,51 @@ jobs:
           BRANCH="${{ steps.branch_guard.outputs.branch }}"
           INPUT_VERSION="${{ github.event.inputs.dsmr_version }}"
           REPO_VAR="${{ vars.DSMR_VERSION }}"
-
-          # Development branch always uses 'development'
+          
+          # --- Development branch logic ---
           if [[ "${BRANCH}" == "development" ]]; then
-            echo "version=development" >> "$GITHUB_OUTPUT"
-            echo "📍 Using version: development"
-            exit 0
+            if [[ -n "${INPUT_VERSION}" ]]; then
+              # User explicitly provided a version → use it
+              VERSION="${INPUT_VERSION#v}"
+              echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+              echo "📍 Using input version on development branch: ${VERSION}"
+              exit 0
+            else
+              # No input → use development branch of DSMR Reader
+              echo "version=development" >> "$GITHUB_OUTPUT"
+              echo "📍 Using DSMR Reader development branch"
+              exit 0
+            fi
           fi
-
-          # Use workflow input if provided (development branch only)
-          if [[ "${USE_INPUTS}" == "true" && -n "${INPUT_VERSION}" ]]; then
+          
+          # --- Non-development branches ---
+          if [[ -n "${INPUT_VERSION}" ]]; then
             VERSION="${INPUT_VERSION#v}"
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
             echo "📍 Using input version: ${VERSION}"
             exit 0
           fi
-
-          # Use repository variable if set
+          
           if [[ -n "${REPO_VAR}" ]]; then
             VERSION="${REPO_VAR#v}"
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
             echo "📍 Using repository variable version: ${VERSION}"
             exit 0
           fi
-
-          # Auto-detect latest release from GitHub API
+          
+          # --- Auto-detect latest release ---
           echo "🔎 Auto-detecting latest DSMR Reader release..."
           VERSION="$(curl -fsSL \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/dsmrreader/dsmr-reader/releases/latest \
             | jq -r '.tag_name' | sed 's/^v//')"
-
+          
           if [[ -z "${VERSION}" || "${VERSION}" == "null" ]]; then
             echo "❌ Failed to auto-detect version"
             exit 1
           fi
-
+          
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "📍 Auto-detected version: ${VERSION}"
 
