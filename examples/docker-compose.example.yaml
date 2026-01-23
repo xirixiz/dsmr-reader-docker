@@ -36,7 +36,6 @@ services:
       - NET_ADMIN
     restart: always
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - ./dsmr_backups:/app/backups
     environment:
       - TZ=Europe/Amsterdam

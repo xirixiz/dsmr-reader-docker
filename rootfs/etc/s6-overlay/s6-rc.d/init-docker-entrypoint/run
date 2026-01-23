@@ -208,9 +208,86 @@ function _check_db_availability() {
 
 function _run_post_config() {
     _info "Running post configuration..."
+
+    set -euo pipefail
+
+    if [[ -z "${DSMRREADER_ADMIN_USER:-}" || -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
+        _error "DSMRREADER_ADMIN_USER and/or DSMRREADER_ADMIN_PASSWORD not set. Exiting..."
+        exit 1
+    fi
+
     /usr/local/bin/python3 /app/manage.py migrate --noinput
     /usr/local/bin/python3 /app/manage.py collectstatic --noinput
-    /usr/local/bin/python3 /app/manage.py dsmr_superuser
+
+    _info "Ensuring DSMR Reader admin user is in sync with environment..."
+
+    /usr/local/bin/python3 /app/manage.py shell -c "
+import os
+from django.contrib.auth import get_user_model
+
+username = os.environ['DSMRREADER_ADMIN_USER']
+password = os.environ['DSMRREADER_ADMIN_PASSWORD']
+
+User = get_user_model()
+
+def die(msg):
+    raise SystemExit(msg)
+
+# If the desired username exists, update it (only if needed)
+u = User.objects.filter(username=username).first()
+if u is not None:
+    changed = False
+
+    if not getattr(u, 'is_superuser', False):
+        u.is_superuser = True
+        changed = True
+    if not getattr(u, 'is_staff', False):
+        u.is_staff = True
+        changed = True
+    if hasattr(u, 'is_active') and not u.is_active:
+        u.is_active = True
+        changed = True
+
+    # Only update password if it differs
+    if not u.check_password(password):
+        u.set_password(password)
+        changed = True
+
+    if changed:
+        u.save()
+        print(f'UPDATED:{username}')
+    else:
+        print(f'NOCHANGE:{username}')
+else:
+    # Desired username does not exist.
+    # If there's an existing superuser, rename it to the desired username (optional but handy).
+    su = User.objects.filter(is_superuser=True).order_by('id').first()
+    if su is not None:
+        # Prevent collision (paranoia)
+        if User.objects.filter(username=username).exists():
+            die(f\"Cannot rename superuser to '{username}': username already exists.\")
+
+        su.username = username
+        su.is_staff = True
+        su.is_superuser = True
+        if hasattr(su, 'is_active'):
+            su.is_active = True
+        su.set_password(password)
+        su.save()
+        print(f'RENAMED:{username}')
+    else:
+        # No superuser exists at all -> create
+        User.objects.create_superuser(username=username, password=password)
+        print(f'CREATED:{username}')
+" | while IFS= read -r line; do
+        case "$line" in
+            UPDATED:*)  _info "Admin user updated (${line#UPDATED:})." ;;
+            NOCHANGE:*) _info "Admin user already up-to-date (${line#NOCHANGE:})." ;;
+            RENAMED:*)  _warn "Existing superuser renamed/updated to (${line#RENAMED:})." ;;
+            CREATED:*)  _info "Admin user created (${line#CREATED:})." ;;
+            *)          _debug "$line" ;;
+        esac
+    done
 }
 
 function _nginx_change_listen_port() {
@@ -350,22 +427,34 @@ function _generate_clientcert_auth_configuration() {
 # fi
 
 function _docker_secrets {
-    if find /run/s6/container_environment/FILE__* -maxdepth 1 > /dev/null 2>&1; then
-        _info "Enabling Docker secrets..."
-        for FILENAME in /run/s6/container_environment/FILE__*; do
-                SECRETFILE=$(cat "${FILENAME}")
-                if [[ -f ${SECRETFILE} ]]; then
-                    FILESTRIP=${FILENAME//FILE__/}
-                    if [[ $(tail -n1 "${SECRETFILE}" | wc -l) != 0 ]]; then
-                        _info "Docker secret: ${FILENAME##*/} contains a trailing newline and may not work as expected!"
-                    fi
-                    cat "${SECRETFILE}" >"${FILESTRIP}"
-                    _info "Docker secret ${FILESTRIP##*/} set from ${FILENAME##*/}..."
-                else
-                    _info "Cannot find Docker secret in ${FILENAME##*/}..."
-                fi
-        done
+    # s6-overlay v3 writes initial env to basedir/env
+    if ! find /run/s6/basedir/env -maxdepth 1 -name 'FILE__*' -print -quit 2>/dev/null | grep -q .; then
+        return 0
     fi
+
+    _info "${CURRENT_DIR} | Processing container secrets"
+
+    local file var_name secretfile
+    while IFS= read -r -d '' file; do
+        var_name=$(basename "$file")
+        secretfile=$(cat "$file")
+
+        if [[ ! -f "${secretfile}" ]]; then
+            _warn "${CURRENT_DIR} | Secret file not found: ${secretfile} (referenced by ${var_name})"
+            continue
+        fi
+
+        if [[ $(tail -c1 "${secretfile}" | wc -l) -ne 0 ]]; then
+            _warn "${CURRENT_DIR} | Container secret ${var_name} contains trailing newline - may cause issues"
+        fi
+
+        # Strip FILE__ prefix and write to container_environment
+        local stripped_name="${var_name//FILE__/}"
+        mkdir -p /run/s6/container_environment
+        cat "${secretfile}" > "/run/s6/container_environment/${stripped_name}"
+
+        _success "${CURRENT_DIR} | Loaded container secret: ${stripped_name}"
+    done < <(find /run/s6/basedir/env -maxdepth 1 -name 'FILE__*' -type f -print0)
 }
 
 function _iframe {
