@@ -209,8 +209,6 @@ function _check_db_availability() {
 function _run_post_config() {
     _info "Running post configuration..."
 
-    set -euo pipefail
-
     if [[ -z "${DSMRREADER_ADMIN_USER:-}" || -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
         _error "DSMRREADER_ADMIN_USER and/or DSMRREADER_ADMIN_PASSWORD not set. Exiting..."
         exit 1
