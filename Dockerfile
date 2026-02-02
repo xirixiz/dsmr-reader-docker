@@ -138,8 +138,7 @@ ARG S6_OVERLAY_VERSION
 ENV S6_OVERLAY_VERSION="${S6_OVERLAY_VERSION}"
 
 # S6 Settings
-ENV S6_READ_ONLY_ROOT=1 \
-    S6_KEEP_ENV=1 \
+ENV S6_KEEP_ENV=1 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # System Environment
@@ -229,7 +228,7 @@ RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
 # Enhanced healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=120s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]
