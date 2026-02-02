@@ -19,7 +19,12 @@ svc_nginx_start() {
         for ((i=1; i<=retries; i++)); do
             if [[ -S "${socket_path}" ]]; then
                 _success "${CURRENT_DIR} | Webinterface socket ready"
-                exec /usr/sbin/nginx -g 'daemon off;'
+
+                if command -v ionice >/dev/null 2>&1; then
+                    exec ionice -c 2 -n 5 nice -n 2 /usr/sbin/nginx -g 'daemon off;'
+                else
+                    exec nice -n 2 /usr/sbin/nginx -g 'daemon off;'
+                fi
             fi
 
             _info "${CURRENT_DIR} | Waiting for webinterface socket (${i}/${retries})"
