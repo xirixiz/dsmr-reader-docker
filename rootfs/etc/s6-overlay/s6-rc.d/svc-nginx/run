@@ -2,35 +2,41 @@
 # shellcheck shell=bash
 # shellcheck source=/usr/local/lib/s6-functions.sh
 
+set -euo pipefail
+IFS=$'\n\t'
+
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-function svc_nginx_start() {
-    if [[ "${CONTAINER_RUN_MODE}" = standalone || "${CONTAINER_RUN_MODE}" = server_remote_datalogger ]]; then
-        for i in {1..10}; do
-            if [[ -e "/run/gunicorn/dsmr_webinterface.socket" ]]; then
-                _success "${CURRENT_DIR} webinterface socket ready"
-                sleep 2
+svc_nginx_start() {
+    if [[ "${CONTAINER_RUN_MODE}" = "standalone" || "${CONTAINER_RUN_MODE}" = "server_remote_datalogger" ]]; then
+        CURRENT_DIR="$(basename "$(pwd)")"
 
+        retries="${NGINX_SOCKET_WAIT_RETRIES:-20}"
+        delay="${NGINX_SOCKET_WAIT_DELAY:-1}"
+        socket_path="/run/gunicorn/dsmr_webinterface.socket"
+
+        for ((i=1; i<=retries; i++)); do
+            if [[ -S "${socket_path}" ]]; then
+                _success "${CURRENT_DIR} | Webinterface socket ready"
                 exec /usr/sbin/nginx -g 'daemon off;'
             fi
 
-            _info "${CURRENT_DIR} is waiting for webinterface socket... (${i}/10)"
-            sleep 1
+            _info "${CURRENT_DIR} | Waiting for webinterface socket (${i}/${retries})"
+            sleep "${delay}"
         done
 
-        _error "${CURRENT_DIR} webinterface socket not found after 10 attempts"
+        _error "${CURRENT_DIR} | Webinterface socket not found after ${retries} attempts"
         exit 1
-    else
-        _info "${CURRENT_DIR} disabled for mode ${CONTAINER_RUN_MODE}"
-        exec sleep infinity
     fi
-}
-
-function main() {
-    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(pwd)")"
+    _info "${CURRENT_DIR} | Disabled for mode ${CONTAINER_RUN_MODE}"
+    exec sleep infinity
+}
+
+main() {
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
     svc_nginx_start
 }
 
