@@ -21,7 +21,7 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 
 ---
 
-## Important notes (will be added to the [DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/) later
+## Important notes (will be added to the [DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/) later)
 
 From **DSMR Reader Docker v6**, all **Docker-specific** environment variables use the `CONTAINER_` prefix to clearly separate them from DSMR Reader’s own settings. When migrating to v6, review your environment variables carefully, because DSMR Reader variables may also have changed between major versions.
 
