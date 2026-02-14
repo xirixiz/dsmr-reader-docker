@@ -168,7 +168,7 @@ ENV CONTAINER_RUN_MODE=standalone \
     CONTAINER_ENABLE_HTTP_AUTH=false \
     CONTAINER_ENABLE_CLIENTCERT_AUTH=false \
     CONTAINER_ENABLE_IFRAME=false \
-    CONTAINER_ENABLE_VACUUM_DB_AT_STATUP=false
+    CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP=false
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

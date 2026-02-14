@@ -77,7 +77,7 @@ services:
       DSMRREADER_ADMIN_PASSWORD: admin
 
       # Optional automatic database maintenance
-      CONTAINER_ENABLE_VACUUM_DB_AT_STATUP: true
+      CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP: true
 
       # File-based secret injection (s6-overlay convention)
       FILE__SECRET: /run/secrets/a_secret_file

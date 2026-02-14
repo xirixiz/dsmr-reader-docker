@@ -24,7 +24,7 @@ function _init_dsmr_and_db_CONTAINER_ENABLE_IFRAME() {
 }
 
 function _init_dsmr_and_db_run_db_cleanup() {
-    if [[ "${CONTAINER_ENABLE_VACUUM_DB_AT_STATUP}" == "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP}" == "true" ]]; then
         _info "${CURRENT_DIR} | Running database vacuum cleaning"
 
         if [[ -x /app/vacuum_database.sh ]]; then
