@@ -27,7 +27,7 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 ## Variables changes
 From **DSMR Reader Docker v6**, all **Docker-specific** environment variables use the `CONTAINER_` prefix to clearly separate them from DSMR Reader’s own settings. When migrating to v6, review your environment variables carefully, because DSMR Reader variables may also have changed between major versions.
 
-### Docker-specific variables (`CONTAINER_*`)
+### DSMR Reader Docker-specific variables (`CONTAINER_*`)
 - `CONTAINER_RUN_MODE`
 - `CONTAINER_ENABLE_DEBUG`
 - `CONTAINER_ENABLE_NGINX_ACCESS_LOGS`
