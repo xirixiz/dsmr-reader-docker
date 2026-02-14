@@ -23,6 +23,8 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 
 ## Important notes (will be added to the [DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/) later)
 
+
+## Variables changes
 From **DSMR Reader Docker v6**, all **Docker-specific** environment variables use the `CONTAINER_` prefix to clearly separate them from DSMR Reader’s own settings. When migrating to v6, review your environment variables carefully, because DSMR Reader variables may also have changed between major versions.
 
 ### Docker-specific variables (`CONTAINER_*`)
@@ -36,6 +38,32 @@ From **DSMR Reader Docker v6**, all **Docker-specific** environment variables us
 - `CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP`
 
 ---
+
+## UID and GID changes
+
+In DSMR Reader Docker v6 the default user and group IDs have changed to **1000:1000**.
+In v5 the container used **803** for the user ID. This change may cause permission issues on existing volumes.
+
+### How to fix
+
+If you experience permission problems, explicitly set the IDs to match your existing data.
+
+You can use either of the following (both are supported):
+
+Option 1
+```
+PUID=803
+PGID=1000
+```
+
+Option 2
+```
+DUID=803
+DGID=1000
+```
+
+Tip: Only change these if you already have existing volumes created with the old UID/GID.
+New installations should normally keep the defaults.
 
 ## Timezone configuration changes
 
