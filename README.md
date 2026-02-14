@@ -21,6 +21,43 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 
 ---
 
+## Important notes (will be added to the [DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/) later
+
+From **DSMR Reader Docker v6**, all **Docker-specific** environment variables use the `CONTAINER_` prefix to clearly separate them from DSMR Reader’s own settings. When migrating to v6, review your environment variables carefully, because DSMR Reader variables may also have changed between major versions.
+
+### Docker-specific variables (`CONTAINER_*`)
+- `CONTAINER_RUN_MODE`
+- `CONTAINER_ENABLE_DEBUG`
+- `CONTAINER_ENABLE_NGINX_ACCESS_LOGS`
+- `CONTAINER_ENABLE_NGINX_SSL`
+- `CONTAINER_ENABLE_HTTP_AUTH`
+- `CONTAINER_ENABLE_CLIENTCERT_AUTH`
+- `CONTAINER_ENABLE_IFRAME`
+- `CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP`
+
+---
+
+## Timezone configuration changes
+
+### Do not use these volume mounts anymore
+Remove these if you have them:
+
+- `/etc/localtime:/etc/localtime`
+- `/etc/timezone:/etc/timezone`
+
+### Remove these environment variables
+Remove these if defined:
+
+- `TZ=Europe/Amsterdam`
+- `PG_TZ=Europe/Amsterdam`
+
+### Keep or add this if really needed
+Use Django’s timezone setting:
+
+- `DJANGO_TIME_ZONE=Europe/Amsterdam`
+
+---
+
 Project inspired by the hard work and effort of Dennis Siemensma [@dennissiemensma](https://github.com/dennissiemensma).
 
 Originally created by Bram van Dartel [@xirixiz](https://github.com/xirixiz) | Powered by [DSMR Reader](https://github.com/dsmrreader/dsmr-reader)
