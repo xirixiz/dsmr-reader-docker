@@ -2,7 +2,7 @@ OUTPUT := output
 OUTPUT := $(abspath $(OUTPUT))
 
 IMAGE ?= dsmr_test_image
-DSMR_VERSION ?= 6.0rc8
+DSMR_VERSION ?= 6.0.1
 PLATFORM ?= linux/amd64
 
 COMPOSE ?= podman compose
