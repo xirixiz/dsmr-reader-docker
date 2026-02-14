@@ -1,22 +1,48 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
 
-if [[ "${DSMRREADER_OPERATION_MODE}" = standalone || "${DSMRREADER_OPERATION_MODE}" = api_server ]]; then
-    for i in {1..10}; do
-        if [ -e "/tmp/gunicorn--dsmr_webinterface.socket" ]; then
-            echo "Starting DSMR Reader - nginx..."
-            sleep 2
-            cd /app || exit
-            /usr/sbin/nginx -g 'daemon off;'
-        else
-            sleep 1
-            printf "\\rTesting webservice socket connectivity: %s second(s) of 10 seconds..." "$i"
-            if [[ $i == 10 ]]; then
-                echo "Webinterface socket couldn't be verified! Please verify the webinterface log files. Exiting..."
-                exit 1
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+svc_nginx_start() {
+    if [[ "${CONTAINER_RUN_MODE}" = "standalone" || "${CONTAINER_RUN_MODE}" = "server_remote_datalogger" ]]; then
+        CURRENT_DIR="$(basename "$(pwd)")"
+
+        retries="${NGINX_SOCKET_WAIT_RETRIES:-20}"
+        delay="${NGINX_SOCKET_WAIT_DELAY:-1}"
+        socket_path="/run/gunicorn/dsmr_webinterface.socket"
+
+        for ((i=1; i<=retries; i++)); do
+            if [[ -S "${socket_path}" ]]; then
+                _success "${CURRENT_DIR} | Webinterface socket ready"
+
+                if command -v ionice >/dev/null 2>&1; then
+                    exec ionice -c 2 -n 5 nice -n 2 /usr/sbin/nginx -g 'daemon off;'
+                else
+                    exec nice -n 2 /usr/sbin/nginx -g 'daemon off;'
+                fi
             fi
-        fi
-    done
-else
-    sleep infinity
-fi
+
+            _info "${CURRENT_DIR} | Waiting for webinterface socket (${i}/${retries})"
+            sleep "${delay}"
+        done
+
+        _error "${CURRENT_DIR} | Webinterface socket not found after ${retries} attempts"
+        exit 1
+    fi
+
+    CURRENT_DIR="$(basename "$(pwd)")"
+    _info "${CURRENT_DIR} | Disabled for mode ${CONTAINER_RUN_MODE}"
+    exec sleep infinity
+}
+
+main() {
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
+    svc_nginx_start
+}
+
+main "$@"

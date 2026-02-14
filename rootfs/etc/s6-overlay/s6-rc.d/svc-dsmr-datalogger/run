@@ -1,10 +1,35 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
 
-if [[ "${DSMRREADER_OPERATION_MODE}" = standalone ]]; then
-    echo "Starting DSMR Reader - datalogger..."
-    cd /app || exit
-    s6-setuidgid app /usr/local/bin/python3 -u /app/manage.py dsmr_datalogger
-else
-    sleep infinity
-fi
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+svc_dsmr_datalogger_start() {
+    if [[ "${CONTAINER_RUN_MODE}" = "standalone" ]]; then
+        CURRENT_DIR="$(basename "$(pwd)")"
+        _info "${CURRENT_DIR} | Starting"
+
+        cmd=(/opt/venv/bin/python -u /app/manage.py dsmr_datalogger)
+
+        if command -v ionice >/dev/null 2>&1; then
+            exec /command/s6-setuidgid app ionice -c 2 -n 7 nice -n 5 "${cmd[@]}"
+        else
+            exec /command/s6-setuidgid app nice -n 5 "${cmd[@]}"
+        fi
+    fi
+
+    CURRENT_DIR="$(basename "$(pwd)")"
+    _info "${CURRENT_DIR} | Disabled for mode ${CONTAINER_RUN_MODE}"
+    exec sleep infinity
+}
+
+main() {
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
+    svc_dsmr_datalogger_start
+}
+
+main "$@"

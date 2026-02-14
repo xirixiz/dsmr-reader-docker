@@ -1,39 +1,6 @@
-# Ignore Git data
 .git
 .gitignore
 .github
 .gitkeep
 .gitattributes
-
-# Python cache & compiled files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# IDE / editor settings
-.vscode/
-.idea/
-*.swp
-
-# Bytecode & build artifacts
-*.egg-info/
-.eggs/
-build/
-dist/
-
-# Docker junk
-Dockerfile*
-.dockerignore
-
-# Logs & temp
-*.log
-*.tmp
-*.bak
-
-# Node/npm (if you ever add frontend bits)
-node_modules/
-npm-debug.log*
-
-# OS / editor files
-.DS_Store
-Thumbs.db
+README.md

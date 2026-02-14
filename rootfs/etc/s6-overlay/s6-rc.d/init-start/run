@@ -1,0 +1,64 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_start_detect_architecture() {
+    local arch longbit
+    arch="$(uname -m)"
+    longbit="$(getconf LONG_BIT)"
+
+    case "${arch}" in
+        x86_64)
+            if [[ "${longbit}" == "32" ]]; then
+                _info "${CURRENT_DIR} | Architecture: X32"
+            else
+                _info "${CURRENT_DIR} | Architecture: X64"
+            fi
+            ;;
+        armv7l)  _info "${CURRENT_DIR} | Architecture: ARM" ;;
+        aarch64) _info "${CURRENT_DIR} | Architecture: ARM64" ;;
+        *)       _info "${CURRENT_DIR} | Architecture: ${arch}" ;;
+    esac
+}
+
+function __init_start_normalize_bool_vars() {
+    local var="$1"
+    local val
+    val="$(printenv "${var}" 2>/dev/null || echo "false")"
+
+    case "${val,,}" in
+        true|1|yes|y|on) export "${var}=true" ;;
+        *)               export "${var}=false" ;;
+    esac
+}
+
+function _init_start_normalize_all_enable_vars() {
+    local var
+    while IFS='=' read -r var _; do
+        [[ "${var}" == ENABLE_* ]] || continue
+        __init_start_normalize_bool_vars "${var}"
+    done < <(printenv)
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+
+    # Normalize debug flag first, before checking it
+    __init_start_normalize_bool_vars "CONTAINER_ENABLE_DEBUG"
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+
+    _info "${CURRENT_DIR} | Starting"
+    _init_start_detect_architecture
+    _init_start_normalize_all_enable_vars
+}
+
+main "$@"

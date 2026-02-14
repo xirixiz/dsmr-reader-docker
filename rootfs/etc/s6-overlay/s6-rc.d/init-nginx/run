@@ -1,0 +1,171 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_nginx_mkdir() {
+    _info "${CURRENT_DIR} | Setting up directories and permissions - ${CURRENT_DIR}"
+
+    mkdir -p \
+        /var/www/dsmrreader \
+        /run/nginx/conf.d \
+        /run/nginx/server-snippets \
+
+    chown -R app:app \
+        /run/nginx
+}
+
+function _init_nginx_listen_port() {
+    mkdir -p /run/nginx/server-snippets
+    local port="${NGINX_LISTEN_PORT:-80}"
+
+    _info "${CURRENT_DIR} | Configuring NGINX to listen on port ${port}"
+    printf 'listen %s;\n' "${port}" > /run/nginx/server-snippets/10-listen.conf
+}
+
+function _init_nginx_access_logs() {
+    mkdir -p /run/nginx/conf.d
+
+    if [[ "${CONTAINER_ENABLE_NGINX_ACCESS_LOGS}" == "false" ]]; then
+        _info "${CURRENT_DIR} | Disabling NGINX access logs"
+        cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
+access_log off;
+error_log  /proc/self/fd/2 warn;
+EOF
+    else
+        _info "${CURRENT_DIR} | Enabling NGINX access and error logs"
+        cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
+access_log /proc/self/fd/1;
+error_log  /proc/self/fd/2 warn;
+EOF
+    fi
+}
+
+function _init_nginx_ssl() {
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/20-ssl.conf
+
+    if [[ "${CONTAINER_ENABLE_NGINX_SSL}" != "true" ]]; then
+        _info "${CURRENT_DIR} | SSL disabled"
+        return 0
+    fi
+
+    _info "${CURRENT_DIR} | Enabling NGINX SSL"
+
+    if [[ ! -f "/etc/ssl/private/fullchain.pem" || ! -f "/etc/ssl/private/privkey.pem" ]]; then
+        _error "${CURRENT_DIR} | SSL certificates not found!"
+        _error "${CURRENT_DIR} | Required: /etc/ssl/private/fullchain.pem and /etc/ssl/private/privkey.pem"
+        exit 1
+    fi
+
+    cat > /run/nginx/server-snippets/20-ssl.conf <<'EOF'
+listen 443 ssl;
+ssl_certificate /etc/ssl/private/fullchain.pem;
+ssl_certificate_key /etc/ssl/private/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers on;
+ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+EOF
+
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "${CURRENT_DIR} | NGINX SSL configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
+    fi
+
+    _success "${CURRENT_DIR} | SSL configured successfully"
+}
+
+function _init_nginx_auth() {
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/30-auth.conf /run/nginx/htpasswd
+
+    if [[ "${CONTAINER_ENABLE_HTTP_AUTH}" != "true" ]]; then
+        _info "${CURRENT_DIR} | HTTP authentication disabled"
+        return 0
+    fi
+
+    _info "${CURRENT_DIR} | Enabling HTTP basic authentication"
+
+    if [[ -z "${HTTP_AUTH_USERNAME:-}" || -z "${HTTP_AUTH_PASSWORD:-}" ]]; then
+        _error "${CURRENT_DIR} | HTTP_AUTH_USERNAME and HTTP_AUTH_PASSWORD must be set when CONTAINER_ENABLE_HTTP_AUTH=true"
+        exit 1
+    fi
+
+    local crypt_pw
+    crypt_pw="$(openssl passwd -apr1 "${HTTP_AUTH_PASSWORD}")"
+    printf "%s:%s\n" "${HTTP_AUTH_USERNAME}" "${crypt_pw}" > /run/nginx/htpasswd
+    chmod 600 /run/nginx/htpasswd
+
+    cat > /run/nginx/server-snippets/30-auth.conf <<'EOF'
+auth_basic "Restricted Access";
+auth_basic_user_file /run/nginx/htpasswd;
+EOF
+
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "${CURRENT_DIR} | NGINX authentication configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
+    fi
+
+    _success "${CURRENT_DIR} | HTTP authentication configured"
+}
+
+function _init_nginx_clientcert_auth() {
+    mkdir -p /run/nginx/server-snippets
+    rm -f /run/nginx/server-snippets/40-clientcert.conf
+
+    if [[ "${CONTAINER_ENABLE_CLIENTCERT_AUTH}" != "true" ]]; then
+        _info "${CURRENT_DIR} | Client certificate authentication disabled"
+        return 0
+    fi
+
+    _info "${CURRENT_DIR} | Enabling client certificate authentication"
+
+    if [[ ! -f /etc/nginx/client_cert/cacert.pem ]]; then
+        _error "${CURRENT_DIR} | Client certificate CA not found at /etc/nginx/client_cert/cacert.pem"
+        exit 1
+    fi
+
+    cat > /run/nginx/server-snippets/40-clientcert.conf <<'EOF'
+ssl_client_certificate /etc/nginx/client_cert/cacert.pem;
+ssl_verify_client on;
+ssl_verify_depth 2;
+EOF
+
+    if [[ -f /etc/nginx/client_cert/ca.crl ]]; then
+        _info "${CURRENT_DIR} | Using certificate revocation list"
+        echo "ssl_crl /etc/nginx/client_cert/ca.crl;" >> /run/nginx/server-snippets/40-clientcert.conf
+    fi
+
+    if ! nginx -c /etc/nginx/nginx.conf -t >/dev/null 2>&1; then
+        _error "${CURRENT_DIR} | NGINX client certificate configuration test failed"
+        nginx -c /etc/nginx/nginx.conf -t
+        exit 1
+    fi
+
+    _success "${CURRENT_DIR} | Client certificate authentication configured"
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    _info "${CURRENT_DIR} | Starting ${CURRENT_DIR}"
+    _init_nginx_mkdir
+    _init_nginx_listen_port
+    _init_nginx_access_logs
+    _init_nginx_ssl
+    _init_nginx_auth
+    _init_nginx_clientcert_auth
+}
+
+main "$@"

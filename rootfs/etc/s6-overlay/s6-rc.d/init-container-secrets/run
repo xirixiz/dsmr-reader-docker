@@ -1,0 +1,52 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_container_secrets_add() {
+    # s6-overlay v3 writes initial env to basedir/env
+    if ! find /run/s6/basedir/env -maxdepth 1 -name 'FILE__*' -print -quit 2>/dev/null | grep -q .; then
+        return 0
+    fi
+
+    _info "${CURRENT_DIR} | Processing container secrets"
+
+    local file var_name secretfile
+    while IFS= read -r -d '' file; do
+        var_name=$(basename "$file")
+        secretfile=$(cat "$file")
+
+        if [[ ! -f "${secretfile}" ]]; then
+            _warn "${CURRENT_DIR} | Secret file not found: ${secretfile} (referenced by ${var_name})"
+            continue
+        fi
+
+        if [[ $(tail -c1 "${secretfile}" | wc -l) -ne 0 ]]; then
+            _warn "${CURRENT_DIR} | Container secret ${var_name} contains trailing newline - may cause issues"
+        fi
+
+        # Strip FILE__ prefix and write to container_environment
+        local stripped_name="${var_name//FILE__/}"
+        mkdir -p /run/s6/container_environment
+        cat "${secretfile}" > "/run/s6/container_environment/${stripped_name}"
+
+        _success "${CURRENT_DIR} | Loaded container secret: ${stripped_name}"
+    done < <(find /run/s6/basedir/env -maxdepth 1 -name 'FILE__*' -type f -print0)
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    _init_container_secrets_add
+}
+
+main "$@"

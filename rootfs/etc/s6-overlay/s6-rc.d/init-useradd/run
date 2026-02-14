@@ -1,0 +1,80 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck source=/usr/local/lib/s6-functions.sh
+
+set -euo pipefail
+IFS=$'\n\t'
+
+. /usr/local/lib/s6-functions.sh
+_load_s6_vars
+
+function _init_useradd_uid_gid() {
+    local uid_to_use="${PUID:-${DUID:-1000}}"
+    local gid_to_use="${PGID:-${DGID:-1000}}"
+
+    if [[ ! "$uid_to_use" =~ ^[0-9]+$ ]]; then
+        _warn "${CURRENT_DIR} | Invalid UID: ${uid_to_use}. Falling back to 1000"
+        uid_to_use=1000
+    fi
+    if [[ ! "$gid_to_use" =~ ^[0-9]+$ ]]; then
+        _warn "${CURRENT_DIR} | Invalid GID: ${gid_to_use}. Falling back to 1000"
+        gid_to_use=1000
+    fi
+
+    if ! groupmod -o -g "${gid_to_use}" app 2>/dev/null; then
+        _warn "${CURRENT_DIR} | Could not modify app group GID to ${gid_to_use}"
+    fi
+
+    if ! usermod -o -u "${uid_to_use}" app 2>/dev/null; then
+        _warn "${CURRENT_DIR} | Could not modify app user UID to ${uid_to_use}"
+    fi
+
+    cat "/etc/s6-overlay/s6-rc.d/${CURRENT_DIR}/branding"
+    echo ""
+    echo "    User UID: $(id -u app)"
+    echo "    User GID: $(id -g app)"
+    echo "    ───────────────────────────────────────────────────"
+
+    if [[ -f /build_version ]]; then
+        while IFS= read -r line; do
+            echo "    ${line}"
+        done < /build_version
+        echo "    ───────────────────────────────────────────────────"
+        echo ""
+    fi
+}
+
+function _init_useradd_mkdir() {
+    _info "${CURRENT_DIR} | Setting up directories and permissions"
+    mkdir -p /run/s6/container_environment
+    chmod -R 755 /run/s6/container_environment
+
+    mkdir -p \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx/conf.d \
+        /run/nginx/server-snippets \
+        /run/gunicorn
+
+    chown -R app:app \
+        /defaults \
+        /var/www/dsmrreader \
+        /run/nginx \
+        /run/gunicorn
+
+    chmod 755 /run/gunicorn
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------------------------------------------------------------------------------
+function main() {
+    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+
+    CURRENT_DIR="$(basename "$(dirname "$0")")"
+    _info "${CURRENT_DIR} | Starting"
+    _init_useradd_uid_gid
+    _init_useradd_mkdir
+}
+
+main "$@"

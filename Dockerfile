@@ -1,127 +1,234 @@
 # syntax=docker/dockerfile:1.7
 
-#---------------------------------------------------------------------------------------------------------------------------
-# STAGING: fetch DSMR source and extract requirements
-#---------------------------------------------------------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM python:3.12-alpine3.22 AS staging
+ARG PYTHON_IMAGE=python:3.14.2-slim-trixie
+ARG S6_OVERLAY_VERSION=3.2.1.0
+
+#######################################################################
+# STAGING: Download Assets (Source Code & S6 Overlay)
+#######################################################################
+FROM --platform=$BUILDPLATFORM ${PYTHON_IMAGE} AS staging
 WORKDIR /app
 
 ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION}
+ENV DSMR_VERSION="${DSMR_VERSION:-development}"
+ARG S6_OVERLAY_VERSION
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-RUN set -eux; \
-    apk add --no-cache curl tar; \
-    echo "**** Download DSMR ****"; \
-    curl -SsfL "https://github.com/dsmrreader/dsmr-reader/archive/refs/tags/v${DSMR_VERSION}.tar.gz" \
-      | tar xz --strip-components=1 -C /app; \
-    curl -SsfL "https://raw.githubusercontent.com/dsmrreader/dsmr-reader/v${DSMR_VERSION}/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" \
-      -o /app/dsmr_datalogger_api_client.py; \
-    mkdir -p /deps && cp /app/dsmrreader/provisioning/requirements/base.txt /deps/requirements.txt
+# Cache-busting layer
+RUN echo "Using DSMR_VERSION=${DSMR_VERSION}"
 
-#---------------------------------------------------------------------------------------------------------------------------
-# BUILDER: install build deps & Python packages into a staging prefix
-#---------------------------------------------------------------------------------------------------------------------------
-FROM python:3.12-alpine3.22 AS builder
+RUN <<EOF
+set -euo pipefail
+
+apt-get update
+apt-get install -y --no-install-recommends \
+  curl ca-certificates tar gzip xz-utils
+rm -rf /var/lib/apt/lists/*
+
+# --- Download DSMR Reader ---
+RAW_VERSION="${DSMR_VERSION#v}"
+if [ "${RAW_VERSION}" = "development" ]; then
+  ARCHIVE_PATH="refs/heads/development.tar.gz"
+else
+  ARCHIVE_PATH="refs/tags/v${RAW_VERSION}.tar.gz"
+fi
+
+URL="https://github.com/dsmrreader/dsmr-reader/archive/${ARCHIVE_PATH}"
+echo "Downloading Source: ${URL}"
+
+curl -fsSL "${URL}" -o /tmp/dsmr.tar.gz
+tar -xzf /tmp/dsmr.tar.gz --strip-components=1 -C /app
+
+if [ -d /app/src ]; then
+  cp -a /app/src/. /app/
+  rm -rf /app/src
+fi
+
+# --- Download S6 Overlay ---
+case "${TARGETARCH}/${TARGETVARIANT}" in
+  "amd64/")  S6_ARCH="x86_64" ;;
+  "arm64/")  S6_ARCH="aarch64" ;;
+  "arm/v7")  S6_ARCH="armhf" ;;
+  *) echo "Unsupported TARGETARCH/TARGETVARIANT: ${TARGETARCH}/${TARGETVARIANT}" ; exit 1 ;;
+esac
+
+echo "Downloading S6 Overlay for ${S6_ARCH}"
+curl -fsSL -o /tmp/s6-noarch.tar.xz \
+  "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz"
+curl -fsSL -o /tmp/s6-arch.tar.xz \
+  "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz"
+
+# Prepare S6 folder
+mkdir -p /s6-dist
+tar -C /s6-dist -Jxpf /tmp/s6-noarch.tar.xz
+tar -C /s6-dist -Jxpf /tmp/s6-arch.tar.xz
+EOF
+
+#######################################################################
+# BUILDER: Compile dependencies
+#######################################################################
+FROM ${PYTHON_IMAGE} AS builder
 WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-      gcc python3-dev musl-dev build-base rust cargo libffi-dev \
-      jpeg-dev libjpeg-turbo-dev libpng-dev zlib-dev \
-      postgresql17-dev mariadb-connector-c-dev mariadb-dev
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    libffi-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libpq-dev \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=staging /deps/requirements.txt /deps/requirements.txt
-COPY --from=staging /app /app
+ENV VENV_PATH="/opt/venv"
+RUN python -m venv "${VENV_PATH}"
+ENV PATH="${VENV_PATH}/bin:${PATH}"
 
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# Copy only dependency files first for better caching
+COPY --from=staging /app/pyproject.toml /app/poetry.lock /app/
+
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --prefix=/install "setuptools<81" && \
-    pip install --no-cache-dir --prefix=/install -r /deps/requirements.txt && \
-    pip install --no-cache-dir --prefix=/install psycopg mysqlclient tzupdate && \
-    python - <<'PY'
-import compileall, sys
-compileall.compile_path(quiet=1)
-PY
+    pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false && \
+    . /opt/venv/bin/activate &&poetry install --only main --no-root --no-interaction --no-ansi && \
+    pip uninstall -y poetry
 
-#---------------------------------------------------------------------------------------------------------------------------
-# FINAL: runtime image with DB CLIs, nginx, s6, and copied site-packages
-#---------------------------------------------------------------------------------------------------------------------------
-FROM python:3.12-alpine3.22 AS final
+# Aggressive cleanup of Python packages
+RUN find /opt/venv -type d -name '__pycache__' -prune -exec rm -rf {} + && \
+    find /opt/venv -type d -name 'tests' -prune -exec rm -rf {} + && \
+    find /opt/venv -type d -name '*.dist-info' -exec rm -rf {}/tests {} + 2>/dev/null || true && \
+    find /opt/venv -type f -name '*.pyc' -delete && \
+    find /opt/venv -type f -name '*.pyo' -delete && \
+    find /opt/venv -type f -name '*.so*' -exec strip --strip-unneeded {} + 2>/dev/null || true
+
+#######################################################################
+# FINAL: Runtime image
+#######################################################################
+FROM ${PYTHON_IMAGE} AS final
 WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
 
-ARG DSMR_VERSION
-ENV DSMR_VERSION=${DSMR_VERSION}
+ENV VENV_PATH=/opt/venv
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-ARG DOCKER_TARGET_RELEASE
-ENV DOCKER_TARGET_RELEASE=${DOCKER_TARGET_RELEASE}
+# Copy compiled dependencies
+COPY --from=builder /opt/venv /opt/venv
 
-# General envs
-ENV PS1="$(whoami)@dsmr_reader_docker:$(pwd)\\$ " \
-    TERM="xterm" \
-    PIP_NO_CACHE_DIR=1 \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+# Copy S6 overlay
+COPY --from=staging /s6-dist /
+
+ARG DSMR_VERSION=development
+ENV DSMR_VERSION="${DSMR_VERSION}"
+ARG DOCKER_TARGET_RELEASE=development
+ENV DOCKER_TARGET_RELEASE="${DOCKER_TARGET_RELEASE}"
+ARG S6_OVERLAY_VERSION
+ENV S6_OVERLAY_VERSION="${S6_OVERLAY_VERSION}"
+
+# S6 Settings
+ENV S6_KEEP_ENV=1 \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+
+# System Environment
+ENV TERM=xterm \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    # Filter noisy warnings only (Python 3.12 temporarily)
-    PYTHONWARNINGS="ignore:pkg_resources is deprecated:UserWarning,ignore:invalid escape sequence:SyntaxWarning"
+    PYTHONUNBUFFERED=1
 
-# Runtime deps incl. DB CLIs
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-      bash curl coreutils ca-certificates shadow jq nginx openssl tzdata \
-      s6-overlay netcat-openbsd \
-      libffi jpeg libjpeg-turbo libpng zlib \
-      postgresql17-client mariadb-client mariadb-connector-c
+# DSMR Reader Configuration
+ENV DSMRREADER_LOGLEVEL=WARNING \
+    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=true
 
-# Copy Python deps from builder
-COPY --from=builder /install /usr/local
-
-# Bring in the app
-COPY --from=staging /app /app
-
-# Nginx setup
-RUN set -eux; \
-    mkdir -p /run/nginx /etc/nginx/http.d /var/www/dsmrreader/static; \
-    ln -sf /dev/stdout /var/log/nginx/access.log; \
-    ln -sf /dev/stderr /var/log/nginx/error.log; \
-    rm -f /etc/nginx/http.d/default.conf; \
-    cp /app/dsmrreader/provisioning/nginx/dsmr-webinterface /etc/nginx/http.d/dsmr-webinterface.conf
-
-# App user
-RUN set -eux; \
-    groupmod -g 1000 users; \
-    useradd -u 803 -U -d /config -s /sbin/nologin app; \
-    usermod -G users,dialout,audio app; \
-    mkdir -p /config /defaults; \
-    chown -R app:app /config /defaults /var/www/dsmrreader
-
-# Settings template
-RUN cp /app/dsmrreader/provisioning/django/settings.py.template /app/dsmrreader/settings.py
-
-# DSMR envs (override secrets at runtime!)
-ENV DJANGO_SECRET_KEY=dsmrreader \
-    DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
+# DJANGO Configuration
+ENV DJANGO_DATABASE_ENGINE=django.db.backends.postgresql \
     DJANGO_DATABASE_NAME=dsmrreader \
     DJANGO_DATABASE_USER=dsmrreader \
-    DJANGO_DATABASE_PASSWORD=dsmrreader \
+    DJANGO_DATABASE_PASSWORD="" \
+    DJANGO_SECRET_KEY="" \
     DJANGO_DATABASE_HOST=dsmrdb \
     DJANGO_DATABASE_PORT=5432 \
-    DSMRREADER_ADMIN_USER=admin \
-    DSMRREADER_ADMIN_PASSWORD=admin \
-    DSMRREADER_OPERATION_MODE=standalone \
-    VACUUM_DB_ON_STARTUP=false \
-    DSMRREADER_SUPPRESS_STORAGE_SIZE_WARNINGS=True \
-    DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD=serial \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT=/dev/ttyUSB0 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE=115200 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE=8 \
-    DSMRREADER_REMOTE_DATALOGGER_SERIAL_PARITY=N \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST=127.0.0.1 \
-    DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT=23
+    DJANGO_DEBUG=false
 
-# Healthcheck
-HEALTHCHECK --interval=15s --timeout=5s --retries=5 CMD curl -fsSL http://127.0.0.1/about -o /dev/null || exit 1
+# Configuration specific Configuration
+ENV CONTAINER_RUN_MODE=standalone \
+    CONTAINER_ENABLE_DEBUG=false \
+    CONTAINER_ENABLE_NGINX_ACCESS_LOGS=false \
+    CONTAINER_ENABLE_NGINX_SSL=false \
+    CONTAINER_ENABLE_HTTP_AUTH=false \
+    CONTAINER_ENABLE_CLIENTCERT_AUTH=false \
+    CONTAINER_ENABLE_IFRAME=false \
+    CONTAINER_ENABLE_VACUUM_DB_AT_STATUP=false
 
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    curl \
+    jq \
+    nginx-light \
+    openssl \
+    tzdata \
+    netcat-traditional \
+    postgresql-client \
+    passwd \
+    locales \
+    xz-utils \
+    libcap2-bin \
+    vim-tiny \
+    && rm -rf /var/lib/apt/lists/*
+
+# Aggressive system cleanup
+RUN rm -rf \
+    /usr/share/doc/* \
+    /usr/share/man/* \
+    /usr/share/locale/* \
+    /usr/share/info/* \
+    /var/cache/debconf/* \
+    /usr/share/lintian/* \
+    /usr/share/linda/* \
+    /root/.cache/* \
+    /tmp/* \
+    /var/tmp/*
+
+# Copy application code (do this late for better caching)
+COPY --from=staging /app /app
+
+# Copy `3 configuration
 COPY rootfs /
+
+# Set build version - spaces for outline on print
+RUN { \
+    printf "DSMR Reader version: %s\n" "${DSMR_VERSION}"; \
+    printf "DSMR Reader Docker version: %s\n" "${DOCKER_TARGET_RELEASE}"; \
+    printf "Build-date: %s\n" "$(date +%Y%m%d-%H%M)"; \
+    } > /build_version
+
+# Remove default nginx site
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Create app user with proper permissions
+RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
+    usermod -a -G dialout,audio,uucp app && \
+    mkdir -p /run/nginx/tmp /run/nginx/conf.d /run/nginx/server-snippets && \
+    chown -R app:app /run/nginx && \
+    chmod -R 755 /run/nginx
+
+# Allow nginx to bind to privileged ports without root
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
+
+# Enhanced healthcheck
+HEALTHCHECK --interval=120s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
 
 ENTRYPOINT ["/init"]

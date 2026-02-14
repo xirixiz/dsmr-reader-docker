@@ -1,2 +1,2 @@
-init-docker-entrypoint
+init-services-bundle
 svc-dsmr-webinterface
