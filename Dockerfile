@@ -182,6 +182,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-traditional \
     postgresql-client \
     libjpeg62-turbo \
+    libpng16-16t64 \
+    zlib1g \    
     passwd \
     locales \
     xz-utils \
