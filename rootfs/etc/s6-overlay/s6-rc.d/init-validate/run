@@ -8,6 +8,34 @@ IFS=$'\n\t'
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
+#---------------------------------------------------------------------------------------------------------------------------
+# HELPERS
+#---------------------------------------------------------------------------------------------------------------------------
+function _require_var() {
+    local name="$1"
+    local value="${!name:-}"
+
+    if [[ -z "${value}" ]]; then
+        _error "${CURRENT_DIR} | ${name} is not set"
+        return 1
+    fi
+
+    return 0
+}
+
+function _warn_if_default() {
+    local name="$1"
+    local bad="$2"
+    local value="${!name:-}"
+
+    if [[ -n "${value}" && "${value}" == "${bad}" ]]; then
+        _warn "${CURRENT_DIR} | Default ${name} detected, this is a security risk, please set a secure value"
+    fi
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: PLATFORM / MODE
+#---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_y2038_issue() {
     local time32
     time32="$(date +%Y)"
@@ -18,71 +46,8 @@ function _init_validate_y2038_issue() {
     fi
 }
 
-function _init_validate_required_vars() {
-    local errors=0
-
-    if [[ -z "${DSMRREADER_ADMIN_USER:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_ADMIN_USER is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_ADMIN_PASSWORD is not set"
-        ((errors++))
-    elif [[ "${DSMRREADER_ADMIN_PASSWORD}" == "admin" ]]; then
-        _warn "${CURRENT_DIR} | Default DSMRREADER_ADMIN_PASSWORD detected - this is a security risk! Please set a secure password"
-    fi
-
-    if [[ -z "${DJANGO_DATABASE_NAME:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_DATABASE_NAME is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DJANGO_DATABASE_HOST:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_DATABASE_HOST is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DJANGO_DATABASE_USER:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_DATABASE_USER is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DJANGO_DATABASE_PASSWORD:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_DATABASE_PASSWORD is not set"
-        ((errors++))
-    elif [[ "${DJANGO_DATABASE_PASSWORD}" == "dsmrreader" ]]; then
-        _warn "${CURRENT_DIR} | Default DJANGO_DATABASE_PASSWORD detected - this is a security risk! Please set a secure password"
-    fi
-
-    if [[ -z "${DJANGO_DATABASE_PORT:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_DATABASE_PORT is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DJANGO_SECRET_KEY:-}" ]]; then
-        _error "${CURRENT_DIR} | DJANGO_SECRET_KEY is not set"
-        ((errors++))
-    elif [[ "${DJANGO_SECRET_KEY}" == "dsmrreader" ]]; then
-        _warn "${CURRENT_DIR} | Default DJANGO_SECRET_KEY detected - this is a security risk! Please set a secure password"
-    fi
-
-    if [[ -z "${CONTAINER_RUN_MODE:-}" ]]; then
-        _error "${CURRENT_DIR} | CONTAINER_RUN_MODE is not set"
-        ((errors++))
-    fi
-
-    if [[ $errors -gt 0 ]]; then
-        _error "${CURRENT_DIR} | Missing ${errors} required environment variable(s)"
-        _error "${CURRENT_DIR} | Please ensure all mandatory variables are set in your docker-compose.yml or docker run command"
-        exit 1
-    fi
-
-    return 0
-}
-
 function _init_validate_operation_mode() {
-    local mode="${CONTAINER_RUN_MODE}"
+    local mode="${CONTAINER_RUN_MODE:-}"
 
     case "${mode}" in
         standalone|server_remote_datalogger|remote_datalogger)
@@ -97,16 +62,116 @@ function _init_validate_operation_mode() {
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: REMOTE DATALOGGER SUBCONFIG
+#---------------------------------------------------------------------------------------------------------------------------
+function _init_datalogger_mode_validate_serial_config() {
+    local errors=0
+
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+}
+
+function _init_datalogger_mode_validate_network_config() {
+    local errors=0
+
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+}
+
+function _init_datalogger_mode_validate_remote_datalogger_config() {
+    local errors=0
+
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_KEYS" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: REQUIRED VARS (MODE BASED)
+#---------------------------------------------------------------------------------------------------------------------------
+function _init_validate_required_vars() {
+    local errors=0
+    local mode="${CONTAINER_RUN_MODE:-}"
+
+    case "${mode}" in
+        standalone|server_remote_datalogger)
+            _require_var "DSMRREADER_ADMIN_USER" || ((errors++))
+            _require_var "DSMRREADER_ADMIN_PASSWORD" || ((errors++))
+            _warn_if_default "DSMRREADER_ADMIN_PASSWORD" "admin"
+
+            _require_var "DJANGO_SECRET_KEY" || ((errors++))
+            _warn_if_default "DJANGO_SECRET_KEY" "dsmrreader"
+
+            _require_var "DJANGO_DATABASE_NAME" || ((errors++))
+            _require_var "DJANGO_DATABASE_HOST" || ((errors++))
+            _require_var "DJANGO_DATABASE_USER" || ((errors++))
+            _require_var "DJANGO_DATABASE_PASSWORD" || ((errors++))
+            _warn_if_default "DJANGO_DATABASE_PASSWORD" "dsmrreader"
+            _require_var "DJANGO_DATABASE_PORT" || ((errors++))
+            ;;
+        remote_datalogger)
+            if ! _init_datalogger_mode_validate_remote_datalogger_config; then
+                ((errors++))
+            fi
+
+            local input_method
+            input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+
+            case "${input_method}" in
+                serial)
+                    _info "${CURRENT_DIR} | Remote datalogger input method: serial"
+                    if ! _init_datalogger_mode_validate_serial_config; then
+                        ((errors++))
+                    fi
+                    ;;
+                ipv4)
+                    _info "${CURRENT_DIR} | Remote datalogger input method: ipv4"
+                    if ! _init_datalogger_mode_validate_network_config; then
+                        ((errors++))
+                    fi
+                    ;;
+                *)
+                    _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+                    _error "${CURRENT_DIR} | Valid options: serial, ipv4"
+                    ((errors++))
+                    ;;
+            esac
+            ;;
+        *)
+            _error "${CURRENT_DIR} | Invalid CONTAINER_RUN_MODE: ${mode}"
+            _error "${CURRENT_DIR} | Valid options: standalone, server_remote_datalogger, remote_datalogger"
+            exit 1
+            ;;
+    esac
+
+    if [[ "${errors}" -gt 0 ]]; then
+        _error "${CURRENT_DIR} | Missing or invalid configuration for mode: ${mode} (${errors} problem(s))"
+        exit 1
+    fi
+
+    return 0
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
+
     _init_validate_y2038_issue
     _init_validate_operation_mode
     _init_validate_required_vars
+
+    _success "${CURRENT_DIR} | Validation complete"
 }
 
 main "$@"
