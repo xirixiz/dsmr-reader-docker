@@ -181,11 +181,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     netcat-traditional \
     postgresql-client \
-    libffi8t64 \
+    libffi8 \
     libjpeg62-turbo \
     libpng16-16t64 \
     zlib1g \
-    libpq5 \    
+    libpq5 \
     passwd \
     locales \
     xz-utils \
