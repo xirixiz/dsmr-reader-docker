@@ -82,7 +82,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     pkg-config \
     libffi-dev \
-    libjpeg-dev \
+    libjpeg62-turbo-dev \
     zlib1g-dev \
     libpng-dev \
     libpq-dev \
@@ -181,9 +181,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     netcat-traditional \
     postgresql-client \
+    libffi8t64 \
     libjpeg62-turbo \
     libpng16-16t64 \
-    zlib1g \    
+    zlib1g \
+    libpq5 \    
     passwd \
     locales \
     xz-utils \
