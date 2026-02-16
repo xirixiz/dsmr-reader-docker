@@ -166,6 +166,11 @@ function main() {
         return 0
     fi
 
+    if [[ -z "${DJANGO_ALLOWED_HOSTS:-}" ]]; then
+        export DJANGO_ALLOWED_HOSTS="*"
+        _warn "${CURRENT_DIR} | DJANGO_ALLOWED_HOSTS not set, defaulting to '*'"
+    fi
+
     _init_nginx_mkdir
     _init_nginx_listen_port
     _init_nginx_access_logs
