@@ -19,7 +19,7 @@ services:
 
   # ---------------- DSMRDB -----------------
   dsmr:
-    image: localhost/dsmr_test_image:latest
+    image: dsmr_test_image:latest
     container_name: dsmr
     restart: always
     depends_on:

@@ -20,7 +20,7 @@ build: clean-containers
 test: clean-containers build container-up
 
 container-run: clean-containers
-	exec docker run --rm --name dsmr --env DSMRREADER_ADMIN_USER="admin" --env DSMRREADER_ADMIN_PASSWORD="admin" --network host "$(IMAGE)"
+	exec docker run --rm --name dsmr --network host "$(IMAGE)"
 
 container-up: clean-containers
 	exec $(COMPOSE) -f "$(COMPOSE_FILE)" up -d
