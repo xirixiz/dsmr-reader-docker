@@ -233,11 +233,17 @@ RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
 # Allow nginx to bind to privileged ports without root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
-# Healthcheck
+# Healthcheck en S6 logfilter
 COPY rootfs/usr/local/bin/healthcheck.sh /usr/local/bin/healthcheck.sh
-RUN chmod +x /usr/local/bin/healthcheck.sh
+COPY rootfs/usr/local/bin/s6-logfilter.sh /usr/local/bin/s6-logfilter.sh
+
+RUN chmod +x \
+    /usr/local/bin/healthcheck.sh \
+    /usr/local/bin/s6-logfilter.sh
+
 
 HEALTHCHECK --interval=120s --timeout=5s --start-period=60s --retries=3 \
   CMD /usr/local/bin/healthcheck.sh || exit 1
 
-ENTRYPOINT ["/init"]
+ENTRYPOINT ["/bin/sh", "-c", "exec /init 2>&1 | exec /usr/local/bin/s6-logfilter.sh"]
+
