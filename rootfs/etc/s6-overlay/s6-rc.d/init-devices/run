@@ -15,7 +15,7 @@ function _init_devices_check() {
     mode="${DEVICE_CHMOD_MODE:-666}"
 
     shopt -s nullglob
-    for device in /dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM* ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-} ${DSMRREADER_SERIAL_DEVICE:-}; do
+    for device in /dev/ttyUSB* /dev/ttyAMA* /dev/ttyACM* ${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-}; do
         [[ -e "$device" ]] || continue
 
         gid="$(stat -c '%g' "$device" 2>/dev/null || true)"
