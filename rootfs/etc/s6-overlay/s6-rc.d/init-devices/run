@@ -50,6 +50,12 @@ function main() {
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
+
+    if [[ "${CONTAINER_RUN_MODE:-standalone}" == "remote_datalogger" ]]; then
+        _info "${CURRENT_DIR} | CONTAINER_RUN_MODE=remote_datalogger, skipping."
+        return 0
+    fi
+
     _init_devices_check
 }
 

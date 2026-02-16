@@ -217,7 +217,7 @@ COPY rootfs /
 RUN { \
     printf "DSMR Reader version: %s\n" "${DSMR_VERSION}"; \
     printf "DSMR Reader Docker version: %s\n" "${DOCKER_TARGET_RELEASE}"; \
-    printf "Build-date: %s\n" "$(date +%Y%m%d-%H%M)"; \
+    printf "DSMR Reader Docker build-date: %s\n" "$(date +%Y%m%d-%H%M)"; \
     } > /build_version
 
 # Remove default nginx site
