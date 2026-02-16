@@ -19,7 +19,6 @@ function _require_var() {
         _error "${CURRENT_DIR} | ${name} is not set"
         return 1
     fi
-
     return 0
 }
 
@@ -37,26 +36,29 @@ function _warn_if_default() {
 # VALIDATION: PLATFORM / MODE
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_y2038_issue() {
-    local time32
-    time32="$(date +%Y)"
+    local year arch
+    year="$(date +%Y)"
+    arch="$(uname -m)"
 
-    if [[ "${time32}" == "1970" || "${time32}" == "1969" ]] && [[ "$(uname -m)" == "armv7l" ]]; then
+    if [[ "${arch}" == "armv7l" && ( "${year}" == "1969" || "${year}" == "1970" ) ]]; then
         _error "${CURRENT_DIR} | Y2038 issue detected: Your Docker host has an outdated libseccomp version. Please update libseccomp on your host system"
-        exit 1
+        return 1
     fi
+    return 0
 }
 
 function _init_validate_operation_mode() {
-    local mode="${CONTAINER_RUN_MODE:-}"
+    local mode="${CONTAINER_RUN_MODE:-standalone}"
 
     case "${mode}" in
         standalone|server_remote_datalogger|remote_datalogger)
             _info "${CURRENT_DIR} | Operation mode: ${mode}"
+            return 0
             ;;
         *)
             _error "${CURRENT_DIR} | Invalid CONTAINER_RUN_MODE: ${mode}"
             _error "${CURRENT_DIR} | Valid options: standalone, server_remote_datalogger, remote_datalogger"
-            exit 1
+            return 1
             ;;
     esac
 }
@@ -96,33 +98,26 @@ function _init_datalogger_mode_validate_remote_datalogger_config() {
 # VALIDATION: ILLEGAL VAR COMBINATIONS
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_remote_vars_vs_mode() {
-    local mode="${CONTAINER_RUN_MODE:-}"
+    local mode="${CONTAINER_RUN_MODE:-standalone}"
     local found=()
 
-    # Verzamel alle gezette DSMRREADER_REMOTE_DATALOGGER_ vars
     while IFS='=' read -r k v; do
-        case "${k}" in
-            DSMRREADER_REMOTE_DATALOGGER_*)
-                if [[ -n "${v}" ]]; then
-                    found+=("${k}")
-                fi
-                ;;
-        esac
-    done < <(printenv)
+        [[ -z "${v}" ]] && continue
+        [[ "${k}" == DSMRREADER_REMOTE_DATALOGGER_* ]] && found+=("${k}")
+    done < <(env)
 
     if [[ "${mode}" != "remote_datalogger" && "${#found[@]}" -gt 0 ]]; then
         _error "${CURRENT_DIR} | Remote datalogger variables detected, but CONTAINER_RUN_MODE is '${mode}'"
         _error "${CURRENT_DIR} | These variables are only valid when CONTAINER_RUN_MODE=remote_datalogger"
         _error "${CURRENT_DIR} | Found: ${found[*]}"
-        exit 1
+        return 1
     fi
 
     if [[ "${mode}" == "remote_datalogger" ]]; then
-        # Optioneel: waarschuwing voor server only vars die in remote mode niet gebruikt worden
-        if [[ -n "${DJANGO_DATABASE_HOST:-}" || -n "${DJANGO_DATABASE_NAME:-}" || -n "${DJANGO_DATABASE_USER:-}" || -n "${DJANGO_DATABASE_PASSWORD:-}" || -n "${DJANGO_DATABASE_PORT:-}" ]]; then
+        if [[ -n "${DJANGO_DATABASE_HOST:-}${DJANGO_DATABASE_NAME:-}${DJANGO_DATABASE_USER:-}${DJANGO_DATABASE_PASSWORD:-}${DJANGO_DATABASE_PORT:-}" ]]; then
             _warn "${CURRENT_DIR} | Database variables are set but not used in remote_datalogger mode"
         fi
-        if [[ -n "${DSMRREADER_ADMIN_USER:-}" || -n "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
+        if [[ -n "${DSMRREADER_ADMIN_USER:-}${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
             _warn "${CURRENT_DIR} | Admin variables are set but not used in remote_datalogger mode"
         fi
     fi
@@ -130,13 +125,12 @@ function _init_validate_remote_vars_vs_mode() {
     return 0
 }
 
-
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: REQUIRED VARS (MODE BASED)
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_required_vars() {
     local errors=0
-    local mode="${CONTAINER_RUN_MODE:-}"
+    local mode="${CONTAINER_RUN_MODE:-standalone}"
 
     case "${mode}" in
         standalone|server_remote_datalogger)
@@ -159,39 +153,32 @@ function _init_validate_required_vars() {
                 ((errors++))
             fi
 
-            local input_method
-            input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+            local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
 
             case "${input_method}" in
                 serial)
                     _info "${CURRENT_DIR} | Remote datalogger input method: serial"
-                    if ! _init_datalogger_mode_validate_serial_config; then
-                        ((errors++))
-                    fi
+                    _init_datalogger_mode_validate_serial_config || ((errors++))
                     ;;
                 ipv4)
                     _info "${CURRENT_DIR} | Remote datalogger input method: ipv4"
-                    if ! _init_datalogger_mode_validate_network_config; then
-                        ((errors++))
-                    fi
+                    _init_datalogger_mode_validate_network_config || ((errors++))
                     ;;
                 *)
                     _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
-                    _error "${CURRENT_DIR} | Valid options: serial, ipv4"
                     ((errors++))
                     ;;
             esac
             ;;
         *)
             _error "${CURRENT_DIR} | Invalid CONTAINER_RUN_MODE: ${mode}"
-            _error "${CURRENT_DIR} | Valid options: standalone, server_remote_datalogger, remote_datalogger"
-            exit 1
+            return 1
             ;;
     esac
 
     if [[ "${errors}" -gt 0 ]]; then
         _error "${CURRENT_DIR} | Missing or invalid configuration for mode: ${mode} (${errors} problem(s))"
-        exit 1
+        return 1
     fi
 
     return 0
@@ -206,10 +193,10 @@ function main() {
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
 
-    _init_validate_y2038_issue
-    _init_validate_operation_mode
-    _init_validate_remote_vars_vs_mode
-    _init_validate_required_vars
+    _init_validate_y2038_issue || exit 1
+    _init_validate_operation_mode || exit 1
+    _init_validate_remote_vars_vs_mode || exit 1
+    _init_validate_required_vars || exit 1
 
     _success "${CURRENT_DIR} | Validation complete"
 }
