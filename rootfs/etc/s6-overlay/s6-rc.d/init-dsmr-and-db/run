@@ -8,7 +8,7 @@ IFS=$'\n\t'
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
-function _init_dsmr_and_db_CONTAINER_ENABLE_IFRAME() {
+function _init_dsmr_and_db_container_enable_iframe() {
     if [[ "${CONTAINER_ENABLE_IFRAME}" != "true" ]]; then
         return 0
     fi
@@ -87,10 +87,16 @@ function main() {
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
+
+    if [[ "${CONTAINER_RUN_MODE:-standalone}" == "remote_datalogger" ]]; then
+        _info "${CURRENT_DIR} | CONTAINER_RUN_MODE=remote_datalogger, skipping."
+        return 0
+    fi
+
     _init_dsmr_and_db_check_db_availability
     _init_dsmr_and_db_apply_db_scripts
     _init_dsmr_and_db_run_db_cleanup
-    _init_dsmr_and_db_CONTAINER_ENABLE_IFRAME
+    _init_dsmr_and_db_container_enable_iframe
 }
 
 main "$@"

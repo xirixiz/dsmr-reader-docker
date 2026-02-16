@@ -159,7 +159,13 @@ function main() {
     [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
-    _info "${CURRENT_DIR} | Starting ${CURRENT_DIR}"
+    _info "${CURRENT_DIR} | Starting"
+
+    if [[ "${CONTAINER_RUN_MODE:-standalone}" == "remote_datalogger" ]]; then
+        _info "${CURRENT_DIR} | CONTAINER_RUN_MODE=remote_datalogger, skipping."
+        return 0
+    fi
+
     _init_nginx_mkdir
     _init_nginx_listen_port
     _init_nginx_access_logs
