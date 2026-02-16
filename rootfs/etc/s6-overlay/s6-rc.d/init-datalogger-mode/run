@@ -8,105 +8,107 @@ IFS=$'\n\t'
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
+#---------------------------------------------------------------------------------------------------------------------------
+# HELPERS
+#---------------------------------------------------------------------------------------------------------------------------
+function _require_var() {
+    local name="$1"
+    local value="${!name:-}"
+
+    if [[ -z "${value}" ]]; then
+        _error "${CURRENT_DIR} | ${name} is not set"
+        return 1
+    fi
+
+    return 0
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: REMOTE DATALOGGER SUBCONFIG
+#---------------------------------------------------------------------------------------------------------------------------
 function _init_datalogger_mode_validate_serial_config() {
     local errors=0
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE is not set"
-        ((errors++))
-    fi
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE" || ((errors++))
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE is not set"
-        ((errors++))
-    fi
-
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE is not set"
-        ((errors++))
-    fi
-
-    return ${errors}
+    [[ "${errors}" -eq 0 ]]
 }
 
 function _init_datalogger_mode_validate_network_config() {
     local errors=0
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST is not set"
-        ((errors++))
-    fi
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT" || ((errors++))
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT is not set"
-        ((errors++))
-    fi
-
-    return ${errors}
+    [[ "${errors}" -eq 0 ]]
 }
 
 function _init_datalogger_mode_validate_remote_datalogger_config() {
     local errors=0
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_HOSTS is not set"
-        ((errors++))
-    fi
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_KEYS" || ((errors++))
 
-    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS:-}" ]]; then
-        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_KEYS is not set"
-        ((errors++))
-    fi
-
-    return ${errors}
+    [[ "${errors}" -eq 0 ]]
 }
 
+#---------------------------------------------------------------------------------------------------------------------------
+# STARTMODE
+#---------------------------------------------------------------------------------------------------------------------------
 function _init_datalogger_mode_startmode() {
-    mode="${CONTAINER_RUN_MODE:-standalone}"
+    local mode="${CONTAINER_RUN_MODE:-standalone}"
 
     case "${mode}" in
         standalone)
             _success "${CURRENT_DIR} | Running as STANDALONE (local server + datalogger)"
-            exit 0
+            return 0
             ;;
-
         server_remote_datalogger)
             _success "${CURRENT_DIR} | Running as SERVER REMOTE DATALOGGER (expects remote datalogger input)"
-            exit 0
+            return 0
             ;;
-
         remote_datalogger)
             _info "${CURRENT_DIR} | Running as REMOTE DATALOGGER (sending telegrams to server remote datalogger)"
 
-            # Validate API configuration
             if ! _init_datalogger_mode_validate_remote_datalogger_config; then
-                exit 1
+                _error "${CURRENT_DIR} | Remote datalogger API configuration invalid"
+                return 1
             fi
 
-            # Validate input method (defaults to serial if not set)
+            local input_method
             input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
 
             case "${input_method}" in
                 serial)
                     _info "${CURRENT_DIR} | Using serial input for remote datalogger"
                     if ! _init_datalogger_mode_validate_serial_config; then
-                        exit 1
+                        _error "${CURRENT_DIR} | Remote datalogger serial configuration invalid"
+                        return 1
                     fi
                     ;;
                 ipv4)
                     _info "${CURRENT_DIR} | Using IPv4 input for remote datalogger"
                     if ! _init_datalogger_mode_validate_network_config; then
-                        exit 1
+                        _error "${CURRENT_DIR} | Remote datalogger network configuration invalid"
+                        return 1
                     fi
                     ;;
                 *)
                     _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
                     _error "${CURRENT_DIR} | Valid options: serial, ipv4"
-                    exit 1
+                    return 1
                     ;;
             esac
 
-            _success "${CURRENT_DIR} | Datalogger initialization complete, running mode: ${CONTAINER_RUN_MODE} with input mode: ${input_method}"
+            _success "${CURRENT_DIR} | Datalogger initialization complete, mode: ${mode}, input: ${input_method}"
+            return 0
+            ;;
+        *)
+            _error "${CURRENT_DIR} | Invalid CONTAINER_RUN_MODE: ${mode}"
+            _error "${CURRENT_DIR} | Valid options: standalone, server_remote_datalogger, remote_datalogger"
+            return 1
             ;;
     esac
 }
@@ -115,12 +117,14 @@ function _init_datalogger_mode_startmode() {
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
-    _init_datalogger_mode_startmode
 
+    if ! _init_datalogger_mode_startmode; then
+        exit 1
+    fi
 }
 
 main "$@"
