@@ -181,6 +181,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     netcat-traditional \
     postgresql-client \
+    procps \
     libffi8 \
     libjpeg62-turbo \
     libpng16-16t64 \
@@ -232,8 +233,11 @@ RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
 # Allow nginx to bind to privileged ports without root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
-# Enhanced healthcheck
+# Healthcheck
+COPY rootfs/usr/local/bin/healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
+
 HEALTHCHECK --interval=120s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -fsSL http://127.0.0.1/healthcheck -o /dev/null || exit 1
+  CMD /usr/local/bin/healthcheck.sh || exit 1
 
 ENTRYPOINT ["/init"]

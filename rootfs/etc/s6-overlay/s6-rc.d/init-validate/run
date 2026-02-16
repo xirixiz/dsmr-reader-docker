@@ -93,6 +93,45 @@ function _init_datalogger_mode_validate_remote_datalogger_config() {
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: ILLEGAL VAR COMBINATIONS
+#---------------------------------------------------------------------------------------------------------------------------
+function _init_validate_remote_vars_vs_mode() {
+    local mode="${CONTAINER_RUN_MODE:-}"
+    local found=()
+
+    # Verzamel alle gezette DSMRREADER_REMOTE_DATALOGGER_ vars
+    while IFS='=' read -r k v; do
+        case "${k}" in
+            DSMRREADER_REMOTE_DATALOGGER_*)
+                if [[ -n "${v}" ]]; then
+                    found+=("${k}")
+                fi
+                ;;
+        esac
+    done < <(printenv)
+
+    if [[ "${mode}" != "remote_datalogger" && "${#found[@]}" -gt 0 ]]; then
+        _error "${CURRENT_DIR} | Remote datalogger variables detected, but CONTAINER_RUN_MODE is '${mode}'"
+        _error "${CURRENT_DIR} | These variables are only valid when CONTAINER_RUN_MODE=remote_datalogger"
+        _error "${CURRENT_DIR} | Found: ${found[*]}"
+        exit 1
+    fi
+
+    if [[ "${mode}" == "remote_datalogger" ]]; then
+        # Optioneel: waarschuwing voor server only vars die in remote mode niet gebruikt worden
+        if [[ -n "${DJANGO_DATABASE_HOST:-}" || -n "${DJANGO_DATABASE_NAME:-}" || -n "${DJANGO_DATABASE_USER:-}" || -n "${DJANGO_DATABASE_PASSWORD:-}" || -n "${DJANGO_DATABASE_PORT:-}" ]]; then
+            _warn "${CURRENT_DIR} | Database variables are set but not used in remote_datalogger mode"
+        fi
+        if [[ -n "${DSMRREADER_ADMIN_USER:-}" || -n "${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
+            _warn "${CURRENT_DIR} | Admin variables are set but not used in remote_datalogger mode"
+        fi
+    fi
+
+    return 0
+}
+
+
+#---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: REQUIRED VARS (MODE BASED)
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_required_vars() {
@@ -169,6 +208,7 @@ function main() {
 
     _init_validate_y2038_issue
     _init_validate_operation_mode
+    _init_validate_remote_vars_vs_mode
     _init_validate_required_vars
 
     _success "${CURRENT_DIR} | Validation complete"
