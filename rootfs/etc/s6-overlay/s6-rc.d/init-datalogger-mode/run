@@ -8,6 +8,17 @@ IFS=$'\n\t'
 . /usr/local/lib/s6-functions.sh
 _load_s6_vars
 
+<<<<<<< HEAD
+#---------------------------------------------------------------------------------------------------------------------------
+# HELPERS
+#---------------------------------------------------------------------------------------------------------------------------
+function _require_var() {
+    local name="$1"
+    local value="${!name:-}"
+||||||| 1f877e6
+function _init_datalogger_mode_validate_serial_config() {
+    local errors=0
+=======
 #---------------------------------------------------------------------------------------------------------------------------
 # HELPERS
 #---------------------------------------------------------------------------------------------------------------------------
@@ -19,13 +30,54 @@ function _require_var() {
         _error "${CURRENT_DIR} | ${name} is not set"
         return 1
     fi
+
     return 0
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+# VALIDATION: REMOTE DATALOGGER SUBCONFIG
+#---------------------------------------------------------------------------------------------------------------------------
+function _init_datalogger_mode_validate_serial_config() {
+    local errors=0
+>>>>>>> main
+
+<<<<<<< HEAD
+    if [[ -z "${value}" ]]; then
+        _error "${CURRENT_DIR} | ${name} is not set"
+        return 1
+    fi
+    return 0
+||||||| 1f877e6
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+=======
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+>>>>>>> main
 }
 
 function _require_int() {
     local name="$1"
     local value="${!name:-}"
 
+<<<<<<< HEAD
     if [[ -z "${value}" ]]; then
         _error "${CURRENT_DIR} | ${name} is not set"
         return 1
@@ -35,20 +87,58 @@ function _require_int() {
         return 1
     fi
     return 0
+||||||| 1f877e6
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+=======
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_HOST" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_NETWORK_PORT" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+>>>>>>> main
 }
 
 function _require_port() {
     local name="$1"
     local value="${!name:-}"
 
+<<<<<<< HEAD
     _require_int "${name}" || return 1
     if (( value < 1 || value > 65535 )); then
         _error "${CURRENT_DIR} | ${name} must be between 1 and 65535, got: ${value}"
         return 1
     fi
     return 0
+||||||| 1f877e6
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_HOSTS:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_HOSTS is not set"
+        ((errors++))
+    fi
+
+    if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_API_KEYS:-}" ]]; then
+        _error "${CURRENT_DIR} | DSMRREADER_REMOTE_DATALOGGER_API_KEYS is not set"
+        ((errors++))
+    fi
+
+    return ${errors}
+=======
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_KEYS" || ((errors++))
+
+    [[ "${errors}" -eq 0 ]]
+>>>>>>> main
 }
 
+<<<<<<< HEAD
 function _csv_count() {
     # counts comma separated values, ignoring empty items caused by leading or trailing commas
     local s="${1:-}"
@@ -122,6 +212,16 @@ function _validate_remote_datalogger_api_config() {
 #---------------------------------------------------------------------------------------------------------------------------
 function _startmode() {
     local mode="${CONTAINER_RUN_MODE:-standalone}"
+||||||| 1f877e6
+function _init_datalogger_mode_startmode() {
+    mode="${CONTAINER_RUN_MODE:-standalone}"
+=======
+#---------------------------------------------------------------------------------------------------------------------------
+# STARTMODE
+#---------------------------------------------------------------------------------------------------------------------------
+function _init_datalogger_mode_startmode() {
+    local mode="${CONTAINER_RUN_MODE:-standalone}"
+>>>>>>> main
 
     case "${mode}" in
         standalone)
@@ -135,27 +235,67 @@ function _startmode() {
         remote_datalogger)
             _info "${CURRENT_DIR} | Running as REMOTE DATALOGGER (sending telegrams to server remote datalogger)"
 
+<<<<<<< HEAD
             if ! _validate_remote_datalogger_api_config; then
                 _error "${CURRENT_DIR} | Remote datalogger API configuration invalid"
                 return 1
+||||||| 1f877e6
+            # Validate API configuration
+            if ! _init_datalogger_mode_validate_remote_datalogger_config; then
+                exit 1
+=======
+            if ! _init_datalogger_mode_validate_remote_datalogger_config; then
+                _error "${CURRENT_DIR} | Remote datalogger API configuration invalid"
+                return 1
+>>>>>>> main
             fi
 
+<<<<<<< HEAD
             local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+||||||| 1f877e6
+            # Validate input method (defaults to serial if not set)
+            input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+=======
+            local input_method
+            input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
+>>>>>>> main
 
             case "${input_method}" in
                 serial)
                     _info "${CURRENT_DIR} | Using serial input for remote datalogger"
+<<<<<<< HEAD
                     _validate_serial_config || {
                         _error "${CURRENT_DIR} | Remote datalogger serial configuration invalid"
                         return 1
                     }
+||||||| 1f877e6
+                    if ! _init_datalogger_mode_validate_serial_config; then
+                        exit 1
+                    fi
+=======
+                    if ! _init_datalogger_mode_validate_serial_config; then
+                        _error "${CURRENT_DIR} | Remote datalogger serial configuration invalid"
+                        return 1
+                    fi
+>>>>>>> main
                     ;;
                 ipv4)
                     _info "${CURRENT_DIR} | Using IPv4 input for remote datalogger"
+<<<<<<< HEAD
                     _validate_network_config || {
                         _error "${CURRENT_DIR} | Remote datalogger network configuration invalid"
                         return 1
                     }
+||||||| 1f877e6
+                    if ! _init_datalogger_mode_validate_network_config; then
+                        exit 1
+                    fi
+=======
+                    if ! _init_datalogger_mode_validate_network_config; then
+                        _error "${CURRENT_DIR} | Remote datalogger network configuration invalid"
+                        return 1
+                    fi
+>>>>>>> main
                     ;;
                 *)
                     _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
@@ -184,7 +324,14 @@ function main() {
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
 
+<<<<<<< HEAD
     _startmode
+||||||| 1f877e6
+=======
+    if ! _init_datalogger_mode_startmode; then
+        exit 1
+    fi
+>>>>>>> main
 }
 
 main "$@"
