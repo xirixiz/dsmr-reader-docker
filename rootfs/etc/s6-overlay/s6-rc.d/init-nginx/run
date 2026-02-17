@@ -9,7 +9,7 @@ IFS=$'\n\t'
 _load_s6_vars
 
 function _init_nginx_mkdir() {
-    _info "${CURRENT_DIR} | Setting up directories and permissions - ${CURRENT_DIR}"
+    _info "${CURRENT_DIR} | Setting up directories and permissions
 
     mkdir -p \
         /var/www/dsmrreader \
@@ -169,6 +169,18 @@ function main() {
     if [[ -z "${DJANGO_ALLOWED_HOSTS:-}" ]]; then
         export DJANGO_ALLOWED_HOSTS="*"
         _warn "${CURRENT_DIR} | DJANGO_ALLOWED_HOSTS not set, defaulting to '*'"
+    fi
+
+    if [[ -z "${DJANGO_ALLOWED_HOSTS:-}" ]]; then
+        export DJANGO_ALLOWED_HOSTS="*"
+    fi
+
+    # Only set CSRF trusted origins when user provides a stable external URL.
+    # Random host ports cannot be guessed at container start.
+    if [[ -z "${DJANGO_CSRF_TRUSTED_ORIGINS:-}" ]]; then
+        _warn "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS not set, leaving unset!"
+    else
+        _info "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS set to ${DJANGO_CSRF_TRUSTED_ORIGINS}"
     fi
 
     _init_nginx_mkdir
