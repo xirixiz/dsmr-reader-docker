@@ -72,7 +72,7 @@ function _init_validate_operation_mode() {
 function _init_datalogger_mode_validate_serial_config() {
     local errors=0
 
-    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT" || ((errors++))
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE" || ((errors++))
 
