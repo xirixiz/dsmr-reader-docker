@@ -9,15 +9,14 @@ IFS=$'\n\t'
 _load_s6_vars
 
 function _init_nginx_mkdir() {
-    _info "${CURRENT_DIR} | Setting up directories and permissions
+    _info "${CURRENT_DIR} | Setting up directories and permissions - ${CURRENT_DIR}"
 
     mkdir -p \
         /var/www/dsmrreader \
         /run/nginx/conf.d \
-        /run/nginx/server-snippets \
+        /run/nginx/server-snippets
 
-    chown -R app:app \
-        /run/nginx
+    chown -R app:app /run/nginx
 }
 
 function _init_nginx_listen_port() {
@@ -31,7 +30,7 @@ function _init_nginx_listen_port() {
 function _init_nginx_access_logs() {
     mkdir -p /run/nginx/conf.d
 
-    if [[ "${CONTAINER_ENABLE_NGINX_ACCESS_LOGS}" == "false" ]]; then
+    if [[ "${CONTAINER_ENABLE_NGINX_ACCESS_LOGS:-true}" == "false" ]]; then
         _info "${CURRENT_DIR} | Disabling NGINX access logs"
         cat > /run/nginx/conf.d/00-nginx-logging.conf <<'EOF'
 access_log off;
@@ -50,7 +49,7 @@ function _init_nginx_ssl() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/20-ssl.conf
 
-    if [[ "${CONTAINER_ENABLE_NGINX_SSL}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_NGINX_SSL:-false}" != "true" ]]; then
         _info "${CURRENT_DIR} | SSL disabled"
         return 0
     fi
@@ -85,7 +84,7 @@ function _init_nginx_auth() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/30-auth.conf /run/nginx/htpasswd
 
-    if [[ "${CONTAINER_ENABLE_HTTP_AUTH}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_HTTP_AUTH:-false}" != "true" ]]; then
         _info "${CURRENT_DIR} | HTTP authentication disabled"
         return 0
     fi
@@ -120,7 +119,7 @@ function _init_nginx_clientcert_auth() {
     mkdir -p /run/nginx/server-snippets
     rm -f /run/nginx/server-snippets/40-clientcert.conf
 
-    if [[ "${CONTAINER_ENABLE_CLIENTCERT_AUTH}" != "true" ]]; then
+    if [[ "${CONTAINER_ENABLE_CLIENTCERT_AUTH:-false}" != "true" ]]; then
         _info "${CURRENT_DIR} | Client certificate authentication disabled"
         return 0
     fi
@@ -156,7 +155,7 @@ EOF
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------------------------------------------
 function main() {
-    [[ "${CONTAINER_ENABLE_DEBUG}" == "true" ]] && set -x
+    [[ "${CONTAINER_ENABLE_DEBUG:-false}" == "true" ]] && set -x
 
     CURRENT_DIR="$(basename "$(dirname "$0")")"
     _info "${CURRENT_DIR} | Starting"
@@ -171,16 +170,12 @@ function main() {
         _warn "${CURRENT_DIR} | DJANGO_ALLOWED_HOSTS not set, defaulting to '*'"
     fi
 
-    if [[ -z "${DJANGO_ALLOWED_HOSTS:-}" ]]; then
-        export DJANGO_ALLOWED_HOSTS="*"
-    fi
-
-    # Only set CSRF trusted origins when user provides a stable external URL.
-    # Random host ports cannot be guessed at container start.
+    # Random external ports cannot be guessed at container start.
+    # If you need stable CSRF trusted origins, set DJANGO_CSRF_TRUSTED_ORIGINS explicitly.
     if [[ -z "${DJANGO_CSRF_TRUSTED_ORIGINS:-}" ]]; then
-        _warn "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS not set, leaving unset!"
+        _warn "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS not set, leaving unset"
     else
-        _info "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS set to ${DJANGO_CSRF_TRUSTED_ORIGINS}"
+        _info "${CURRENT_DIR} | DJANGO_CSRF_TRUSTED_ORIGINS set to: ${DJANGO_CSRF_TRUSTED_ORIGINS}"
     fi
 
     _init_nginx_mkdir
