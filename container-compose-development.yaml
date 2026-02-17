@@ -37,6 +37,8 @@ services:
       DJANGO_DATABASE_PASSWORD: dsmrreader
       DJANGO_SECRET_KEY: dsmrreader
       DJANGO_DATABASE_PORT: 5432
+      DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost:7980,http://127.0.0.1:7980"
+      DJANGO_ALLOWED_HOSTS: "*"
       DSMRREADER_ADMIN_USER: admin
       DSMRREADER_ADMIN_PASSWORD: admin
       CONTAINER_RUN_MODE: standalone

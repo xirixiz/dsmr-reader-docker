@@ -58,8 +58,10 @@ services:
       PUID: 1000
       PGID: 1000
 
-      # Application timezone
+      # Application settings
       DJANGO_TIME_ZONE: Europe/Amsterdam
+      DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost:7777,http://127.0.0.1:7777"
+      DJANGO_ALLOWED_HOSTS: "*"
 
       # DSMR Reader runtime mode
       CONTAINER_RUN_MODE: standalone
