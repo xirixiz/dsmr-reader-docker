@@ -114,15 +114,6 @@ function _init_validate_remote_vars_vs_mode() {
         return 1
     fi
 
-    if [[ "${mode}" == "remote_datalogger" ]]; then
-        if [[ -n "${DJANGO_DATABASE_HOST:-}${DJANGO_DATABASE_NAME:-}${DJANGO_DATABASE_USER:-}${DJANGO_DATABASE_PASSWORD:-}${DJANGO_DATABASE_PORT:-}" ]]; then
-            _warn "${CURRENT_DIR} | Database variables are set but not used in remote_datalogger mode"
-        fi
-        if [[ -n "${DSMRREADER_ADMIN_USER:-}${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
-            _warn "${CURRENT_DIR} | Admin variables are set but not used in remote_datalogger mode"
-        fi
-    fi
-
     return 0
 }
 
