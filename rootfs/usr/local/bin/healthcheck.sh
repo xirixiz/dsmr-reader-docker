@@ -1,5 +1,4 @@
-#!/command/with-contenv bash
-# shellcheck shell=bash
+#!/bin/bash
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -14,7 +13,7 @@ case "${mode}" in
 
   remote_datalogger)
     # No Web UI: verify remote datalogger client is running (started as user "app")
-    pgrep -u app -af "/app/dsmr_datalogger/scripts/dsmr_datalogger_api_client\.py" >/dev/null 2>&1
+    pgrep -u app -af "/app/dsmr_datalogger/scripts/dsmr_datalogger_api_client.py" >/dev/null 2>&1
     ;;
 
   *)
