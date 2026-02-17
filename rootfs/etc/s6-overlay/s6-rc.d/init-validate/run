@@ -64,12 +64,15 @@ function _init_validate_operation_mode() {
 }
 
 #---------------------------------------------------------------------------------------------------------------------------
-# VALIDATION: REMOTE DATALOGGER SUBCONFIG
+# VALIDATION: REMOTE DATALOGGER SUBCONFIG (INPUT ONLY)
+# These are used for reading telegrams from a remote source (serial or ipv4).
+# In this image, we allow these in ALL modes, because a standalone/server setup
+# may still read telegrams remotely (e.g. ser2net or a remote socket).
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_datalogger_mode_validate_serial_config() {
     local errors=0
 
-    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
+    _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT" || ((errors++))
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BYTESIZE" || ((errors++))
 
@@ -85,41 +88,30 @@ function _init_datalogger_mode_validate_network_config() {
     [[ "${errors}" -eq 0 ]]
 }
 
-function _init_datalogger_mode_validate_remote_datalogger_config() {
-    local errors=0
-
-    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_HOSTS" || ((errors++))
-    _require_var "DSMRREADER_REMOTE_DATALOGGER_API_KEYS" || ((errors++))
-
-    [[ "${errors}" -eq 0 ]]
-}
-
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: ILLEGAL VAR COMBINATIONS
+# Allow DSMRREADER_REMOTE_DATALOGGER_* in standalone/server modes.
+# The only vars we still restrict to remote_datalogger mode are the API forwarding vars,
+# because those relate to pushing telegrams to another DSMR Reader server.
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_remote_vars_vs_mode() {
     local mode="${CONTAINER_RUN_MODE:-standalone}"
-    local found=()
+    local found_api=()
 
     while IFS='=' read -r k v; do
         [[ -z "${v}" ]] && continue
-        [[ "${k}" == DSMRREADER_REMOTE_DATALOGGER_* ]] && found+=("${k}")
+        case "${k}" in
+            DSMRREADER_REMOTE_DATALOGGER_API_*)
+                found_api+=("${k}")
+                ;;
+        esac
     done < <(env)
 
-    if [[ "${mode}" != "remote_datalogger" && "${#found[@]}" -gt 0 ]]; then
-        _error "${CURRENT_DIR} | Remote datalogger variables detected, but CONTAINER_RUN_MODE is '${mode}'"
+    if [[ "${mode}" != "remote_datalogger" && "${#found_api[@]}" -gt 0 ]]; then
+        _error "${CURRENT_DIR} | Remote datalogger API variables detected, but CONTAINER_RUN_MODE is '${mode}'"
         _error "${CURRENT_DIR} | These variables are only valid when CONTAINER_RUN_MODE=remote_datalogger"
-        _error "${CURRENT_DIR} | Found: ${found[*]}"
+        _error "${CURRENT_DIR} | Found: ${found_api[*]}"
         return 1
-    fi
-
-    if [[ "${mode}" == "remote_datalogger" ]]; then
-        if [[ -n "${DJANGO_DATABASE_HOST:-}${DJANGO_DATABASE_NAME:-}${DJANGO_DATABASE_USER:-}${DJANGO_DATABASE_PASSWORD:-}${DJANGO_DATABASE_PORT:-}" ]]; then
-            _warn "${CURRENT_DIR} | Database variables are set but not used in remote_datalogger mode"
-        fi
-        if [[ -n "${DSMRREADER_ADMIN_USER:-}${DSMRREADER_ADMIN_PASSWORD:-}" ]]; then
-            _warn "${CURRENT_DIR} | Admin variables are set but not used in remote_datalogger mode"
-        fi
     fi
 
     return 0
@@ -127,6 +119,8 @@ function _init_validate_remote_vars_vs_mode() {
 
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: REQUIRED VARS (MODE BASED)
+# Remote datalogger API_HOSTS/API_KEYS are no longer required here.
+# Input method validation still applies when DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD is set.
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_required_vars() {
     local errors=0
@@ -147,12 +141,29 @@ function _init_validate_required_vars() {
             _require_var "DJANGO_DATABASE_PASSWORD" || ((errors++))
             _warn_if_default "DJANGO_DATABASE_PASSWORD" "dsmrreader"
             _require_var "DJANGO_DATABASE_PORT" || ((errors++))
+
+            # Optional: validate remote input settings if user opted into them
+            if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}" ]]; then
+                local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
+                case "${input_method}" in
+                    serial)
+                        _info "${CURRENT_DIR} | Remote input method: serial"
+                        _init_datalogger_mode_validate_serial_config || ((errors++))
+                        ;;
+                    ipv4)
+                        _info "${CURRENT_DIR} | Remote input method: ipv4"
+                        _init_datalogger_mode_validate_network_config || ((errors++))
+                        ;;
+                    *)
+                        _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+                        ((errors++))
+                        ;;
+                esac
+            fi
             ;;
         remote_datalogger)
-            if ! _init_datalogger_mode_validate_remote_datalogger_config; then
-                ((errors++))
-            fi
-
+            # In this image, remote_datalogger mode does not require API forwarding vars.
+            # Validate input method if set (defaults to serial).
             local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
 
             case "${input_method}" in
