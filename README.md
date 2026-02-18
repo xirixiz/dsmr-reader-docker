@@ -12,77 +12,25 @@ Docker container for [DSMR Reader](https://github.com/dsmrreader/dsmr-reader) - 
 
 ---
 
-## Need Help?
+## Links
 
-- **[DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/)** - DSMR Reader Docker Documentation
-- **[DSMR Reader Docs](https://dsmr-reader.readthedocs.io/en/v6/)** - DSMR Reader Upstream documentation
-- **[Issues](https://github.com/xirixiz/dsmr-reader-docker/issues)** - Report bugs
-- **[Discussions](https://github.com/xirixiz/dsmr-reader-docker/discussions)** - Ask questions
-
----
-
-## Important notes (will be added to the [DSMR Reader Docker Docs](https://xirixiz.github.io/dsmr-reader-docker-docs/) later)
-
-
-## Variables changes
-From **DSMR Reader Docker v6**, all **Docker-specific** environment variables use the `CONTAINER_` prefix to clearly separate them from DSMR Reader’s own settings. When migrating to v6, review your environment variables carefully, because DSMR Reader variables may also have changed between major versions.
-
-### DSMR Reader Docker-specific variables (`CONTAINER_*`)
-- `CONTAINER_RUN_MODE`
-- `CONTAINER_ENABLE_DEBUG`
-- `CONTAINER_ENABLE_NGINX_ACCESS_LOGS`
-- `CONTAINER_ENABLE_NGINX_SSL`
-- `CONTAINER_ENABLE_HTTP_AUTH`
-- `CONTAINER_ENABLE_CLIENTCERT_AUTH`
-- `CONTAINER_ENABLE_IFRAME`
-- `CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP`
+* [GitHub issues for this image](https://github.com/xirixiz/dsmr-reader-docker/issues)
+* [GitHub discussions for this image](https://github.com/xirixiz/dsmr-reader-docker/discussions)
+* [Upstream DSMR Reader documentation](https://dsmr-reader.readthedocs.io/)
+* [Upstream DSMR Reader issues](https://github.com/dsmrreader/dsmr-reader/issues)
+* [Upstream DSMR Reader discussions](https://github.com/dsmrreader/dsmr-reader/discussions)
 
 ---
 
-## UID and GID changes
+## ⚠️ Breaking changes in v6 (at a glance)
 
-In DSMR Reader Docker v6 the default user and group IDs have changed to **1000:1000**.
-In v5 the container used **803** for the user ID. This change may cause permission issues on existing volumes.
+If you are upgrading from v5, review the following:
 
-### How to fix
+- Docker variables now use the `CONTAINER_` prefix
+- Default container UID/GID changed to `1000:1000`
+- Legacy timezone mounts and TZ variables should be removed
 
-If you experience permission problems, explicitly set the IDs to match your existing data.
-
-You can use either of the following (both are supported):
-
-Option 1
-```
-PUID=803
-PGID=1000
-```
-
-Option 2
-```
-DUID=803
-DGID=1000
-```
-
-Tip: Only change these if you already have existing volumes created with the old UID/GID.
-New installations should normally keep the defaults.
-
-## Timezone configuration changes
-
-### Do not use these volume mounts anymore
-Remove these if you have them:
-
-- `/etc/localtime:/etc/localtime`
-- `/etc/timezone:/etc/timezone`
-
-### Remove these environment variables
-Remove these if defined:
-
-- `TZ=Europe/Amsterdam`
-- `PG_TZ=Europe/Amsterdam`
-
-### Keep or add this if really needed
-Use Django’s timezone setting:
-
-- `DJANGO_TIME_ZONE=Europe/Amsterdam`
+✅ New installations normally require no changes.
 
 ---
 
