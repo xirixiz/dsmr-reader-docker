@@ -20,6 +20,12 @@ services:
       POSTGRES_USER: dsmrreader
       POSTGRES_PASSWORD: dsmrreader
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
     # Persist database data across container restarts
     volumes:
       - dsmrdb_data:/var/lib/postgresql/data
@@ -40,7 +46,8 @@ services:
 
     # Ensure the database service is started before DSMR Reader
     depends_on:
-      - dsmrdb
+      dsmrdb:
+        condition: service_healthy
 
     # Expose web interface (HTTP / HTTPS)
     ports:
@@ -55,7 +62,7 @@ services:
     environment:
       # Host UID/GID mapping
       # Ensures files created in mounted volumes have correct ownership
-      PUID: 1000
+      PUID: 803
       PGID: 1000
 
       # Application settings

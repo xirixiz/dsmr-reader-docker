@@ -65,15 +65,21 @@ function _init_validate_operation_mode() {
 
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: REMOTE INPUT SUBCONFIG (SERIAL OR IPV4)
-# Allowed in all modes, used as "remote input" settings in standalone and server modes.
+# Allowed in all modes:
+# - standalone + server_remote_datalogger: "remote input" (pull)
+# - remote_datalogger: "reader" part of forwarder (push)
 #---------------------------------------------------------------------------------------------------------------------------
-function _init_datalogger_mode_validate_serial_config() {
-    local errors=0
 
-    # Support both variable names
+function _normalize_serial_device_var() {
+    # Backward compat: SERIAL_PORT -> SERIAL_DEVICE (do not overwrite if DEVICE already set)
     if [[ -z "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE:-}" && -n "${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT:-}" ]]; then
         export DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE="${DSMRREADER_REMOTE_DATALOGGER_SERIAL_PORT}"
     fi
+}
+
+function _init_datalogger_mode_validate_serial_config() {
+    local errors=0
+    _normalize_serial_device_var
 
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_DEVICE" || ((errors++))
     _require_var "DSMRREADER_REMOTE_DATALOGGER_SERIAL_BAUDRATE" || ((errors++))
@@ -100,10 +106,32 @@ function _init_datalogger_mode_validate_api_config() {
     [[ "${errors}" -eq 0 ]]
 }
 
+function _validate_remote_input_if_requested() {
+    # In standalone/server modes remote input is optional and only validated when explicitly requested.
+    # In remote_datalogger mode remote input is always required (defaults to serial).
+    local input_method="$1"
+
+    case "${input_method}" in
+        serial)
+            _info "${CURRENT_DIR} | Remote input method: serial"
+            _init_datalogger_mode_validate_serial_config
+            ;;
+        ipv4)
+            _info "${CURRENT_DIR} | Remote input method: ipv4"
+            _init_datalogger_mode_validate_network_config
+            ;;
+        *)
+            _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
+            _error "${CURRENT_DIR} | Valid options: serial, ipv4"
+            return 1
+            ;;
+    esac
+}
+
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: VAR COMBINATIONS
 # Allow DSMRREADER_REMOTE_DATALOGGER_* in standalone and server modes.
-# API vars are only required for remote_datalogger (separate forwarder container).
+# API vars are only used/required for remote_datalogger (push forwarder).
 # If API vars are set in other modes, just warn.
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_remote_vars_vs_mode() {
@@ -139,9 +167,9 @@ function _init_validate_remote_vars_vs_mode() {
 #---------------------------------------------------------------------------------------------------------------------------
 # VALIDATION: REQUIRED VARS (MODE BASED)
 # Semantics:
-# - standalone: server with DB and admin, optional remote input vars, no API required
-# - server_remote_datalogger: server with DB and admin, no API required
-# - remote_datalogger: separate forwarder container, API required
+# - standalone: DB + admin required, optional remote input (pull), NO API required
+# - server_remote_datalogger: DB + admin required, receives telegrams via API, NO API required here
+# - remote_datalogger: forwarder container (push), API required + input required
 #---------------------------------------------------------------------------------------------------------------------------
 function _init_validate_required_vars() {
     local errors=0
@@ -163,46 +191,17 @@ function _init_validate_required_vars() {
             _warn_if_default "DJANGO_DATABASE_PASSWORD" "dsmrreader"
             _require_var "DJANGO_DATABASE_PORT" || ((errors++))
 
-            # Optional remote input validation if user set an input method
+            # Optional "remote input" validation only if user explicitly set an input method
             if [[ -n "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-}" ]]; then
-                local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}"
-                case "${input_method}" in
-                    serial)
-                        _info "${CURRENT_DIR} | Remote input method: serial"
-                        _init_datalogger_mode_validate_serial_config || ((errors++))
-                        ;;
-                    ipv4)
-                        _info "${CURRENT_DIR} | Remote input method: ipv4"
-                        _init_datalogger_mode_validate_network_config || ((errors++))
-                        ;;
-                    *)
-                        _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
-                        _error "${CURRENT_DIR} | Valid options: serial, ipv4"
-                        ((errors++))
-                        ;;
-                esac
+                _validate_remote_input_if_requested "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD}" || ((errors++))
             fi
             ;;
         remote_datalogger)
-            # Separate forwarder container
+            # Push forwarder: requires API vars
             _init_datalogger_mode_validate_api_config || ((errors++))
 
-            local input_method="${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}"
-            case "${input_method}" in
-                serial)
-                    _info "${CURRENT_DIR} | Remote datalogger input method: serial"
-                    _init_datalogger_mode_validate_serial_config || ((errors++))
-                    ;;
-                ipv4)
-                    _info "${CURRENT_DIR} | Remote datalogger input method: ipv4"
-                    _init_datalogger_mode_validate_network_config || ((errors++))
-                    ;;
-                *)
-                    _error "${CURRENT_DIR} | Invalid DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD: ${input_method}"
-                    _error "${CURRENT_DIR} | Valid options: serial, ipv4"
-                    ((errors++))
-                    ;;
-            esac
+            # Input is required in this mode; default serial
+            _validate_remote_input_if_requested "${DSMRREADER_REMOTE_DATALOGGER_INPUT_METHOD:-serial}" || ((errors++))
             ;;
         *)
             _error "${CURRENT_DIR} | Invalid CONTAINER_RUN_MODE: ${mode}"

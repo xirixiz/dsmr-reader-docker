@@ -224,9 +224,9 @@ RUN { \
 RUN rm -f /etc/nginx/sites-enabled/default
 
 # Create app user with proper permissions
-RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
+RUN useradd -r -u 1000 -U -d /app -s /bin/false app && \
     usermod -a -G dialout,audio,uucp app && \
-    mkdir -p /run/nginx/tmp /run/nginx/conf.d /run/nginx/server-snippets && \
+    mkdir -p /run/nginx/conf.d /run/nginx/server-snippets && \
     chown -R app:app /run/nginx && \
     chmod -R 755 /run/nginx
 
@@ -234,10 +234,9 @@ RUN useradd -r -u 803 -U -d /app -s /bin/false app && \
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
 # Healthcheck
-COPY rootfs/usr/local/bin/healthcheck.sh /usr/local/bin/healthcheck.sh
-RUN chmod +x /usr/local/bin/healthcheck.sh
+RUN chmod +x /app/healthcheck.sh
 
 HEALTHCHECK --interval=120s --timeout=5s --start-period=60s --retries=3 \
-  CMD /usr/local/bin/healthcheck.sh || exit 1
+  CMD /app/healthcheck.sh || exit 1
 
 ENTRYPOINT ["/init"]
