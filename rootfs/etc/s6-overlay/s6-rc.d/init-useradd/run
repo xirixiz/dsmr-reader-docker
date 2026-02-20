@@ -9,6 +9,7 @@ IFS=$'\n\t'
 _load_s6_vars
 
 function _init_useradd_uid_gid() {
+    sleep 0.5
     local uid_to_use="${PUID:-${DUID:-1000}}"
     local gid_to_use="${PGID:-${DGID:-1000}}"
 
@@ -42,6 +43,7 @@ function _init_useradd_uid_gid() {
         echo "    ───────────────────────────────────────────────────"
         echo ""
     fi
+    sleep 0.5
 }
 
 function _init_useradd_mkdir() {
