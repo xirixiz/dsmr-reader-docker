@@ -70,8 +70,12 @@ body:
       description: Please provide the Docker system-wide information.
       placeholder: Output of `docker info` command
       render: yaml
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...      
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
@@ -86,11 +90,11 @@ body:
   - type: textarea
     attributes:
       label: Docker compose
-      description: Please provide your compose config if applicable.
+      description: Please provide your compose config or run command if applicable.
       placeholder: Output of `docker-compose config` command
       render: yaml
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
