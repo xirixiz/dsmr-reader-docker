@@ -1,6 +1,20 @@
 name: 💡 Request a feature or an enhancement
 description: Request a feature or an enhancement
 body:
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language / Voertaal
+      description: |
+        > [!TIP]
+        > *🇬🇧 Unable to communicate in Dutch? Welcome anyway! Feel free to use English.*
+        > *🇳🇱 Voel je vooral vrij om in het Nederlands te communiceren, ondanks dat het project Engelstalig is.*
+      options:
+        - '🇳🇱 Nederlandstalig'
+        - '🇬🇧 English'
+    validations:
+      required: true
+      
   - type: markdown
     attributes:
       value: |
