@@ -1,6 +1,17 @@
-name: 💡 Request a feature or an enhancement
-description: Request a feature or an enhancement
+name: 💡 Feature Request
+description: Suggest an idea or enhancement for DSMR Reader in Docker.
+labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest an improvement! 🎉
+        
+        > [!WARNING]
+        > **Important scope limitations before you submit:**
+        > * The main focus of this repository is running **DSMR Reader in Docker**. 
+        > * Requests or features related to the core **DSMR Reader** application itself cannot be processed here. Please report those to the upstream project.
+
   - type: dropdown
     id: language
     attributes:
@@ -14,29 +25,41 @@ body:
         - '🇬🇧 English'
     validations:
       required: true
-      
-  - type: markdown
-    attributes:
-      value: |
-        This form is for requesting a feature or an enhancement.
+
   - type: textarea
+    id: problem
+    attributes:
+      label: The Problem
+      description: Is your feature request related to a specific problem or limitation with the Docker implementation?
+      placeholder: "I'm always frustrated when [...] because [...]"
     validations:
       required: true
-    attributes:
-      label: Request
-      description: >-
-        Describe the feature or enhancement you like to see implemented.
-        Tell us what value it brings to the users.
 
-        Note! Feature and enhancement requests are more then welcome, but keep in mind that
-          - The main focus is to run DSMR Reader in Docker. 
-          - Requests related to DSMR itself cannot be processed here.
-
-        Provide a clear and concise description of what you would like to request.
   - type: textarea
+    id: solution
     attributes:
-      label: Additional information
-      description: >
-        If you have any additional information, use the field below.
-        Please note, you can attach screenshots or screen recordings here, by
-        dragging and dropping files in the field below.
+      label: The Proposed Solution
+      description: Describe the feature or enhancement you would like to see implemented. What value does it bring to the users of this Docker image?
+      placeholder: "I would like to see a feature that [...]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Information
+      description: >-
+        If you have any additional context, `docker-compose.yml` configuration examples, or alternatives you've considered, add them below. 
+        You can attach screenshots or text files by dragging and dropping them into this field.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched the existing issues to ensure this feature hasn't already been requested.
+          required: true
+        - label: I confirm this request is specific to the **Docker implementation**, not the core DSMR Reader software.
+          required: true
