@@ -2,6 +2,20 @@ name: 🚨 Issue Report
 description: Report an issue
 
 body:
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language / Voertaal
+      description: |
+        > [!TIP]
+        > *🇬🇧 Unable to communicate in Dutch? Welcome anyway! Feel free to use English.*
+        > *🇳🇱 Voel je vooral vrij om in het Nederlands te communiceren, ondanks dat het project Engelstalig is.*
+      options:
+        - '🇳🇱 Nederlandstalig'
+        - '🇬🇧 English'
+    validations:
+      required: true
+      
   - type: checkboxes
     attributes:
       label: Support guidelines
