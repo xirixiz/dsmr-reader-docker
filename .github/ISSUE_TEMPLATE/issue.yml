@@ -1,7 +1,17 @@
 name: 🚨 Issue Report
-description: Report an issue
-
+description: Report an issue or unexpected behavior with the DSMR Reader Docker image.
+labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Sorry to hear you're experiencing an issue! 🐛
+        
+        > [!WARNING]
+        > **Important scope limitations before you submit:**
+        > * This repository is strictly for the **Docker implementation** of DSMR Reader. 
+        > * If your issue is a bug within the core DSMR Reader application itself (e.g., calculation errors, UI bugs), please report it to the upstream project.
+
   - type: dropdown
     id: language
     attributes:
@@ -15,95 +25,104 @@ body:
         - '🇬🇧 English'
     validations:
       required: true
-      
+
   - type: checkboxes
+    id: prerequisites
     attributes:
-      label: Support guidelines
-      description: Please read the support guidelines before proceeding.
+      label: Prerequisites
+      description: Please ensure you meet all the following requirements before submitting.
       options:
-        - label: I've read the [support guidelines](https://github.com/xirixiz/dsmr-reader-docker/blob/main/.github/SUPPORT.md)
+        - label: I have read the [support guidelines](https://github.com/xirixiz/dsmr-reader-docker/blob/main/.github/SUPPORT.md).
+          required: true
+        - label: I have checked the documentation and my problem is not mentioned there.
+          required: true
+        - label: I have searched the open and closed issues to ensure this bug hasn't already been reported.
           required: true
 
-  - type: checkboxes
-    attributes:
-      label: I've found an issue and checked that ...
-      description: Make sure that your request fulfills all of the following requirements. If one requirement cannot be satisfied, explain in detail why.
-      options:
-        - label: ... the documentation does not mention anything about my problem
-        - label: ... there are no open or closed issues that are related to my problem
-
   - type: textarea
+    id: description
     attributes:
       label: Description
       description: Please provide a brief description of the issue in 1-2 sentences.
+      placeholder: "When trying to start the container / view the logs, [...] happens."
     validations:
       required: true
 
   - type: textarea
+    id: expected_behavior
     attributes:
-      label: Expected behaviour
-      description: Please describe precisely what you'd expect to happen.
+      label: Expected Behavior
+      description: Please describe precisely what you expected to happen instead.
+      placeholder: "The container should start successfully without throwing a database connection error."
     validations:
       required: true
 
   - type: textarea
+    id: actual_behavior
     attributes:
-      label: Actual behaviour
+      label: Actual Behavior
       description: Please describe precisely what is actually happening.
     validations:
       required: true
 
   - type: textarea
+    id: reproduction
     attributes:
-      label: Steps to reproduce
-      description: Please describe the steps to reproduce the issue.
+      label: Steps to Reproduce
+      description: Please describe the exact steps we need to take to reproduce the issue.
       placeholder: |
-        1. ...
-        2. ...
-        3. ...
+        1. Start the container with...
+        2. Wait for...
+        3. Observe the error...
     validations:
       required: true
 
   - type: textarea
+    id: docker_compose
     attributes:
-      label: Docker info
-      description: Please provide the Docker system-wide information.
-      placeholder: Output of `docker info` command
+      label: Docker Compose Configuration
+      description: Please provide your `docker-compose.yml` config or the `docker run` command you are using. **Make sure to redact passwords and secrets!**
+      placeholder: Paste the output of `docker compose config` here.
       render: yaml
-      placeholder: |
-        1. ...
-        2. ...
-        3. ...      
     validations:
-      required: false
+      required: true
 
   - type: textarea
+    id: logs
     attributes:
-      label: Version
-      description: Please provide operating system version and system information.
+      label: Container Logs
+      description: Please provide the relevant container logs.
+      placeholder: Paste the output of `docker logs <container_name>` here.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: versions
+    attributes:
+      label: System & Version Information
+      description: Please provide your operating system and Docker versions.
       value: |
-        * Docker compose version (type `docker-compose --version`):
-        * System info (type `uname -a`):
+        * OS / Architecture (type `uname -a`): 
+        * Docker version (type `docker --version`): 
+        * Docker Compose version (type `docker compose version`): 
     validations:
       required: true
 
   - type: textarea
+    id: docker_info
     attributes:
-      label: Docker compose
-      description: Please provide your compose config or run command if applicable.
-      placeholder: Output of `docker-compose config` command
+      label: Docker Info
+      description: Please provide your Docker system-wide information.
+      placeholder: Paste the output of the `docker info` command here.
       render: yaml
     validations:
       required: false
 
   - type: textarea
+    id: context
     attributes:
-      label: Container logs
-      description: Please provide the container logs.
+      label: Additional Information
+      description: Please provide any additional context, alternatives considered, or screenshots that might be useful for debugging.
     validations:
-      required: true
-
-  - type: textarea
-    attributes:
-      label: Additional info
-      description: Please provide any additional information that seem useful.
+      required: false
