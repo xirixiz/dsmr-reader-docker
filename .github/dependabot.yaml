@@ -33,20 +33,3 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-
-  # Python Dependencies (pyproject.toml / poetry.lock)
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    groups:
-      python:
-        patterns:
-          - "*"
-    labels:
-      - "dependencies"
-      - "python"
-    commit-message:
-      prefix: "chore"
-      include: "scope"

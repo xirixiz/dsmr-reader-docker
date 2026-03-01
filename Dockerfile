@@ -24,6 +24,7 @@ set -euo pipefail
 apt-get update
 apt-get install -y --no-install-recommends \
   curl ca-certificates tar gzip xz-utils
+apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 # --- Download DSMR Reader ---
@@ -89,15 +90,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
     curl \
     ca-certificates \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 ENV VENV_PATH="/opt/venv"
 RUN python -m venv "${VENV_PATH}"
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
+# Copy only dependency files first for better caching
 COPY --from=staging /app/pyproject.toml /app/poetry.lock /app/
 
+# Mount both pip and poetry caches to speed up rebuilds
 RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cache/pypoetry \
     pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
     . /opt/venv/bin/activate && poetry install --only main --no-root --no-interaction --no-ansi && \
@@ -116,6 +121,12 @@ RUN find /opt/venv -type d -name '__pycache__' -prune -exec rm -rf {} + && \
 # FINAL: Runtime image
 #######################################################################
 FROM ${PYTHON_IMAGE} AS final
+
+# Standard OCI Labels
+LABEL org.opencontainers.image.title="DSMR Reader Docker"
+LABEL org.opencontainers.image.description="Dockerized DSMR Reader implementation."
+LABEL org.opencontainers.image.source="https://github.com/xirixiz/dsmr-reader-docker"
+
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -171,7 +182,7 @@ ENV CONTAINER_RUN_MODE=standalone \
     CONTAINER_ENABLE_IFRAME=false \
     CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP=false
 
-# Install runtime dependencies
+# Install runtime dependencies and immediately clean up in the SAME layer to save space
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
@@ -194,25 +205,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     libcap2-bin \
     vim-tiny \
-    && rm -rf /var/lib/apt/lists/*
-
-# Aggressive system cleanup
-RUN rm -rf \
-    /usr/share/doc/* \
-    /usr/share/man/* \
-    /usr/share/locale/* \
-    /usr/share/info/* \
-    /var/cache/debconf/* \
-    /usr/share/lintian/* \
-    /usr/share/linda/* \
-    /root/.cache/* \
-    /tmp/* \
-    /var/tmp/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf \
+        /usr/share/doc/* \
+        /usr/share/man/* \
+        /usr/share/locale/* \
+        /usr/share/info/* \
+        /var/cache/debconf/* \
+        /usr/share/lintian/* \
+        /usr/share/linda/* \
+        /root/.cache/* \
+        /tmp/* \
+        /var/tmp/*
 
 # Copy application code (do this late for better caching)
 COPY --from=staging /app /app
 
-# Copy `3 configuration
+# Copy rootfs, s6-overlay, and app configuration
 COPY rootfs /
 
 # Set build version - spaces for outline on print
