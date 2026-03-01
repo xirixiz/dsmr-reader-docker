@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: "🚀 Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       ################################################
       # BRANCH DETECTION & INPUT VALIDATION
@@ -257,7 +257,7 @@ jobs:
       ################################################
       - name: "🚀 Build and push Docker images"
         id: docker_build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
@@ -350,7 +350,7 @@ jobs:
 
       - name: "💾 Upload vulnerability report"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-scan-${{ github.run_number }}
           path: trivy-report.txt
