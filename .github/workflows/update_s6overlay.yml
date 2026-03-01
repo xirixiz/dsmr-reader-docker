@@ -1,0 +1,61 @@
+name: 🔄 Update S6-Overlay Version
+
+on:
+  schedule:
+    # Runs every Monday at 04:00 AM (to align with your Dependabot schedule)
+    - cron: '0 4 * * 1'
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  update-s6:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest S6-Overlay version
+        id: fetch_version
+        run: |
+          # Query the GitHub API for the latest release tag
+          LATEST_TAG=$(curl -sL https://api.github.com/repos/just-containers/s6-overlay/releases/latest | jq -r '.tag_name')
+
+          # Strip the 'v' from the tag (e.g., 'v3.1.6.2' becomes '3.1.6.2')
+          LATEST_VERSION="${LATEST_TAG#v}"
+
+          # Extract the current version from the Dockerfile
+          CURRENT_VERSION=$(grep -oP '(?<=^ARG S6_OVERLAY_VERSION=).*' Dockerfile)
+
+          echo "Latest version: $LATEST_VERSION"
+          echo "Current version: $CURRENT_VERSION"
+
+          # Save to step outputs for the next steps
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update Dockerfile
+        if: steps.fetch_version.outputs.latest != steps.fetch_version.outputs.current
+        run: |
+          # Use sed to replace the old version with the new version
+          sed -i "s/^ARG S6_OVERLAY_VERSION=.*/ARG S6_OVERLAY_VERSION=${{ steps.fetch_version.outputs.latest }}/" Dockerfile
+
+      - name: Create Pull Request
+        if: steps.fetch_version.outputs.latest != steps.fetch_version.outputs.current
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(docker): update s6-overlay from ${{ steps.fetch_version.outputs.current }} to ${{ steps.fetch_version.outputs.latest }}"
+          title: "chore(docker): update s6-overlay to ${{ steps.fetch_version.outputs.latest }}"
+          body: |
+            This PR automatically updates the S6-Overlay build argument in the Dockerfile.
+
+            - **Current Version:** `${{ steps.fetch_version.outputs.current }}`
+            - **New Version:** `${{ steps.fetch_version.outputs.latest }}`
+
+            *Triggered by a scheduled GitHub Action.*
+          branch: "chore/update-s6-overlay"
+          labels: |
+            dependencies
+            docker

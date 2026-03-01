@@ -86,6 +86,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     libpng-dev \
     libpq-dev \
+    default-libmysqlclient-dev \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -94,13 +95,13 @@ ENV VENV_PATH="/opt/venv"
 RUN python -m venv "${VENV_PATH}"
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
-# Copy only dependency files first for better caching
 COPY --from=staging /app/pyproject.toml /app/poetry.lock /app/
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
-    . /opt/venv/bin/activate &&poetry install --only main --no-root --no-interaction --no-ansi && \
+    . /opt/venv/bin/activate && poetry install --only main --no-root --no-interaction --no-ansi && \
+    pip install --no-cache-dir mysqlclient && \
     pip uninstall -y poetry
 
 # Aggressive cleanup of Python packages
@@ -187,6 +188,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng16-16t64 \
     zlib1g \
     libpq5 \
+    libmariadb3 \
     passwd \
     locales \
     xz-utils \
