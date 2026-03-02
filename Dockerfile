@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 ARG PYTHON_IMAGE=python:3.14.2-slim-trixie
-ARG S6_OVERLAY_VERSION=3.2.1.0
+ARG S6_OVERLAY_VERSION=3.2.2.0
 
 #######################################################################
 # STAGING: Download Assets (Source Code & S6 Overlay)
