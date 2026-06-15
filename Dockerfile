@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG PYTHON_IMAGE=python:3.14.2-slim-trixie
+ARG PYTHON_IMAGE=python:3.14-slim-trixie
 ARG S6_OVERLAY_VERSION=3.2.3.0
 
 #######################################################################
@@ -182,6 +182,16 @@ ENV CONTAINER_RUN_MODE=standalone \
     CONTAINER_ENABLE_IFRAME=false \
     CONTAINER_ENABLE_VACUUM_DB_AT_STARTUP=false
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release    
+
+RUN install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    &&echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list    
+
 # Install runtime dependencies and immediately clean up in the SAME layer to save space
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
@@ -192,7 +202,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     tzdata \
     netcat-traditional \
-    postgresql-client \
+    postgresql-client-18 \
     procps \
     libffi8 \
     libjpeg62-turbo \
