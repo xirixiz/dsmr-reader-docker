@@ -202,7 +202,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     tzdata \
     netcat-traditional \
-    postgresql-client-18 \
+    postgresql-client \
     procps \
     libffi8 \
     libjpeg62-turbo \
