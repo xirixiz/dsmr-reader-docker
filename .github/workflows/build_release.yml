@@ -150,7 +150,6 @@ jobs:
       - name: Get build timestamp
         id: build_time
         run: echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-
       - name: "📋 Generate Docker metadata"
         id: meta
         uses: docker/metadata-action@v6
@@ -159,7 +158,13 @@ jobs:
             ${{ env.DOCKER_TARGET_REPO }}
             ghcr.io/${{ env.DOCKER_TARGET_REPO }}
           tags: |
-            ${{ steps.docker_tags.outputs.tags }}
+            # SemVer tags for main branch
+            type=semver,pattern={{version}},value=${{ steps.dsmr_version.outputs.version }},enable=${{ steps.branch_guard.outputs.branch == 'main' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.dsmr_version.outputs.version }},enable=${{ steps.branch_guard.outputs.branch == 'main' }}
+            type=semver,pattern={{major}},value=${{ steps.dsmr_version.outputs.version }},enable=${{ steps.branch_guard.outputs.branch == 'main' }}
+
+            # Branch-specific tag for non-main branches (e.g., 'development')
+            type=ref,event=branch,enable=${{ steps.branch_guard.outputs.branch != 'main' }}
           labels: |
             org.opencontainers.image.title=DSMR Reader
             org.opencontainers.image.description=DSMR Reader packaged as a multi-architecture container
@@ -193,7 +198,7 @@ jobs:
           ## 🎉 Docker Build Complete
           - **DSMR Version**: ${{ steps.dsmr_version.outputs.version }}
           - **Branch**: ${{ steps.branch_guard.outputs.branch }}
-          - **Tags**: 
+          - **Tags**:
           ${{ steps.meta.outputs.tags }}
           EOF
 
