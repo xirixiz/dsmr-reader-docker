@@ -29,6 +29,7 @@ If you are upgrading from v5, review the following:
 - Docker variables now use the `CONTAINER_` prefix
 - Default container UID/GID changed to `1000:1000`
 - Legacy timezone mounts and TZ variables should be removed
+- armV7 only support Postgres up to release 17.x. Support will drop in ~1 year from now
 
 ✅ New installations normally require no changes.
 
